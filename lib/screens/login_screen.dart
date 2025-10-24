@@ -28,6 +28,8 @@ class _LoginScreenState extends State<LoginScreen>{
       body: Center(child: SingleChildScrollView(
         padding: const EdgeInsets.all(24), child: Column(children:[
           const SizedBox(height: 10),
+          Image.asset('assets/logo.png', width: 120, height: 120),
+          const SizedBox(height: 16),
           Text('ProMould', style: Theme.of(context).textTheme.headlineMedium?.copyWith(
             color: AppTheme.primary, fontWeight: FontWeight.w800)),
           const SizedBox(height: 20),

@@ -14,7 +14,7 @@ class AppTheme {
     return base.copyWith(
       scaffoldBackgroundColor: bg,
       colorScheme: base.colorScheme.copyWith(
-        primary: primary, secondary: accent, surface: surface, background: bg),
+        primary: primary, secondary: accent, surface: surface),
       appBarTheme: const AppBarTheme(
         backgroundColor: surface, foregroundColor: text, elevation: 0, centerTitle: true),
       inputDecorationTheme: InputDecorationTheme(
@@ -27,9 +27,11 @@ class AppTheme {
           borderSide: const BorderSide(color: primary, width: 2)),
         labelStyle: const TextStyle(color: text),
       ),
-      cardTheme: CardTheme(
-        color: surface, elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))),
+      cardTheme: const CardTheme(
+        color: surface, 
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(18))),
+      ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primary, foregroundColor: Colors.black,
