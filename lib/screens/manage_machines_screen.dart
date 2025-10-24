@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
+import '../services/sync_service.dart';
 
 class ManageMachinesScreen extends StatefulWidget{
   final int level; const ManageMachinesScreen({super.key, required this.level});
@@ -21,10 +22,12 @@ class _ManageMachinesScreenState extends State<ManageMachinesScreen>{
       ]),
       actions: [
         TextButton(onPressed: ()=>Navigator.pop(context), child: const Text('Cancel')),
-        ElevatedButton(onPressed: (){
+        ElevatedButton(onPressed: () async {
           final box = Hive.box('machinesBox');
           final id = uuid.v4();
-          box.add({'id': id, 'name': nameCtrl.text.trim(), 'status':'Idle', 'tonnage': tonCtrl.text.trim()});
+          final data = {'id': id, 'name': nameCtrl.text.trim(), 'status':'Idle', 'tonnage': tonCtrl.text.trim()};
+          await box.put(id, data);
+          await SyncService.pushChange('machinesBox', id, data);
           Navigator.pop(context);
         }, child: const Text('Save')),
       ],
@@ -45,8 +48,11 @@ class _ManageMachinesScreenState extends State<ManageMachinesScreen>{
           return Card(child: ListTile(
             title: Text('${m['name']}'),
             subtitle: Text('Tonnage: ${m['tonnage']??''} • Status: ${m['status']}'),
-            trailing: IconButton(icon: const Icon(Icons.delete_outline), onPressed: (){
-              final key = box.keys.elementAt(i); box.delete(key); setState((){});
+            trailing: IconButton(icon: const Icon(Icons.delete_outline), onPressed: () async {
+              final machineId = m['id'] as String;
+              await box.delete(machineId);
+              await SyncService.deleteRemote('machinesBox', machineId);
+              setState((){});
             }),
           ));
         }),

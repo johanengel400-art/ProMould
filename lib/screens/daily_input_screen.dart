@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:uuid/uuid.dart';
+import '../services/sync_service.dart';
 
 class DailyInputScreen extends StatefulWidget{
   final String username; final int level;
@@ -13,31 +14,36 @@ class _DailyInputScreenState extends State<DailyInputScreen>{
   final shotsCtrl=TextEditingController(); final scrapCtrl=TextEditingController();
   String scrapReason='Other'; final reasons=['Short Shot','Flash','Burn','Contamination','Color Variation','Other'];
 
-  void _save(){
+  void _save() async {
     final shots=int.tryParse(shotsCtrl.text.trim())??0;
     final scrap=int.tryParse(scrapCtrl.text.trim())??0;
     if(machineId==null){ ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Select a machine'))); return; }
     final inputs = Hive.box('inputsBox');
-    inputs.add({
-      'id': uuid.v4(),
+    final id = uuid.v4();
+    final data = {
+      'id': id,
       'machineId': machineId!,
       'jobId': job?['id'] ?? '',
-      'date': DateTime.now(),
+      'date': DateTime.now().toIso8601String(),
       'shots': shots,
       'scrap': scrap,
       'scrapReason': scrapReason,
       'notes': '',
-    });
+    };
+    await inputs.put(id, data);
+    await SyncService.pushChange('inputsBox', id, data);
 
     if(job!=null){
       final jobsBox = Hive.box('jobsBox');
-      final key = jobsBox.keys.firstWhere((k)=> (jobsBox.get(k) as Map)['id']==job!['id']);
-      final updated = Map<String,dynamic>.from(jobsBox.get(key));
+      final jobId = job!['id'] as String;
+      final updated = Map<String,dynamic>.from(job!);
       updated['shotsCompleted'] = (updated['shotsCompleted'] ?? 0) + shots;
       if((updated['shotsCompleted'] ?? 0) >= (updated['targetShots'] ?? 0)){
-        updated['status']='Finished'; updated['endTime']=DateTime.now();
+        updated['status']='Finished'; 
+        updated['endTime']=DateTime.now().toIso8601String();
       }
-      jobsBox.put(key, updated);
+      await jobsBox.put(jobId, updated);
+      await SyncService.pushChange('jobsBox', jobId, updated);
     }
 
     shotsCtrl.clear(); scrapCtrl.clear();

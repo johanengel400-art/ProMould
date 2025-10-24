@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:uuid/uuid.dart';
 import '../services/photo_service.dart';
+import '../services/sync_service.dart';
 
 class IssuesScreen extends StatefulWidget{
   final String username; final int level;
@@ -17,13 +18,15 @@ class _IssuesScreenState extends State<IssuesScreen>{
   void _addIssue() async {
     final issuesBox = Hive.box('issuesBox');
     final id = uuid.v4();
-    issuesBox.add({
+    final data = {
       'id': id,
       'description': descCtrl.text.trim(),
       'photoUrl': imageUrl ?? '',
       'reportedBy': widget.username,
-      'timestamp': DateTime.now(),
-    });
+      'timestamp': DateTime.now().toIso8601String(),
+    };
+    await issuesBox.put(id, data);
+    await SyncService.pushChange('issuesBox', id, data);
     descCtrl.clear(); imageUrl=null; setState((){});
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Issue logged.')));
   }

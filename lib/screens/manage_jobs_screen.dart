@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
+import '../services/sync_service.dart';
 
 class ManageJobsScreen extends StatefulWidget{
   final int level; const ManageJobsScreen({super.key, required this.level});
@@ -39,10 +40,10 @@ class _ManageJobsScreenState extends State<ManageJobsScreen>{
       ),
       actions: [
         TextButton(onPressed: ()=>Navigator.pop(context), child: const Text('Cancel')),
-        ElevatedButton(onPressed: (){
+        ElevatedButton(onPressed: () async {
           final box = Hive.box('jobsBox');
           final id = uuid.v4();
-          box.add({
+          final data = {
             'id': id,
             'productName': productCtrl.text.trim(),
             'color': colorCtrl.text.trim(),
@@ -53,7 +54,9 @@ class _ManageJobsScreenState extends State<ManageJobsScreen>{
             'startTime': null,
             'endTime': null,
             'eta': null,
-          });
+          };
+          await box.put(id, data);
+          await SyncService.pushChange('jobsBox', id, data);
           Navigator.pop(context);
         }, child: const Text('Save')),
       ],
@@ -77,8 +80,11 @@ class _ManageJobsScreenState extends State<ManageJobsScreen>{
           return Card(child: ListTile(
             title: Text('${j['productName']} • ${j['color']??''}'),
             subtitle: Text('Status: ${j['status']} • Progress: $progress%'),
-            trailing: IconButton(icon: const Icon(Icons.delete_outline), onPressed: (){
-              final key = box.keys.elementAt(i); box.delete(key); setState((){});
+            trailing: IconButton(icon: const Icon(Icons.delete_outline), onPressed: () async {
+              final jobId = j['id'] as String;
+              await box.delete(jobId);
+              await SyncService.deleteRemote('jobsBox', jobId);
+              setState((){});
             }),
           ));
         }),
