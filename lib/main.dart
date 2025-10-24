@@ -29,7 +29,7 @@ void main() async {
   // Seed one admin if empty
   final users = Hive.box('usersBox');
   if(users.isEmpty){
-    users.add({'username':'admin','password':'admin123','level':4,'shift':'Any'});
+    users.put('admin', {'username':'admin','password':'admin123','level':4,'shift':'Any'});
   }
 
   await SyncService.start();
