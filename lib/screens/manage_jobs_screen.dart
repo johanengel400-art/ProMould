@@ -31,7 +31,7 @@ class _ManageJobsScreenState extends State<ManageJobsScreen>{
           const SizedBox(height:8),
           DropdownButtonFormField<String>(
             value: selectedMachine,
-            items: machines.map((m)=>DropdownMenuItem(value:m['id'], child: Text('${m['name']}'))).toList(),
+            items: machines.map((m)=>DropdownMenuItem<String>(value:m['id'] as String, child: Text('${m['name']}'))).toList(),
             onChanged: (v)=>setDialogState(()=>selectedMachine=v),
             decoration: const InputDecoration(labelText:'Machine'),
           ),

@@ -32,7 +32,7 @@ class _DailyInputScreenState extends State<DailyInputScreen>{
     if(job!=null){
       final jobsBox = Hive.box('jobsBox');
       final key = jobsBox.keys.firstWhere((k)=> (jobsBox.get(k) as Map)['id']==job!['id']);
-      final updated = Map<String,dynamic>.from(jobsBox.get(k));
+      final updated = Map<String,dynamic>.from(jobsBox.get(key));
       updated['shotsCompleted'] = (updated['shotsCompleted'] ?? 0) + shots;
       if((updated['shotsCompleted'] ?? 0) >= (updated['targetShots'] ?? 0)){
         updated['status']='Finished'; updated['endTime']=DateTime.now();
@@ -59,7 +59,7 @@ class _DailyInputScreenState extends State<DailyInputScreen>{
         child: Column(children:[
           DropdownButtonFormField<String>(
             value: machineId ?? (machines.isNotEmpty? machines.first['id'] as String: null),
-            items: machines.map((m)=>DropdownMenuItem(value:m['id'], child: Text('${m['name']}'))).toList(),
+            items: machines.map((m)=>DropdownMenuItem<String>(value:m['id'] as String, child: Text('${m['name']}'))).toList(),
             onChanged: (v)=>setState(()=>machineId=v),
             decoration: const InputDecoration(labelText:'Machine'),
           ),

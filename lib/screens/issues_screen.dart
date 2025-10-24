@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:uuid/uuid.dart';
-import '../photo_service.dart';
+import '../services/photo_service.dart';
 
 class IssuesScreen extends StatefulWidget{
   final String username; final int level;
