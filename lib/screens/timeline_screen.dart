@@ -29,19 +29,18 @@ class TimelineScreen extends StatelessWidget{
           }
 
           return SfCartesianChart(
-            primaryXAxis: DateTimeAxis(
+            primaryXAxis: CategoryAxis(),
+            primaryYAxis: DateTimeAxis(
               intervalType: DateTimeIntervalType.hours,
               edgeLabelPlacement: EdgeLabelPlacement.shift,
               dateFormat: DateFormat.Hm(), interval: 4),
-            primaryYAxis: CategoryAxis(),
             tooltipBehavior: TooltipBehavior(enable: true),
-            series: <RangeColumnSeries<_JobBar, DateTime>>[
-              RangeColumnSeries<_JobBar, DateTime>(
+            series: <RangeColumnSeries<_JobBar, String>>[
+              RangeColumnSeries<_JobBar, String>(
                 dataSource: data,
-                xValueMapper: (d, _) => d.start,
-                yValueMapper: (d, _) => d.machine,
-                highValueMapper: (d, _) => d.end,
-                lowValueMapper: (d, _) => d.start,
+                xValueMapper: (d, _) => d.machine,
+                lowValueMapper: (d, _) => d.start.millisecondsSinceEpoch.toDouble(),
+                highValueMapper: (d, _) => d.end.millisecondsSinceEpoch.toDouble(),
                 name: 'Jobs',
               ),
             ],
