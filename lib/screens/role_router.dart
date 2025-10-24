@@ -5,6 +5,7 @@ import 'daily_input_screen.dart';
 import 'issues_screen.dart';
 import 'manage_machines_screen.dart';
 import 'manage_jobs_screen.dart';
+import 'sync_test_screen.dart';
 
 class RoleRouter extends StatefulWidget{
   final int level; final String username;
@@ -40,7 +41,8 @@ class _RoleRouterState extends State<RoleRouter>{
         NavigationDestination(icon: Icon(Icons.report_problem_outlined), label:'Issues'),
       ];
     } else {
-      _tabs=[dash, timeline, inputs, issues, machines, jobs];
+      final syncTest = const SyncTestScreen();
+      _tabs=[dash, timeline, inputs, issues, machines, jobs, syncTest];
       _dest=const [
         NavigationDestination(icon: Icon(Icons.dashboard_outlined), label:'Dashboard'),
         NavigationDestination(icon: Icon(Icons.calendar_month_outlined), label:'Timeline'),
@@ -48,6 +50,7 @@ class _RoleRouterState extends State<RoleRouter>{
         NavigationDestination(icon: Icon(Icons.report_problem_outlined), label:'Issues'),
         NavigationDestination(icon: Icon(Icons.precision_manufacturing_outlined), label:'Machines'),
         NavigationDestination(icon: Icon(Icons.fact_check_outlined), label:'Jobs'),
+        NavigationDestination(icon: Icon(Icons.sync_outlined), label:'Sync Test'),
       ];
     }
   }

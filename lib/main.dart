@@ -22,19 +22,31 @@ Future<void> _openCoreBoxes() async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  print('🚀 ProMould: Starting app...');
+  
+  print('🔥 Initializing Firebase...');
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  print('✅ Firebase initialized');
+  
+  print('📦 Initializing Hive...');
   await Hive.initFlutter();
   await _openCoreBoxes();
+  print('✅ Hive initialized');
 
   // Seed one admin if empty
   final users = Hive.box('usersBox');
   if(users.isEmpty){
     users.put('admin', {'username':'admin','password':'admin123','level':4,'shift':'Any'});
+    print('👤 Created admin user');
   }
 
+  print('🔄 Starting sync services...');
   await SyncService.start();
   await BackgroundSync.initialize();
+  print('✅ Sync services started');
 
+  print('🎨 Launching app UI...');
   runApp(const ProMouldApp());
 }
 
