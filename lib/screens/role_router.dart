@@ -9,6 +9,7 @@ import 'manage_moulds_screen.dart';
 import 'manage_floors_screen.dart';
 import 'manage_users_screen.dart';
 import 'planning_screen.dart';
+import 'downtime_screen.dart';
 import 'oee_screen.dart';
 import 'settings_screen.dart';
 import 'sync_test_screen.dart';
@@ -58,7 +59,8 @@ class _RoleRouterState extends State<RoleRouter>{
         ManageMouldsScreen(level: widget.level),
         ManageFloorsScreen(level: widget.level), 
         ManageUsersScreen(level: widget.level),
-        PlanningScreen(level: widget.level), 
+        PlanningScreen(level: widget.level),
+        DowntimeScreen(level: widget.level),
         OEEScreen(level: widget.level), 
         SettingsScreen(level: widget.level),
         const SyncTestScreen(),
@@ -75,6 +77,7 @@ class _RoleRouterState extends State<RoleRouter>{
         NavigationDestination(icon: Icon(Icons.apartment_outlined), label:'Floors'),
         NavigationDestination(icon: Icon(Icons.manage_accounts_outlined), label:'Users'),
         NavigationDestination(icon: Icon(Icons.timeline_outlined), label:'Planning'),
+        NavigationDestination(icon: Icon(Icons.access_time_outlined), label:'Downtime'),
         NavigationDestination(icon: Icon(Icons.insights_outlined), label:'OEE'),
         NavigationDestination(icon: Icon(Icons.settings_outlined), label:'Settings'),
         NavigationDestination(icon: Icon(Icons.sync_outlined), label:'Sync'),
