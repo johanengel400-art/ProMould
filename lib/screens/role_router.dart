@@ -1,4 +1,9 @@
+// lib/screens/role_router.dart
+// v7.2 – Material 3 Navigation Drawer (replaces bottom nav)
+
 import 'package:flutter/material.dart';
+
+// import all screens
 import 'dashboard_screen.dart';
 import 'timeline_screen.dart';
 import 'daily_input_screen.dart';
@@ -12,84 +17,146 @@ import 'planning_screen.dart';
 import 'downtime_screen.dart';
 import 'oee_screen.dart';
 import 'settings_screen.dart';
-import 'sync_test_screen.dart';
 
-class RoleRouter extends StatefulWidget{
-  final int level; final String username;
+class RoleRouter extends StatefulWidget {
+  final int level;
+  final String username;
   const RoleRouter({super.key, required this.level, required this.username});
-  @override State<RoleRouter> createState()=>_RoleRouterState();
+
+  @override
+  State<RoleRouter> createState() => _RoleRouterState();
 }
 
-class _RoleRouterState extends State<RoleRouter>{
-  int _i=0; late List<Widget> _tabs; late List<NavigationDestination> _dest;
+class _RoleRouterState extends State<RoleRouter> {
+  late Widget _activeScreen;
+  late String _title;
 
-  @override void initState(){
+  @override
+  void initState() {
     super.initState();
-    final dash = DashboardScreen(username: widget.username, level: widget.level);
-    final timeline = TimelineScreen(level: widget.level);
-    final inputs = DailyInputScreen(username: widget.username, level: widget.level);
-    final issues = IssuesScreen(username: widget.username, level: widget.level);
-    final machines = ManageMachinesScreen(level: widget.level);
-    final jobs = ManageJobsScreen(level: widget.level);
-    final moulds = ManageMouldsScreen(level: widget.level);
-
-    if(widget.level==1){
-      _tabs=[inputs, timeline, issues];
-      _dest=const [
-        NavigationDestination(icon: Icon(Icons.edit_note_outlined), label:'Inputs'),
-        NavigationDestination(icon: Icon(Icons.calendar_month_outlined), label:'Timeline'),
-        NavigationDestination(icon: Icon(Icons.report_problem_outlined), label:'Issues'),
-      ];
-    } else if(widget.level==2){
-      _tabs=[dash, inputs, timeline, issues];
-      _dest=const [
-        NavigationDestination(icon: Icon(Icons.dashboard_outlined), label:'Dashboard'),
-        NavigationDestination(icon: Icon(Icons.edit_note_outlined), label:'Inputs'),
-        NavigationDestination(icon: Icon(Icons.calendar_month_outlined), label:'Timeline'),
-        NavigationDestination(icon: Icon(Icons.report_problem_outlined), label:'Issues'),
-      ];
-    } else {
-      _tabs = [
-        dash, 
-        timeline, 
-        inputs, 
-        issues, 
-        machines, 
-        jobs, 
-        ManageMouldsScreen(level: widget.level),
-        ManageFloorsScreen(level: widget.level), 
-        ManageUsersScreen(level: widget.level),
-        PlanningScreen(level: widget.level),
-        DowntimeScreen(level: widget.level),
-        OEEScreen(level: widget.level), 
-        SettingsScreen(level: widget.level),
-        const SyncTestScreen(),
-      ];
-      
-      _dest = const [
-        NavigationDestination(icon: Icon(Icons.dashboard_outlined), label:'Dashboard'),
-        NavigationDestination(icon: Icon(Icons.calendar_month_outlined), label:'Timeline'),
-        NavigationDestination(icon: Icon(Icons.edit_note_outlined), label:'Inputs'),
-        NavigationDestination(icon: Icon(Icons.report_problem_outlined), label:'Issues'),
-        NavigationDestination(icon: Icon(Icons.precision_manufacturing_outlined), label:'Machines'),
-        NavigationDestination(icon: Icon(Icons.fact_check_outlined), label:'Jobs'),
-        NavigationDestination(icon: Icon(Icons.apps_outage_outlined), label:'Moulds'),
-        NavigationDestination(icon: Icon(Icons.apartment_outlined), label:'Floors'),
-        NavigationDestination(icon: Icon(Icons.manage_accounts_outlined), label:'Users'),
-        NavigationDestination(icon: Icon(Icons.timeline_outlined), label:'Planning'),
-        NavigationDestination(icon: Icon(Icons.access_time_outlined), label:'Downtime'),
-        NavigationDestination(icon: Icon(Icons.insights_outlined), label:'OEE'),
-        NavigationDestination(icon: Icon(Icons.settings_outlined), label:'Settings'),
-        NavigationDestination(icon: Icon(Icons.sync_outlined), label:'Sync'),
-      ];
-    }
+    _activeScreen = DashboardScreen(username: widget.username, level: widget.level);
+    _title = 'Dashboard';
   }
 
-  @override Widget build(BuildContext context){
+  void _navigate(String title, Widget screen) {
+    setState(() {
+      _activeScreen = screen;
+      _title = title;
+    });
+    Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isManager = widget.level >= 3;
+    final bool isAdmin = widget.level >= 4;
+
     return Scaffold(
-      body: SafeArea(child: _tabs[_i]),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex:_i, onDestinationSelected:(x)=>setState(()=>_i=x), destinations:_dest),
+      appBar: AppBar(
+        title: Text(_title),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: Center(
+              child: Text('User: ${widget.username}',
+                  style: const TextStyle(fontSize: 14)),
+            ),
+          ),
+        ],
+      ),
+      drawer: NavigationDrawer(
+        onDestinationSelected: (int index) {},
+        children: [
+          const DrawerHeader(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF4CC9F0), Color(0xFF80ED99)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.factory, size: 48, color: Colors.white),
+                SizedBox(height: 8),
+                Text(
+                  'ProMould v7.2',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+                Text(
+                  'Smart Factory',
+                  style: TextStyle(fontSize: 14, color: Colors.white70),
+                ),
+              ],
+            ),
+          ),
+          _drawerItem(Icons.dashboard_outlined, 'Dashboard',
+              DashboardScreen(username: widget.username, level: widget.level)),
+          _drawerItem(Icons.calendar_month_outlined, 'Timeline',
+              TimelineScreen(level: widget.level)),
+          _drawerItem(Icons.edit_note_outlined, 'Inputs',
+              DailyInputScreen(username: widget.username, level: widget.level)),
+          _drawerItem(Icons.report_problem_outlined, 'Issues',
+              IssuesScreen(username: widget.username, level: widget.level)),
+          if (isManager) const Divider(),
+          if (isManager)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text('MANAGEMENT', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white54)),
+            ),
+          if (isManager)
+            _drawerItem(Icons.precision_manufacturing_outlined, 'Machines',
+                ManageMachinesScreen(level: widget.level)),
+          if (isManager)
+            _drawerItem(Icons.fact_check_outlined, 'Jobs',
+                ManageJobsScreen(level: widget.level)),
+          if (isManager)
+            _drawerItem(Icons.apps_outage_outlined, 'Moulds',
+                ManageMouldsScreen(level: widget.level)),
+          if (isManager)
+            _drawerItem(Icons.apartment_outlined, 'Floors',
+                ManageFloorsScreen(level: widget.level)),
+          if (isAdmin)
+            _drawerItem(Icons.manage_accounts_outlined, 'Users',
+                ManageUsersScreen(level: widget.level)),
+          if (isManager)
+            _drawerItem(Icons.timeline_outlined, 'Planning',
+                PlanningScreen(level: widget.level)),
+          if (isManager)
+            _drawerItem(Icons.timer_outlined, 'Downtime',
+                DowntimeScreen(level: widget.level)),
+          if (isManager)
+            _drawerItem(Icons.insights_outlined, 'Reports / OEE',
+                OEEScreen(level: widget.level)),
+          if (isAdmin) const Divider(),
+          if (isAdmin)
+            _drawerItem(Icons.settings_outlined, 'Settings',
+                SettingsScreen(level: widget.level)),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.exit_to_app_outlined, color: Color(0xFFFF6B6B)),
+            title: const Text('Logout', style: TextStyle(color: Color(0xFFFF6B6B))),
+            onTap: () => Navigator.of(context).popUntil((r) => r.isFirst),
+          ),
+        ],
+      ),
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        child: _activeScreen,
+      ),
+    );
+  }
+
+  Widget _drawerItem(IconData icon, String title, Widget screen) {
+    final bool selected = _title == title;
+    return ListTile(
+      leading: Icon(icon, color: selected ? const Color(0xFF4CC9F0) : null),
+      title: Text(title,
+          style: TextStyle(
+              color: selected ? const Color(0xFF4CC9F0) : null,
+              fontWeight: selected ? FontWeight.bold : FontWeight.normal)),
+      onTap: () => _navigate(title, screen),
     );
   }
 }
