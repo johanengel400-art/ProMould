@@ -1,154 +1,189 @@
+// lib/screens/planning_screen.dart
+// v7.2 – ETA calculation + refreshed layout
+
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../services/sync_service.dart';
 
-class PlanningScreen extends StatefulWidget{
-  final int level; const PlanningScreen({super.key, required this.level});
-  @override State<PlanningScreen> createState()=>_PlanningScreenState();
+class PlanningScreen extends StatefulWidget {
+  final int level;
+  const PlanningScreen({super.key, required this.level});
+
+  @override
+  State<PlanningScreen> createState() => _PlanningScreenState();
 }
 
-class _PlanningScreenState extends State<PlanningScreen>{
-  final uuid=const Uuid();
+class _PlanningScreenState extends State<PlanningScreen> {
+  final uuid = const Uuid();
   String? selectedFloorId;
 
-  @override Widget build(BuildContext context){
+  @override
+  Widget build(BuildContext context) {
     final floorsBox = Hive.box('floorsBox');
     final machinesBox = Hive.box('machinesBox');
     final jobsBox = Hive.box('jobsBox');
     final queueBox = Hive.box('queueBox');
+    final mouldsBox = Hive.box('mouldsBox');
 
     final floors = floorsBox.values.cast<Map>().toList();
-    final floorId = selectedFloorId ?? (floors.isNotEmpty ? floors.first['id'] as String : null);
-
-    final machines = machinesBox.values.cast<Map>().where((m)=> (m['floorId']??'') == (floorId??'')).toList();
+    final floorId =
+        selectedFloorId ?? (floors.isNotEmpty ? floors.first['id'] as String : null);
+    final machines = machinesBox.values
+        .cast<Map>()
+        .where((m) => (m['floorId'] ?? '') == (floorId ?? ''))
+        .toList();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Production Planning')),
-      body: Column(children:[
-        Padding(padding: const EdgeInsets.all(12), child: Row(children:[
-          Expanded(child: DropdownButtonFormField<String>(
-            value: floorId,
-            items: floors.map((f)=>DropdownMenuItem(value:f['id'] as String, child: Text('${f['name']}'))).toList(),
-            onChanged: (v)=>setState(()=>selectedFloorId=v),
-            decoration: const InputDecoration(labelText:'Floor'),
-          )),
-          const SizedBox(width:12),
-          ElevatedButton.icon(onPressed: _addJobToMachine, icon: const Icon(Icons.add), label: const Text('Assign Job')),
-        ])),
-        const Divider(height:1),
-        Expanded(child: ListView.builder(
-          itemCount: machines.length,
-          itemBuilder: (_,i){
-            final m = machines[i];
-            final q = queueBox.values.cast<Map>().where((e)=> e['machineId']==m['id']).toList()
-              ..sort((a,b)=> (a['order'] as int).compareTo(b['order'] as int));
-            final running = jobsBox.values.cast<Map?>().firstWhere(
-              (j)=> j!=null && j!['machineId']==m['id'] && j!['status']=='Running',
-              orElse: ()=>null);
-            return Card(child: ExpansionTile(
-              title: Text('${m['name']} • ${m['status']}'),
-              subtitle: Text(running==null? 'No active job' : 'Running: ${running['productName']} • ${running['shotsCompleted']}/${running['targetShots']}'),
-              children: [
-                if(q.isEmpty) const ListTile(title: Text('No queued jobs')),
-                for(final qi in q) ListTile(
-                  leading: CircleAvatar(child: Text('${qi['order']}')),
-                  title: Text('Job: ${qi['jobName']??qi['jobId']}'),
-                  trailing: Wrap(spacing:6, children:[
-                    IconButton(onPressed: ()=>_reorder(qi,-1), icon: const Icon(Icons.expand_less)),
-                    IconButton(onPressed: ()=>_reorder(qi, 1), icon: const Icon(Icons.expand_more)),
-                    IconButton(onPressed: ()=>_removeQueue(qi), icon: const Icon(Icons.delete_outline)),
-                  ]),
-                ),
-              ],
-            ));
-          })),
-      ]),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _assignJobDialog,
+        icon: const Icon(Icons.add),
+        label: const Text('Assign Job'),
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: DropdownButtonFormField<String>(
+              value: floorId,
+              items: floors
+                  .map((f) =>
+                      DropdownMenuItem(value: f['id'] as String, child: Text('${f['name']}')))
+                  .toList(),
+              onChanged: (v) => setState(() => selectedFloorId = v),
+              decoration: const InputDecoration(labelText: 'Select Floor'),
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: machines.length,
+              itemBuilder: (_, i) {
+                final m = machines[i];
+                final jobs = jobsBox.values.cast<Map>().where((j) =>
+                    j['machineId'] == m['id'] &&
+                    (j['status'] == 'Running' || j['status'] == 'Queued')).toList();
+                jobs.sort((a, b) =>
+                    (a['startTime'] ?? '').toString().compareTo((b['startTime'] ?? '').toString()));
+                return _machineCard(m, jobs, mouldsBox);
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Future<void> _removeQueue(Map qi) async {
-    final qBox = Hive.box('queueBox');
-    final queueId = qi['id'] as String;
-    await qBox.delete(queueId);
-    await SyncService.deleteRemote('queueBox', queueId);
-    setState((){});
+  Widget _machineCard(Map m, List<Map> jobs, Box mouldsBox) {
+    final runningJob = jobs.isNotEmpty ? jobs.first : null;
+    final queuedJobs = jobs.skip(1).toList();
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      child: ExpansionTile(
+        title: Text('${m['name']} • ${m['status']}'),
+        subtitle: runningJob == null
+            ? const Text('No active job')
+            : Text(_etaText(runningJob, mouldsBox)),
+        children: [
+          if (queuedJobs.isEmpty)
+            const ListTile(title: Text('No queued jobs'))
+          else
+            for (final j in queuedJobs)
+              ListTile(
+                leading: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
+                title: Text(j['productName'] ?? ''),
+                subtitle: Text(_etaText(j, mouldsBox)),
+              ),
+        ],
+      ),
+    );
   }
 
-  Future<void> _reorder(Map qi, int delta) async {
-    final qBox = Hive.box('queueBox');
-    final list = qBox.values.cast<Map>().where((e)=> e['machineId']==qi['machineId']).toList()
-      ..sort((a,b)=> (a['order'] as int).compareTo(b['order'] as int));
-    final idx = list.indexWhere((e)=> e['id']==qi['id']);
-    final newIdx = (idx + delta).clamp(0, list.length-1);
-    if(idx==newIdx) return;
-    
-    final swap = list[newIdx];
-    final qiId = qi['id'] as String;
-    final swapId = swap['id'] as String;
-    
-    // Swap orders
-    final tempOrder = qi['order'];
-    qi['order'] = swap['order'];
-    swap['order'] = tempOrder;
-    
-    // Update both in Hive and Firebase
-    await qBox.put(qiId, qi);
-    await qBox.put(swapId, swap);
-    await SyncService.pushChange('queueBox', qiId, Map<String, dynamic>.from(qi));
-    await SyncService.pushChange('queueBox', swapId, Map<String, dynamic>.from(swap));
-    
-    setState((){});
+  String _etaText(Map job, Box mouldsBox) {
+    final mould = mouldsBox.values.cast<Map?>().firstWhere(
+          (m) => m != null && m['id'] == job['mouldId'],
+          orElse: () => null,
+        );
+    final cycle = (mould?['cycleTime'] as num?)?.toDouble() ?? 30.0;
+    final remaining =
+        (job['targetShots'] as num? ?? 0) - (job['shotsCompleted'] as num? ?? 0);
+    final minutes = (remaining * cycle / 60).toDouble();
+    final eta = DateTime.now().add(Duration(minutes: minutes.round()));
+    final etaText = DateFormat('HH:mm').format(eta);
+    return 'ETA $etaText • ${remaining} shots left';
   }
 
-  Future<void> _addJobToMachine() async {
+  Future<void> _assignJobDialog() async {
     final machinesBox = Hive.box('machinesBox');
     final jobsBox = Hive.box('jobsBox');
     final queueBox = Hive.box('queueBox');
 
-    String? machineId = machinesBox.values.cast<Map>().isNotEmpty ? machinesBox.values.cast<Map>().first['id'] as String : null;
-    String? jobId = jobsBox.values.cast<Map>().isNotEmpty ? jobsBox.values.cast<Map>().first['id'] as String : null;
+    String? machineId =
+        machinesBox.values.cast<Map>().isNotEmpty ? machinesBox.values.cast<Map>().first['id'] as String : null;
+    String? jobId =
+        jobsBox.values.cast<Map>().isNotEmpty ? jobsBox.values.cast<Map>().first['id'] as String : null;
 
-    await showDialog(context: context, builder: (dialogContext)=>StatefulBuilder(
-      builder: (context, setDialogState) => AlertDialog(
-        title: const Text('Assign Job to Machine'),
-        content: Column(mainAxisSize: MainAxisSize.min, children:[
-          DropdownButtonFormField<String>(
-            value: machineId,
-            items: machinesBox.values.cast<Map>().map((m)=>DropdownMenuItem(value:m['id'] as String, child: Text('${m['name']}'))).toList(),
-            onChanged: (v)=> setDialogState(()=>machineId=v), 
-            decoration: const InputDecoration(labelText:'Machine')),
-          const SizedBox(height:8),
-          DropdownButtonFormField<String>(
-            value: jobId,
-            items: jobsBox.values.cast<Map>().map((j)=>DropdownMenuItem(value:j['id'] as String, child: Text('${j['productName']}'))).toList(),
-            onChanged: (v)=> setDialogState(()=>jobId=v), 
-            decoration: const InputDecoration(labelText:'Job')),
-        ]),
-        actions: [
-          TextButton(onPressed: ()=>Navigator.pop(dialogContext), child: const Text('Cancel')),
-          ElevatedButton(onPressed: () async {
-            if(machineId==null || jobId==null) { Navigator.pop(dialogContext); return; }
-            
-            final id = uuid.v4();
-            final lastOrder = queueBox.values.cast<Map>().where((e)=> e['machineId']==machineId).fold<int>(0,(p,e)=> (e['order'] as int)>p? e['order'] as int : p);
-            
-            final job = jobsBox.values.cast<Map>().firstWhere((j)=> j['id']==jobId, orElse: ()=>{});
-            final data = {
-              'id':id,
-              'machineId':machineId,
-              'jobId':jobId,
-              'jobName':job['productName']??'',
-              'order': lastOrder+1
-            };
-            
-            await queueBox.put(id, data);
-            await SyncService.pushChange('queueBox', id, data);
-            Navigator.pop(dialogContext);
-          }, child: const Text('Add')),
-        ],
+    await showDialog(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Assign Job to Machine'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DropdownButtonFormField<String>(
+                value: machineId,
+                items: machinesBox.values
+                    .cast<Map>()
+                    .map((m) =>
+                        DropdownMenuItem(value: m['id'] as String, child: Text('${m['name']}')))
+                    .toList(),
+                onChanged: (v) => setDialogState(() => machineId = v),
+                decoration: const InputDecoration(labelText: 'Machine'),
+              ),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                value: jobId,
+                items: jobsBox.values
+                    .cast<Map>()
+                    .map((j) => DropdownMenuItem(
+                        value: j['id'] as String, child: Text('${j['productName']}')))
+                    .toList(),
+                onChanged: (v) => setDialogState(() => jobId = v),
+                decoration: const InputDecoration(labelText: 'Job'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: () async {
+                if (machineId == null || jobId == null) return;
+                final id = uuid.v4();
+                final existing =
+                    queueBox.values.cast<Map>().where((e) => e['machineId'] == machineId);
+                final order = existing.isEmpty
+                    ? 1
+                    : (existing.map((e) => e['order'] as int).reduce((a, b) => a > b ? a : b) + 1);
+                final data = {
+                  'id': id,
+                  'machineId': machineId,
+                  'jobId': jobId,
+                  'order': order,
+                };
+                await queueBox.put(id, data);
+                await SyncService.push('queueBox', id, data);
+                Navigator.pop(dialogContext);
+              },
+              child: const Text('Assign'),
+            ),
+          ],
+        ),
       ),
-    ));
-    setState((){});
+    );
+    setState(() {});
   }
 }
