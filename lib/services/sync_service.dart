@@ -1,82 +1,96 @@
+// lib/services/sync_service.dart
+// v7.2 – Realtime Firestore listeners + local Hive mirror
+
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hive/hive.dart';
 
+/// Handles realtime Firestore <-> Hive synchronization.
+/// Each Firestore collection listed below is mirrored locally in Hive.
+/// Updates are streamed via .snapshots() so UI widgets rebuild automatically.
 class SyncService {
-  static final _fire = FirebaseFirestore.instance;
-  static final _subs = <StreamSubscription>[];
+  static final FirebaseFirestore _fire = FirebaseFirestore.instance;
+  static final List<StreamSubscription> _subs = [];
 
-  static final _boxToCollection = {
-    'machinesBox': 'machines',
-    'mouldsBox': 'moulds',
-    'jobsBox': 'jobs',
-    'queueBox': 'queue',
-    'inputsBox': 'inputs',
-    'issuesBox': 'issues',
-    'downtimeBox': 'downtime',
-    'floorsBox': 'floors',
-    'usersBox': 'users',
-  };
-
+  /// Start listening to all Firestore collections.
   static Future<void> start() async {
-    try {
-      print('🔄 SyncService: Starting Firebase sync...');
-      for (final entry in _boxToCollection.entries) {
-        await _listen(entry.key, entry.value);
-        print('✅ SyncService: Listening to ${entry.value} → ${entry.key}');
-      }
-      print('🔄 SyncService: All listeners active');
-    } catch (e) {
-      print('❌ SyncService start error: $e');
-    }
+    _cancelAll();
+    await _listenBox('machinesBox', 'machines');
+    await _listenBox('mouldsBox', 'moulds');
+    await _listenBox('jobsBox', 'jobs');
+    await _listenBox('inputsBox', 'inputs');
+    await _listenBox('issuesBox', 'issues');
+    await _listenBox('floorsBox', 'floors');
+    await _listenBox('queueBox', 'queue');
+    await _listenBox('downtimeBox', 'downtime');
+    await _listenBox('usersBox', 'users');
   }
 
-  static Future<void> _listen(String boxName, String collectionName) async {
-    try {
-      final box = Hive.box(boxName);
-      _subs.add(_fire.collection(collectionName).snapshots().listen(
-        (snap) async {
-          print('📥 Received ${snap.docs.length} docs from $collectionName');
-          for (final doc in snap.docs) {
-            final data = Map<String, dynamic>.from(doc.data());
-            await box.put(doc.id, data);
-            print('💾 Saved ${doc.id} to $boxName');
+  static Future<void> _listenBox(String hiveBox, String collection) async {
+    final box = await Hive.openBox(hiveBox);
+
+    // Load initial snapshot
+    final snapshot = await _fire.collection(collection).get();
+    for (var doc in snapshot.docs) {
+      await box.put(doc.id, doc.data());
+    }
+
+    // Listen for realtime updates
+    final sub = _fire.collection(collection).snapshots().listen(
+      (snap) async {
+        for (final change in snap.docChanges) {
+          switch (change.type) {
+            case DocumentChangeType.added:
+            case DocumentChangeType.modified:
+              await box.put(change.doc.id, change.doc.data());
+              break;
+            case DocumentChangeType.removed:
+              await box.delete(change.doc.id);
+              break;
           }
-        },
-        onError: (error) {
-          print('❌ Sync error for $collectionName: $error');
-        },
-      ));
+        }
+      },
+      onError: (e) => print('[SyncService] Error for $collection: $e'),
+      cancelOnError: false,
+    );
+
+    _subs.add(sub);
+    print('[SyncService] Listening to $collection');
+  }
+
+  /// Push a local Hive record to Firestore.
+  static Future<void> push(String boxName, String id, Map<String, dynamic> data) async {
+    try {
+      await _fire.collection(boxName.replaceAll('Box', '')).doc(id).set(data, SetOptions(merge: true));
     } catch (e) {
-      print('❌ Listen error for $boxName: $e');
+      print('[SyncService] Push error ($boxName/$id): $e');
     }
   }
 
-  static Future<void> pushChange(String boxName, String id, Map<String, dynamic> data) async {
-    try {
-      final collectionName = _boxToCollection[boxName] ?? boxName;
-      print('📤 Pushing $id to $collectionName...');
-      await _fire.collection(collectionName).doc(id).set(data, SetOptions(merge: true));
-      print('✅ Pushed $id to $collectionName');
-    } catch (e) {
-      print('❌ Push error for $boxName/$id: $e');
-      rethrow;
+  /// Cancel all active subscriptions.
+  static void _cancelAll() {
+    for (final s in _subs) {
+      s.cancel();
     }
+    _subs.clear();
+  }
+
+  /// Stop all listeners (called on logout or app close).
+  static Future<void> stop() async {
+    _cancelAll();
+    print('[SyncService] All listeners cancelled');
+  }
+
+  // Legacy method names for backward compatibility
+  static Future<void> pushChange(String boxName, String id, Map<String, dynamic> data) async {
+    await push(boxName, id, data);
   }
 
   static Future<void> deleteRemote(String boxName, String id) async {
     try {
-      final collectionName = _boxToCollection[boxName] ?? boxName;
-      print('🗑️ Deleting $id from $collectionName...');
-      await _fire.collection(collectionName).doc(id).delete();
-      print('✅ Deleted $id from $collectionName');
+      await _fire.collection(boxName.replaceAll('Box', '')).doc(id).delete();
     } catch (e) {
-      print('❌ Delete error for $boxName/$id: $e');
-      rethrow;
+      print('[SyncService] Delete error ($boxName/$id): $e');
     }
-  }
-
-  static Future<void> stop() async {
-    for (final s in _subs) { await s.cancel(); }
   }
 }
