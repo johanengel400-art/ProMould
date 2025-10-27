@@ -96,7 +96,7 @@ class _PlanningScreenState extends State<PlanningScreen> {
           ),
           SliverToBoxAdapter(
             child: Column(
-        children: [
+              children: [
           // Statistics Cards
           Container(
             decoration: BoxDecoration(
