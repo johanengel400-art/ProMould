@@ -63,45 +63,200 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>{
   @override Widget build(BuildContext context){
     final box = Hive.box('usersBox');
     final items = box.values.cast<Map>().toList();
+    
+    // Group users by level for better organization
+    final operators = items.where((u) => u['level'] == 1).length;
+    final material = items.where((u) => u['level'] == 2).length;
+    final setters = items.where((u) => u['level'] == 3).length;
+    final management = items.where((u) => u['level'] == 4).length;
+    
     return Scaffold(
-      appBar: AppBar(title: const Text('Users')),
-      floatingActionButton: FloatingActionButton(
-        onPressed: ()=>_addOrEdit(), 
-        child: const Icon(Icons.person_add_alt_1)
+      backgroundColor: const Color(0xFF0A0E1A),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 120,
+            floating: false,
+            pinned: true,
+            backgroundColor: const Color(0xFF0F1419),
+            flexibleSpace: FlexibleSpaceBar(
+              title: const Text('Users'),
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFF9D4EDD).withOpacity(0.3),
+                      const Color(0xFF0F1419),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // Stats cards
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Expanded(child: _buildStatCard('Operators', operators.toString(), const Color(0xFF4CC9F0))),
+                  const SizedBox(width: 8),
+                  Expanded(child: _buildStatCard('Material', material.toString(), const Color(0xFF06D6A0))),
+                  const SizedBox(width: 8),
+                  Expanded(child: _buildStatCard('Setters', setters.toString(), const Color(0xFFFFD166))),
+                  const SizedBox(width: 8),
+                  Expanded(child: _buildStatCard('Mgmt', management.toString(), const Color(0xFF9D4EDD))),
+                ],
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (_,i){
+                  final u = items[i];
+                  final levelName = levels[u['level']] ?? 'Unknown';
+                  final levelColor = _getLevelColor(u['level'] as int);
+                  
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    color: const Color(0xFF0F1419),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: const BorderSide(color: Colors.white12),
+                    ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.all(16),
+                      leading: Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: levelColor.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(
+                          child: Text(
+                            '${u['username']}'.substring(0,1).toUpperCase(),
+                            style: TextStyle(
+                              color: levelColor,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                      title: Text('${u['username']}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: levelColor.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: levelColor.withOpacity(0.5)),
+                                ),
+                                child: Text(
+                                  'Level ${u['level']} • $levelName',
+                                  style: TextStyle(color: levelColor, fontSize: 11, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.white12,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  '${u['shift']} Shift',
+                                  style: const TextStyle(color: Colors.white70, fontSize: 11),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      onTap: ()=>_addOrEdit(user: Map<String,dynamic>.from(u)),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.delete_outline, color: Colors.red), 
+                        onPressed: () async {
+                          // Prevent deleting the last admin
+                          if(u['level'] == 4) {
+                            final adminCount = items.where((item) => item['level'] == 4).length;
+                            if(adminCount <= 1) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Cannot delete the last admin user'))
+                              );
+                              return;
+                            }
+                          }
+                          final userId = u['id'] as String;
+                          await box.delete(userId);
+                          await SyncService.deleteRemote('usersBox', userId);
+                          setState((){});
+                        }
+                      ),
+                    ),
+                  );
+                },
+                childCount: items.length,
+              ),
+            ),
+          ),
+        ],
       ),
-      body: ListView.builder(
-        itemCount: items.length,
-        itemBuilder: (_,i){
-          final u = items[i];
-          final levelName = levels[u['level']] ?? 'Unknown';
-          return Card(child: ListTile(
-            leading: CircleAvatar(
-              child: Text('${u['username']}'.substring(0,1).toUpperCase()),
-            ),
-            title: Text('${u['username']}'),
-            subtitle: Text('Level: ${u['level']} ($levelName) • Shift: ${u['shift']}'),
-            onTap: ()=>_addOrEdit(user: Map<String,dynamic>.from(u)),
-            trailing: IconButton(
-              icon: const Icon(Icons.delete_outline), 
-              onPressed: () async {
-                // Prevent deleting the last admin
-                if(u['level'] == 4) {
-                  final adminCount = items.where((item) => item['level'] == 4).length;
-                  if(adminCount <= 1) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Cannot delete the last admin user'))
-                    );
-                    return;
-                  }
-                }
-                final userId = u['id'] as String;
-                await box.delete(userId);
-                await SyncService.deleteRemote('usersBox', userId);
-                setState((){});
-              }
-            ),
-          ));
-        }),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: ()=>_addOrEdit(),
+        backgroundColor: const Color(0xFF9D4EDD),
+        icon: const Icon(Icons.person_add),
+        label: const Text('Add User'),
+      ),
     );
+  }
+  
+  Widget _buildStatCard(String label, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [color.withOpacity(0.2), const Color(0xFF0F1419)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: Column(
+        children: [
+          Text(
+            value,
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: color),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 10, color: Colors.white70),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Color _getLevelColor(int level) {
+    switch (level) {
+      case 1: return const Color(0xFF4CC9F0); // Operator - Cyan
+      case 2: return const Color(0xFF06D6A0); // Material - Green
+      case 3: return const Color(0xFFFFD166); // Setter - Yellow
+      case 4: return const Color(0xFF9D4EDD); // Management - Purple
+      default: return Colors.white70;
+    }
   }
 }

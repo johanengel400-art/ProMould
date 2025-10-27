@@ -109,38 +109,131 @@ class _ManageMachinesScreenState extends State<ManageMachinesScreen>{
     final floors = {for(final f in floorsBox.values.cast<Map>()) f['id']: f['name']};
     
     return Scaffold(
-      appBar: AppBar(title: const Text('Machines')),
-      floatingActionButton: FloatingActionButton(onPressed:_add, child: const Icon(Icons.add)),
-      body: ListView.builder(
-        itemCount: items.length,
-        itemBuilder: (_,i){
-          final m = items[i];
-          final floorName = floors[m['floorId']] ?? 'No Floor';
-          return Card(child: ListTile(
-            title: Text('${m['name']}'),
-            subtitle: Text('Floor: $floorName • Tonnage: ${m['tonnage']??''} • Status: ${m['status']}'),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined),
-                  tooltip: 'Edit Machine',
-                  onPressed: () => _edit(m),
+      backgroundColor: const Color(0xFF0A0E1A),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 120,
+            floating: false,
+            pinned: true,
+            backgroundColor: const Color(0xFF0F1419),
+            flexibleSpace: FlexibleSpaceBar(
+              title: const Text('Machines'),
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFF4CC9F0).withOpacity(0.3),
+                      const Color(0xFF0F1419),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline),
-                  tooltip: 'Delete Machine',
-                  onPressed: () async {
-                    final machineId = m['id'] as String;
-                    await box.delete(machineId);
-                    await SyncService.deleteRemote('machinesBox', machineId);
-                    setState((){});
-                  },
-                ),
-              ],
+              ),
             ),
-          ));
-        }),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.all(16),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (_,i){
+                  final m = items[i];
+                  final floorName = floors[m['floorId']] ?? 'No Floor';
+                  final status = m['status'] ?? 'Idle';
+                  final statusColor = status == 'Running' ? const Color(0xFF4CC9F0) :
+                                     status == 'Breakdown' ? const Color(0xFFEF476F) :
+                                     const Color(0xFFFFD166);
+                  
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    color: const Color(0xFF0F1419),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: const BorderSide(color: Colors.white12),
+                    ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.all(16),
+                      leading: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: statusColor.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(Icons.precision_manufacturing, color: statusColor),
+                      ),
+                      title: Text('${m['name']}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 4),
+                          Text('Floor: $floorName', style: const TextStyle(color: Colors.white70)),
+                          Text('Tonnage: ${m['tonnage']??'N/A'}', style: const TextStyle(color: Colors.white70)),
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: statusColor.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: statusColor.withOpacity(0.5)),
+                            ),
+                            child: Text(
+                              status,
+                              style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      ),
+                      trailing: PopupMenuButton(
+                        icon: const Icon(Icons.more_vert, color: Colors.white38),
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(
+                            value: 'edit',
+                            child: Row(
+                              children: [
+                                Icon(Icons.edit_outlined),
+                                SizedBox(width: 8),
+                                Text('Edit'),
+                              ],
+                            ),
+                          ),
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                Icon(Icons.delete_outline, color: Colors.red),
+                                SizedBox(width: 8),
+                                Text('Delete', style: TextStyle(color: Colors.red)),
+                              ],
+                            ),
+                          ),
+                        ],
+                        onSelected: (value) async {
+                          if (value == 'edit') {
+                            _edit(m);
+                          } else if (value == 'delete') {
+                            final machineId = m['id'] as String;
+                            await box.delete(machineId);
+                            await SyncService.deleteRemote('machinesBox', machineId);
+                            setState((){});
+                          }
+                        },
+                      ),
+                    ),
+                  );
+                },
+                childCount: items.length,
+              ),
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed:_add,
+        backgroundColor: const Color(0xFF4CC9F0),
+        icon: const Icon(Icons.add),
+        label: const Text('Add Machine'),
+      ),
     );
   }
 }

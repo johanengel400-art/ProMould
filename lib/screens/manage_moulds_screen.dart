@@ -91,42 +91,127 @@ class _ManageMouldsScreenState extends State<ManageMouldsScreen>{
     final box = Hive.box('mouldsBox');
     final items = box.values.cast<Map>().toList();
     return Scaffold(
-      appBar: AppBar(title: const Text('Moulds')),
-      floatingActionButton: FloatingActionButton(onPressed: ()=>_addOrEdit(), child: const Icon(Icons.add)),
-      body: ListView.builder(
-        itemCount: items.length,
-        itemBuilder: (_,i){
-          final m = items[i];
-          final photoUrl = m['photoUrl'] as String?;
-          return Card(child: ListTile(
-            leading: photoUrl != null
-              ? GestureDetector(
-                  onTap: () => _showPhoto(photoUrl),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      photoUrl,
-                      width: 50,
-                      height: 50,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const Icon(Icons.broken_image),
-                    ),
+      backgroundColor: const Color(0xFF0A0E1A),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 120,
+            floating: false,
+            pinned: true,
+            backgroundColor: const Color(0xFF0F1419),
+            flexibleSpace: FlexibleSpaceBar(
+              title: const Text('Moulds'),
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFF4CC9F0).withOpacity(0.3),
+                      const Color(0xFF0F1419),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                )
-              : const CircleAvatar(
-                  child: Icon(Icons.precision_manufacturing),
                 ),
-            title: Text('${m['number']} • ${m['name']}'),
-            subtitle: Text('Mat: ${m['material']} • Cav: ${m['cavities']} • Cycle: ${m['cycleTime']}s • ${m['hotRunner']==true?'Hot runner':'Cold'}'),
-            onTap: ()=>_addOrEdit(item: Map<String,dynamic>.from(m)),
-            trailing: IconButton(icon: const Icon(Icons.delete_outline), onPressed: () async {
-              final mouldId = m['id'] as String;
-              await box.delete(mouldId);
-              await SyncService.deleteRemote('mouldsBox', mouldId);
-              setState((){});
-            }),
-          ));
-        }),
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.all(16),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (_,i){
+                  final m = items[i];
+                  final photoUrl = m['photoUrl'] as String?;
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    color: const Color(0xFF0F1419),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: const BorderSide(color: Colors.white12),
+                    ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.all(16),
+                      leading: photoUrl != null
+                        ? GestureDetector(
+                            onTap: () => _showPhoto(photoUrl),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(
+                                photoUrl,
+                                width: 60,
+                                height: 60,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Container(
+                                  width: 60,
+                                  height: 60,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF4CC9F0).withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Icon(Icons.broken_image, color: Color(0xFF4CC9F0)),
+                                ),
+                              ),
+                            ),
+                          )
+                        : Container(
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF4CC9F0).withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(Icons.precision_manufacturing, color: Color(0xFF4CC9F0)),
+                          ),
+                      title: Text('${m['number']} • ${m['name']}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 4),
+                          Text('Material: ${m['material']}', style: const TextStyle(color: Colors.white70)),
+                          Text('Cavities: ${m['cavities']} • Cycle: ${m['cycleTime']}s', style: const TextStyle(color: Colors.white70)),
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: (m['hotRunner']==true ? const Color(0xFFEF476F) : const Color(0xFF4CC9F0)).withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              m['hotRunner']==true ? 'Hot Runner' : 'Cold Runner',
+                              style: TextStyle(
+                                color: m['hotRunner']==true ? const Color(0xFFEF476F) : const Color(0xFF4CC9F0),
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      onTap: ()=>_addOrEdit(item: Map<String,dynamic>.from(m)),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.delete_outline, color: Colors.red),
+                        onPressed: () async {
+                          final mouldId = m['id'] as String;
+                          await box.delete(mouldId);
+                          await SyncService.deleteRemote('mouldsBox', mouldId);
+                          setState((){});
+                        },
+                      ),
+                    ),
+                  );
+                },
+                childCount: items.length,
+              ),
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: ()=>_addOrEdit(),
+        backgroundColor: const Color(0xFF4CC9F0),
+        icon: const Icon(Icons.add),
+        label: const Text('Add Mould'),
+      ),
     );
   }
 

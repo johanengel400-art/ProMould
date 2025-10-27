@@ -73,64 +73,176 @@ class SettingsScreen extends StatelessWidget{
 
   @override Widget build(BuildContext context){
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
-      body: ListView(children:[
-        const Padding(
-          padding: EdgeInsets.all(16),
-          child: Text('Database', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        ),
-        ListTile(
-          leading: const Icon(Icons.cleaning_services_outlined, color: Color(0xFFFF6B6B)),
-          title: const Text('Reset Local Database'),
-          subtitle: const Text('Clears all local data and recreates admin user'),
-          onTap: ()=>_resetDB(context),
-        ),
-        ListTile(
-          leading: const Icon(Icons.cached_outlined),
-          title: const Text('Clear Cache'),
-          subtitle: const Text('Clear temporary cached data'),
-          onTap: ()=>_clearCache(context),
-        ),
-        const Divider(height:1),
-        const Padding(
-          padding: EdgeInsets.all(16),
-          child: Text('Sync', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        ),
-        ListTile(
-          leading: const Icon(Icons.sync_outlined),
-          title: const Text('Firebase Sync'),
-          subtitle: const Text('Real-time sync with cloud database'),
-          trailing: const Icon(Icons.check_circle, color: Color(0xFF80ED99)),
-        ),
-        const Divider(height:1),
-        const Padding(
-          padding: EdgeInsets.all(16),
-          child: Text('About', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        ),
-        const ListTile(
-          leading: Icon(Icons.info_outline),
-          title: Text('ProMould v7.1'),
-          subtitle: Text('Smart Factory Management System'),
-        ),
-        const ListTile(
-          leading: Icon(Icons.code_outlined),
-          title: Text('Built with Flutter'),
-          subtitle: Text('Cross-platform mobile application'),
-        ),
-        const ListTile(
-          leading: Icon(Icons.cloud_outlined),
-          title: Text('Firebase Backend'),
-          subtitle: Text('Cloud Firestore & Storage'),
-        ),
-        const SizedBox(height: 20),
-        const Center(
-          child: Text(
-            '© 2025 ProMould',
-            style: TextStyle(color: Colors.white38, fontSize: 12),
+      backgroundColor: const Color(0xFF0A0E1A),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 120,
+            floating: false,
+            pinned: true,
+            backgroundColor: const Color(0xFF0F1419),
+            flexibleSpace: FlexibleSpaceBar(
+              title: const Text('Settings'),
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFF6C757D).withOpacity(0.3),
+                      const Color(0xFF0F1419),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+              ),
+            ),
           ),
-        ),
-        const SizedBox(height: 20),
-      ]),
+          SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
+                  child: Text('Database', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                ),
+                Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  color: const Color(0xFF0F1419),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: const BorderSide(color: Colors.white12),
+                  ),
+                  child: Column(
+                    children: [
+                      ListTile(
+                        contentPadding: const EdgeInsets.all(16),
+                        leading: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEF476F).withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Icons.cleaning_services_outlined, color: Color(0xFFEF476F)),
+                        ),
+                        title: const Text('Reset Local Database', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        subtitle: const Text('Clears all local data and recreates admin user', style: TextStyle(color: Colors.white70)),
+                        onTap: ()=>_resetDB(context),
+                      ),
+                      const Divider(height: 1, color: Colors.white12),
+                      ListTile(
+                        contentPadding: const EdgeInsets.all(16),
+                        leading: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF4CC9F0).withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Icons.cached_outlined, color: Color(0xFF4CC9F0)),
+                        ),
+                        title: const Text('Clear Cache', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        subtitle: const Text('Clear temporary cached data', style: TextStyle(color: Colors.white70)),
+                        onTap: ()=>_clearCache(context),
+                      ),
+                    ],
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
+                  child: Text('Sync', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                ),
+                Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  color: const Color(0xFF0F1419),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: const BorderSide(color: Colors.white12),
+                  ),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(16),
+                    leading: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF06D6A0).withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(Icons.sync_outlined, color: Color(0xFF06D6A0)),
+                    ),
+                    title: const Text('Firebase Sync', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    subtitle: const Text('Real-time sync with cloud database', style: TextStyle(color: Colors.white70)),
+                    trailing: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF06D6A0).withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0xFF06D6A0).withOpacity(0.5)),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.check_circle, color: Color(0xFF06D6A0), size: 16),
+                          SizedBox(width: 4),
+                          Text('Active', style: TextStyle(color: Color(0xFF06D6A0), fontSize: 12, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
+                  child: Text('About', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                ),
+                Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  color: const Color(0xFF0F1419),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: const BorderSide(color: Colors.white12),
+                  ),
+                  child: Column(
+                    children: [
+                      ListTile(
+                        contentPadding: const EdgeInsets.all(16),
+                        leading: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF9D4EDD).withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Icons.info_outline, color: Color(0xFF9D4EDD)),
+                        ),
+                        title: const Text('ProMould v8.0', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        subtitle: const Text('Smart Factory Management System', style: TextStyle(color: Colors.white70)),
+                      ),
+                      const Divider(height: 1, color: Colors.white12),
+                      const ListTile(
+                        contentPadding: EdgeInsets.all(16),
+                        leading: Icon(Icons.code_outlined, color: Color(0xFF4CC9F0)),
+                        title: Text('Built with Flutter', style: TextStyle(color: Colors.white)),
+                        subtitle: Text('Cross-platform mobile application', style: TextStyle(color: Colors.white70)),
+                      ),
+                      const Divider(height: 1, color: Colors.white12),
+                      const ListTile(
+                        contentPadding: EdgeInsets.all(16),
+                        leading: Icon(Icons.cloud_outlined, color: Color(0xFF06D6A0)),
+                        title: Text('Firebase Backend', style: TextStyle(color: Colors.white)),
+                        subtitle: Text('Cloud Firestore & Storage', style: TextStyle(color: Colors.white70)),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 32),
+                const Center(
+                  child: Text(
+                    '© 2025 ProMould',
+                    style: TextStyle(color: Colors.white38, fontSize: 12),
+                  ),
+                ),
+                const SizedBox(height: 32),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
