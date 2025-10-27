@@ -69,13 +69,71 @@ class _IssuesScreenState extends State<IssuesScreen>{
               itemCount: items.length,
               itemBuilder: (_,i){
                 final it = items[i];
-                return ListTile(
-                  leading: const Icon(Icons.report_problem_outlined),
-                  title: Text('${it['description']}'),
-                  subtitle: Text('By ${it['reportedBy']} • ${it['timestamp']}'),
-                  trailing: it['photoUrl']!=null && (it['photoUrl'] as String).isNotEmpty
-                    ? const Icon(Icons.image, color: Colors.white70)
-                    : const SizedBox.shrink(),
+                final hasPhoto = it['photoUrl']!=null && (it['photoUrl'] as String).isNotEmpty;
+                return Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  child: ListTile(
+                    leading: const Icon(Icons.report_problem_outlined, color: Colors.orange),
+                    title: Text('${it['description']}'),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('By ${it['reportedBy']} • ${it['timestamp']?.toString().substring(0, 16) ?? ''}'),
+                        if (hasPhoto) ...[
+                          const SizedBox(height: 8),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.network(
+                              it['photoUrl'] as String,
+                              height: 150,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(
+                                height: 150,
+                                color: Colors.grey[800],
+                                child: const Center(
+                                  child: Icon(Icons.broken_image, size: 48),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    trailing: hasPhoto 
+                      ? const Icon(Icons.image, color: Colors.white70)
+                      : null,
+                    onTap: hasPhoto ? () {
+                      showDialog(
+                        context: context,
+                        builder: (_) => Dialog(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              AppBar(
+                                title: const Text('Issue Photo'),
+                                automaticallyImplyLeading: false,
+                                actions: [
+                                  IconButton(
+                                    icon: const Icon(Icons.close),
+                                    onPressed: () => Navigator.pop(context),
+                                  ),
+                                ],
+                              ),
+                              Image.network(
+                                it['photoUrl'] as String,
+                                fit: BoxFit.contain,
+                                errorBuilder: (_, __, ___) => const Padding(
+                                  padding: EdgeInsets.all(32),
+                                  child: Icon(Icons.broken_image, size: 64),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    } : null,
+                  ),
                 );
               });
           },

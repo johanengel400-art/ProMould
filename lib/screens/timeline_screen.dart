@@ -96,18 +96,19 @@ class TimelineScreen extends StatelessWidget {
                 Expanded(
                   child: SfCartesianChart(
                     title: ChartTitle(text: 'Production Schedule'),
-                    primaryXAxis: DateTimeAxis(
+                    primaryXAxis: CategoryAxis(
+                      title: AxisTitle(text: 'Machines'),
+                    ),
+                    primaryYAxis: DateTimeAxis(
                       intervalType: DateTimeIntervalType.hours,
                       dateFormat: DateFormat.Hm(),
                       interval: 2,
                       edgeLabelPlacement: EdgeLabelPlacement.shift,
-                    ),
-                    primaryYAxis: CategoryAxis(
-                      title: AxisTitle(text: 'Machines'),
+                      title: AxisTitle(text: 'Time'),
                     ),
                     tooltipBehavior: TooltipBehavior(
                       enable: true,
-                      format: 'point.y: point.x',
+                      format: 'point.x: point.y',
                     ),
                     series: <RangeColumnSeries<_JobBar, String>>[
                       RangeColumnSeries<_JobBar, String>(

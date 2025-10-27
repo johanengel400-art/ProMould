@@ -192,6 +192,54 @@ class _ManageJobsScreenState extends State<ManageJobsScreen>{
     setState((){});
   }
 
+  void _edit(Map j) async {
+    final productCtrl=TextEditingController(text: j['productName'] as String?);
+    final colorCtrl=TextEditingController(text: j['color'] as String?);
+    final targetCtrl=TextEditingController(text: '${j['targetShots'] ?? 0}');
+    final mouldsBox = Hive.box('mouldsBox');
+    final moulds = mouldsBox.values.cast<Map>().toList();
+    String? selectedMould = j['mouldId'] as String?;
+    
+    await showDialog(context: context, builder: (_)=>StatefulBuilder(
+      builder: (context, setDialogState) => AlertDialog(
+        title: const Text('Edit Job'),
+        content: Column(mainAxisSize: MainAxisSize.min, children:[
+          TextField(controller:productCtrl, decoration: const InputDecoration(labelText:'Product Name')),
+          const SizedBox(height:8),
+          TextField(controller:colorCtrl, decoration: const InputDecoration(labelText:'Color')),
+          const SizedBox(height:8),
+          TextField(controller:targetCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText:'Target Shots')),
+          const SizedBox(height:8),
+          DropdownButtonFormField<String>(
+            value: selectedMould,
+            items: moulds.map((m)=>DropdownMenuItem<String>(
+              value:m['id'] as String, 
+              child: Text('${m['name']} (${m['cycleTime']}s)')
+            )).toList(),
+            onChanged: (v)=>setDialogState(()=>selectedMould=v),
+            decoration: const InputDecoration(labelText:'Mould'),
+          ),
+        ]),
+        actions: [
+          TextButton(onPressed: ()=>Navigator.pop(context), child: const Text('Cancel')),
+          ElevatedButton(onPressed: () async {
+            final box = Hive.box('jobsBox');
+            final jobId = j['id'] as String;
+            final data = Map<String,dynamic>.from(j);
+            data['productName'] = productCtrl.text.trim();
+            data['color'] = colorCtrl.text.trim();
+            data['targetShots'] = int.tryParse(targetCtrl.text.trim()) ?? 0;
+            data['mouldId'] = selectedMould ?? '';
+            await box.put(jobId, data);
+            await SyncService.pushChange('jobsBox', jobId, data);
+            Navigator.pop(context);
+          }, child: const Text('Save')),
+        ],
+      ),
+    ));
+    setState((){});
+  }
+
   @override Widget build(BuildContext context){
     final box = Hive.box('jobsBox');
     final items = box.values.cast<Map>().toList();
@@ -235,6 +283,11 @@ class _ManageJobsScreenState extends State<ManageJobsScreen>{
                     tooltip: 'End Job',
                     onPressed: () => _endJob(j),
                   ),
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined),
+                  tooltip: 'Edit Job',
+                  onPressed: () => _edit(j),
+                ),
                 IconButton(
                   icon: const Icon(Icons.delete_outline),
                   tooltip: 'Delete Job',

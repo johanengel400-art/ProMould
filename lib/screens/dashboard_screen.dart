@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
+import 'machine_detail_screen.dart';
 
 class DashboardScreen extends StatefulWidget{
   final String username; final int level;
@@ -132,16 +133,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
           final progress = target>0 ? (shots/target).clamp(0.0,1.0) : 0.0;
           final progress100 = (progress*100).round();
 
-          return Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
-              gradient: LinearGradient(
-                colors: [statusColor((m['status']??'Idle') as String).withOpacity(0.14),
-                  const Color(0xFF121821)],
-                begin: Alignment.topLeft, end: Alignment.bottomRight),
-              border: Border.all(color: Colors.white12)),
-            padding: const EdgeInsets.all(12),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children:[
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MachineDetailScreen(machine: m),
+                ),
+              );
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(18),
+                gradient: LinearGradient(
+                  colors: [statusColor((m['status']??'Idle') as String).withOpacity(0.14),
+                    const Color(0xFF121821)],
+                  begin: Alignment.topLeft, end: Alignment.bottomRight),
+                border: Border.all(color: Colors.white12)),
+              padding: const EdgeInsets.all(12),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children:[
               Row(children:[
                 Text('${m['name']}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
                 const Spacer(),
@@ -176,6 +186,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Text('Tonnage: ${m['tonnage']??''}', style: const TextStyle(color: Colors.white60)),
               ]),
             ]),
+            ),
           );
         }),
           ),
