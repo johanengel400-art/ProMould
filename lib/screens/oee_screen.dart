@@ -57,10 +57,34 @@ class OEEScreen extends StatelessWidget{
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('OEE Report')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children:[
+      backgroundColor: const Color(0xFF0A0E1A),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 120,
+            floating: false,
+            pinned: true,
+            backgroundColor: const Color(0xFF0F1419),
+            flexibleSpace: FlexibleSpaceBar(
+              title: const Text('OEE Report'),
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFF06D6A0).withOpacity(0.3),
+                      const Color(0xFF0F1419),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.all(16),
+            sliver: SliverToBoxAdapter(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children:[
           Card(
             color: const Color(0xFF1A2332),
             child: Padding(
@@ -145,7 +169,11 @@ class OEEScreen extends StatelessWidget{
               ),
             ),
           ),
-        ]),
+                ]),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

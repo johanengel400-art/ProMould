@@ -64,17 +64,38 @@ class _PlanningScreenState extends State<PlanningScreen> {
         m['status'] == 'Running').length;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Production Planning'),
-        elevation: 0,
-      ),
+      backgroundColor: const Color(0xFF0A0E1A),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _assignJobDialog,
         icon: const Icon(Icons.add),
         label: const Text('Assign Job'),
         backgroundColor: const Color(0xFF4CC9F0),
       ),
-      body: Column(
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 120,
+            floating: false,
+            pinned: true,
+            backgroundColor: const Color(0xFF0F1419),
+            flexibleSpace: FlexibleSpaceBar(
+              title: const Text('Production Planning'),
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFF06D6A0).withOpacity(0.3),
+                      const Color(0xFF0F1419),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Column(
         children: [
           // Statistics Cards
           Container(
@@ -129,10 +150,13 @@ class _PlanningScreenState extends State<PlanningScreen> {
               ),
             ),
           ),
+              ),
+            ),
+          ),
           // Machines List
-          Expanded(
-            child: machines.isEmpty
-                ? Center(
+          machines.isEmpty
+              ? SliverFillRemaining(
+                  child: Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -141,21 +165,25 @@ class _PlanningScreenState extends State<PlanningScreen> {
                         Text('No machines on this floor', style: TextStyle(color: Colors.white.withOpacity(0.5))),
                       ],
                     ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: machines.length,
-                    itemBuilder: (_, i) {
-                      final m = machines[i];
-                      final jobs = jobsBox.values.cast<Map>().where((j) =>
-                          j['machineId'] == m['id'] &&
-                          (j['status'] == 'Running' || j['status'] == 'Queued')).toList();
-                      jobs.sort((a, b) =>
-                          (a['startTime'] ?? '').toString().compareTo((b['startTime'] ?? '').toString()));
-                      return _machineCard(m, jobs, mouldsBox);
-                    },
                   ),
-          ),
+                )
+              : SliverPadding(
+                  padding: const EdgeInsets.all(16),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (_, i) {
+                        final m = machines[i];
+                        final jobs = jobsBox.values.cast<Map>().where((j) =>
+                            j['machineId'] == m['id'] &&
+                            (j['status'] == 'Running' || j['status'] == 'Queued')).toList();
+                        jobs.sort((a, b) =>
+                            (a['startTime'] ?? '').toString().compareTo((b['startTime'] ?? '').toString()));
+                        return _machineCard(m, jobs, mouldsBox);
+                      },
+                      childCount: machines.length,
+                    ),
+                  ),
+                ),
         ],
       ),
     );

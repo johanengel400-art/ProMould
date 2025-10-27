@@ -43,16 +43,38 @@ class _PaperworkScreenState extends State<PaperworkScreen> {
         .toList();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Paperwork & Checklists'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.calendar_today),
-            onPressed: _selectDate,
+      backgroundColor: const Color(0xFF0A0E1A),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 120,
+            floating: false,
+            pinned: true,
+            backgroundColor: const Color(0xFF0F1419),
+            flexibleSpace: FlexibleSpaceBar(
+              title: const Text('Paperwork & Checklists'),
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFF9D4EDD).withOpacity(0.3),
+                      const Color(0xFF0F1419),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+              ),
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.calendar_today),
+                onPressed: _selectDate,
+              ),
+            ],
           ),
-        ],
-      ),
-      body: Column(
+          SliverToBoxAdapter(
+            child: Column(
         children: [
           // Category Selection
           Container(
@@ -122,12 +144,13 @@ class _PaperworkScreenState extends State<PaperworkScreen> {
               ],
             ),
           ),
-          // Content
-          Expanded(
-            child: selectedCategory == 'Daily Checklists'
-                ? _buildDailyChecklists()
-                : _buildSetterChecklists(),
+              ),
+            ),
           ),
+          // Content
+          selectedCategory == 'Daily Checklists'
+              ? _buildDailyChecklists()
+              : _buildSetterChecklists(),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -144,7 +167,7 @@ class _PaperworkScreenState extends State<PaperworkScreen> {
       future: _ensureBoxOpen(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const SliverFillRemaining(child: Center(child: CircularProgressIndicator()));
         }
 
         final checklistsBox = Hive.box('checklistsBox');
@@ -157,30 +180,36 @@ class _PaperworkScreenState extends State<PaperworkScreen> {
             .toList();
 
         if (items.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.checklist, size: 64, color: Colors.white.withOpacity(0.3)),
-                const SizedBox(height: 16),
-                Text(
-                  'No checklist items for today',
-                  style: TextStyle(color: Colors.white.withOpacity(0.5)),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Tap + to add items',
-                  style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.3)),
-                ),
-              ],
+          return SliverFillRemaining(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.checklist, size: 64, color: Colors.white.withOpacity(0.3)),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No checklist items for today',
+                    style: TextStyle(color: Colors.white.withOpacity(0.5)),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Tap + to add items',
+                    style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.3)),
+                  ),
+                ],
+              ),
             ),
           );
         }
 
-        return ListView.builder(
+        return SliverPadding(
           padding: const EdgeInsets.all(16),
-          itemCount: items.length,
-          itemBuilder: (_, i) => _buildChecklistCard(items[i]),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (_, i) => _buildChecklistCard(items[i]),
+              childCount: items.length,
+            ),
+          ),
         );
       },
     );
@@ -188,14 +217,14 @@ class _PaperworkScreenState extends State<PaperworkScreen> {
 
   Widget _buildSetterChecklists() {
     if (selectedSetter == null) {
-      return const Center(child: Text('No setters available'));
+      return const SliverFillRemaining(child: Center(child: Text('No setters available')));
     }
 
     return FutureBuilder(
       future: _ensureBoxOpen(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const SliverFillRemaining(child: Center(child: CircularProgressIndicator()));
         }
 
         final checklistsBox = Hive.box('checklistsBox');
@@ -207,30 +236,36 @@ class _PaperworkScreenState extends State<PaperworkScreen> {
             .toList();
 
         if (items.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.person_outline, size: 64, color: Colors.white.withOpacity(0.3)),
-                const SizedBox(height: 16),
-                Text(
-                  'No items for $selectedSetter today',
-                  style: TextStyle(color: Colors.white.withOpacity(0.5)),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Tap + to add items',
-                  style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.3)),
-                ),
-              ],
+          return SliverFillRemaining(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.person_outline, size: 64, color: Colors.white.withOpacity(0.3)),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No items for $selectedSetter today',
+                    style: TextStyle(color: Colors.white.withOpacity(0.5)),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Tap + to add items',
+                    style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.3)),
+                  ),
+                ],
+              ),
             ),
           );
         }
 
-        return ListView.builder(
+        return SliverPadding(
           padding: const EdgeInsets.all(16),
-          itemCount: items.length,
-          itemBuilder: (_, i) => _buildChecklistCard(items[i]),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (_, i) => _buildChecklistCard(items[i]),
+              childCount: items.length,
+            ),
+          ),
         );
       },
     );

@@ -243,65 +243,167 @@ class _ManageJobsScreenState extends State<ManageJobsScreen>{
   @override Widget build(BuildContext context){
     final box = Hive.box('jobsBox');
     final items = box.values.cast<Map>().toList();
+    
     return Scaffold(
-      appBar: AppBar(title: const Text('Jobs')),
-      floatingActionButton: FloatingActionButton(onPressed:_add, child: const Icon(Icons.add)),
-      body: ListView.builder(
-        itemCount: items.length,
-        itemBuilder: (_,i){
-          final j = items[i];
-          final progress = (j['targetShots'] ?? 0) > 0 
-            ? ((j['shotsCompleted'] ?? 0) / (j['targetShots'] ?? 1) * 100).round()
-            : 0;
-          return Card(child: ListTile(
-            title: Text('${j['productName']} • ${j['color']??''}'),
-            subtitle: Text('Status: ${j['status']} • Machine: ${j['machineId'] != '' ? j['machineId'] : 'Unassigned'} • Progress: $progress%'),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (j['status'] == 'Queued')
-                  IconButton(
-                    icon: const Icon(Icons.play_arrow, color: Colors.green),
-                    tooltip: 'Start Job',
-                    onPressed: () => _startJob(j),
+      backgroundColor: const Color(0xFF0A0E1A),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 120,
+            floating: false,
+            pinned: true,
+            backgroundColor: const Color(0xFF0F1419),
+            flexibleSpace: FlexibleSpaceBar(
+              title: const Text('Jobs'),
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFF4CC9F0).withOpacity(0.3),
+                      const Color(0xFF0F1419),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                if (j['status'] == 'Running')
-                  IconButton(
-                    icon: const Icon(Icons.pause, color: Colors.orange),
-                    tooltip: 'Pause Job',
-                    onPressed: () => _pauseJob(j),
-                  ),
-                if (j['status'] == 'Paused')
-                  IconButton(
-                    icon: const Icon(Icons.play_arrow, color: Colors.green),
-                    tooltip: 'Resume Job',
-                    onPressed: () => _resumeJob(j),
-                  ),
-                if (j['status'] == 'Running' || j['status'] == 'Paused')
-                  IconButton(
-                    icon: const Icon(Icons.stop, color: Colors.red),
-                    tooltip: 'End Job',
-                    onPressed: () => _endJob(j),
-                  ),
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined),
-                  tooltip: 'Edit Job',
-                  onPressed: () => _edit(j),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline),
-                  tooltip: 'Delete Job',
-                  onPressed: () async {
-                    final jobId = j['id'] as String;
-                    await box.delete(jobId);
-                    await SyncService.deleteRemote('jobsBox', jobId);
-                    setState((){});
-                  },
-                ),
-              ],
+              ),
             ),
-          ));
-        }),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.all(16),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (_,i){
+                  final j = items[i];
+                  final progress = (j['targetShots'] ?? 0) > 0 
+                    ? ((j['shotsCompleted'] ?? 0) / (j['targetShots'] ?? 1) * 100).round()
+                    : 0;
+                  final status = j['status'] ?? 'Queued';
+                  final statusColor = status == 'Running' ? const Color(0xFF06D6A0) :
+                                     status == 'Paused' ? const Color(0xFFFFD166) :
+                                     status == 'Finished' ? const Color(0xFF4CC9F0) :
+                                     Colors.white38;
+                  
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    color: const Color(0xFF0F1419),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: const BorderSide(color: Colors.white12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  '${j['productName']} • ${j['color']??''}',
+                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: statusColor.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: statusColor.withOpacity(0.5)),
+                                ),
+                                child: Text(
+                                  status,
+                                  style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Machine: ${j['machineId'] != '' ? j['machineId'] : 'Unassigned'}',
+                            style: const TextStyle(color: Colors.white70, fontSize: 14),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: LinearProgressIndicator(
+                                  value: progress / 100,
+                                  backgroundColor: Colors.white12,
+                                  valueColor: AlwaysStoppedAnimation<Color>(statusColor),
+                                  minHeight: 8,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                '$progress%',
+                                style: TextStyle(color: statusColor, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              if (j['status'] == 'Queued')
+                                IconButton(
+                                  icon: const Icon(Icons.play_arrow, color: Color(0xFF06D6A0)),
+                                  tooltip: 'Start Job',
+                                  onPressed: () => _startJob(j),
+                                ),
+                              if (j['status'] == 'Running')
+                                IconButton(
+                                  icon: const Icon(Icons.pause, color: Color(0xFFFFD166)),
+                                  tooltip: 'Pause Job',
+                                  onPressed: () => _pauseJob(j),
+                                ),
+                              if (j['status'] == 'Paused')
+                                IconButton(
+                                  icon: const Icon(Icons.play_arrow, color: Color(0xFF06D6A0)),
+                                  tooltip: 'Resume Job',
+                                  onPressed: () => _resumeJob(j),
+                                ),
+                              if (j['status'] == 'Running' || j['status'] == 'Paused')
+                                IconButton(
+                                  icon: const Icon(Icons.stop, color: Color(0xFFEF476F)),
+                                  tooltip: 'End Job',
+                                  onPressed: () => _endJob(j),
+                                ),
+                              IconButton(
+                                icon: const Icon(Icons.edit_outlined, color: Colors.white70),
+                                tooltip: 'Edit Job',
+                                onPressed: () => _edit(j),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline, color: Colors.red),
+                                tooltip: 'Delete Job',
+                                onPressed: () async {
+                                  final jobId = j['id'] as String;
+                                  await box.delete(jobId);
+                                  await SyncService.deleteRemote('jobsBox', jobId);
+                                  setState((){});
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+                childCount: items.length,
+              ),
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed:_add,
+        backgroundColor: const Color(0xFF4CC9F0),
+        icon: const Icon(Icons.add),
+        label: const Text('Add Job'),
+      ),
     );
   }
 }

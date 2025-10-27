@@ -124,126 +124,202 @@ class _MachineDetailScreenState extends State<MachineDetailScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('${machine['name']}'),
-        actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert),
-            onSelected: _setMachineStatus,
-            itemBuilder: (context) => [
-              const PopupMenuItem(value: 'Running', child: Text('Set Running')),
-              const PopupMenuItem(value: 'Idle', child: Text('Set Idle')),
-              const PopupMenuItem(value: 'Breakdown', child: Text('Set Breakdown')),
-              const PopupMenuItem(value: 'Changeover', child: Text('Set Changeover')),
-            ],
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Machine Info Card
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Text('Status: ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                        Chip(
-                          label: Text('${machine['status'] ?? 'Idle'}'),
-                          backgroundColor: _statusColor('${machine['status'] ?? 'Idle'}').withOpacity(0.2),
-                          side: BorderSide(color: _statusColor('${machine['status'] ?? 'Idle'}')),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text('Tonnage: ${machine['tonnage'] ?? 'N/A'}', style: const TextStyle(fontSize: 14)),
-                    const SizedBox(height: 4),
-                    Text('Floor: ${machine['floorId'] ?? 'N/A'}', style: const TextStyle(fontSize: 14)),
-                  ],
+      backgroundColor: const Color(0xFF0A0E1A),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 120,
+            floating: false,
+            pinned: true,
+            backgroundColor: const Color(0xFF0F1419),
+            flexibleSpace: FlexibleSpaceBar(
+              title: Text('${machine['name']}'),
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      _statusColor('${machine['status'] ?? 'Idle'}').withOpacity(0.3),
+                      const Color(0xFF0F1419),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-
-            // Current Job
-            if (runningJob != null) ...[
-              const Text('Current Job', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              Card(
-                color: const Color(0xFF00D26A).withOpacity(0.1),
-                child: ListTile(
-                  leading: const Icon(Icons.play_circle, color: Color(0xFF00D26A), size: 32),
-                  title: Text('${runningJob['productName']}'),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('${runningJob['shotsCompleted']}/${runningJob['targetShots']} shots'),
-                      Text(_calculateETA(runningJob, DateTime.now()), style: const TextStyle(fontSize: 12)),
-                    ],
-                  ),
-                  trailing: Text(
-                    '${((runningJob['shotsCompleted'] as num? ?? 0) / (runningJob['targetShots'] as num? ?? 1) * 100).round()}%',
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                ),
+            actions: [
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert),
+                onSelected: _setMachineStatus,
+                itemBuilder: (context) => [
+                  const PopupMenuItem(value: 'Running', child: Text('Set Running')),
+                  const PopupMenuItem(value: 'Idle', child: Text('Set Idle')),
+                  const PopupMenuItem(value: 'Breakdown', child: Text('Set Breakdown')),
+                  const PopupMenuItem(value: 'Changeover', child: Text('Set Changeover')),
+                ],
               ),
-              const SizedBox(height: 16),
             ],
-
-            // Queued Jobs
-            const Text('Upcoming Jobs', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            if (queuedJobs.isEmpty)
-              const Card(
-                child: ListTile(
-                  leading: Icon(Icons.info_outline),
-                  title: Text('No queued jobs'),
-                ),
-              )
-            else
-              ...queuedJobs.asMap().entries.map((entry) {
-                final index = entry.key;
-                final j = entry.value;
-                final etaInfo = _calculateETA(j, cumulativeTime);
-
-                // Update cumulative time for next job
-                final mould = mouldsBox.values.cast<Map?>().firstWhere(
-                  (m) => m != null && m['id'] == j['mouldId'],
-                  orElse: () => null,
-                );
-                if (mould != null) {
-                  final cycle = (mould['cycleTime'] as num?)?.toDouble() ?? 30.0;
-                  final remaining = (j['targetShots'] as num? ?? 0) - (j['shotsCompleted'] as num? ?? 0);
-                  final minutes = (remaining * cycle / 60).toDouble();
-                  cumulativeTime = cumulativeTime.add(Duration(minutes: minutes.round()));
-                }
-
-                return Card(
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: const Color(0xFFFFD166).withOpacity(0.3),
-                      child: Text('${index + 1}'),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Machine Info Card
+                  Card(
+                    color: const Color(0xFF0F1419),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: const BorderSide(color: Colors.white12),
                     ),
-                    title: Text('${j['productName']}'),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('${j['targetShots']} shots'),
-                        Text(etaInfo, style: const TextStyle(fontSize: 12)),
-                      ],
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Text('Status: ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: _statusColor('${machine['status'] ?? 'Idle'}').withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: _statusColor('${machine['status'] ?? 'Idle'}').withOpacity(0.5)),
+                                ),
+                                child: Text(
+                                  '${machine['status'] ?? 'Idle'}',
+                                  style: TextStyle(
+                                    color: _statusColor('${machine['status'] ?? 'Idle'}'),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Text('Tonnage: ${machine['tonnage'] ?? 'N/A'}', style: const TextStyle(fontSize: 14, color: Colors.white70)),
+                          const SizedBox(height: 4),
+                          Text('Floor: ${machine['floorId'] ?? 'N/A'}', style: const TextStyle(fontSize: 14, color: Colors.white70)),
+                        ],
+                      ),
                     ),
-                    trailing: const Icon(Icons.schedule, color: Color(0xFFFFD166)),
                   ),
-                );
-              }).toList(),
-          ],
-        ),
+                  const SizedBox(height: 16),
+
+                  // Current Job
+                  if (runningJob != null) ...[
+                    const Text('Current Job', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                    const SizedBox(height: 8),
+                    Card(
+                      color: const Color(0xFF0F1419),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: BorderSide(color: const Color(0xFF06D6A0).withOpacity(0.3)),
+                      ),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.all(16),
+                        leading: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF06D6A0).withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Icons.play_circle, color: Color(0xFF06D6A0), size: 32),
+                        ),
+                        title: Text('${runningJob['productName']}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 4),
+                            Text('${runningJob['shotsCompleted']}/${runningJob['targetShots']} shots', style: const TextStyle(color: Colors.white70)),
+                            Text(_calculateETA(runningJob, DateTime.now()), style: const TextStyle(fontSize: 12, color: Colors.white38)),
+                          ],
+                        ),
+                        trailing: Text(
+                          '${((runningJob['shotsCompleted'] as num? ?? 0) / (runningJob['targetShots'] as num? ?? 1) * 100).round()}%',
+                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF06D6A0)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  // Queued Jobs
+                  const Text('Upcoming Jobs', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                  const SizedBox(height: 8),
+                  if (queuedJobs.isEmpty)
+                    Card(
+                      color: const Color(0xFF0F1419),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: const BorderSide(color: Colors.white12),
+                      ),
+                      child: const ListTile(
+                        leading: Icon(Icons.info_outline, color: Colors.white38),
+                        title: Text('No queued jobs', style: TextStyle(color: Colors.white70)),
+                      ),
+                    )
+                  else
+                    ...queuedJobs.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final j = entry.value;
+                      final etaInfo = _calculateETA(j, cumulativeTime);
+
+                      // Update cumulative time for next job
+                      final mould = mouldsBox.values.cast<Map?>().firstWhere(
+                        (m) => m != null && m['id'] == j['mouldId'],
+                        orElse: () => null,
+                      );
+                      if (mould != null) {
+                        final cycle = (mould['cycleTime'] as num?)?.toDouble() ?? 30.0;
+                        final remaining = (j['targetShots'] as num? ?? 0) - (j['shotsCompleted'] as num? ?? 0);
+                        final minutes = (remaining * cycle / 60).toDouble();
+                        cumulativeTime = cumulativeTime.add(Duration(minutes: minutes.round()));
+                      }
+
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        color: const Color(0xFF0F1419),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: const BorderSide(color: Colors.white12),
+                        ),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.all(16),
+                          leading: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFD166).withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Center(
+                              child: Text(
+                                '${index + 1}',
+                                style: const TextStyle(color: Color(0xFFFFD166), fontWeight: FontWeight.bold, fontSize: 18),
+                              ),
+                            ),
+                          ),
+                          title: Text('${j['productName']}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 4),
+                              Text('${j['targetShots']} shots', style: const TextStyle(color: Colors.white70)),
+                              Text(etaInfo, style: const TextStyle(fontSize: 12, color: Colors.white38)),
+                            ],
+                          ),
+                          trailing: const Icon(Icons.schedule, color: Color(0xFFFFD166)),
+                        ),
+                      );
+                    }).toList(),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
