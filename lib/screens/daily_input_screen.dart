@@ -91,39 +91,185 @@ class _DailyInputScreenState extends State<DailyInputScreen>{
       .where((j)=> j['machineId']==machineId).toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Daily Inputs')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(children:[
-          DropdownButtonFormField<String>(
-            value: machineId ?? (machines.isNotEmpty? machines.first['id'] as String: null),
-            items: machines.map((m)=>DropdownMenuItem<String>(value:m['id'] as String, child: Text('${m['name']}'))).toList(),
-            onChanged: (v)=>setState(()=>machineId=v),
-            decoration: const InputDecoration(labelText:'Machine'),
+      backgroundColor: const Color(0xFF0A0E1A),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 120,
+            floating: false,
+            pinned: true,
+            backgroundColor: const Color(0xFF0F1419),
+            flexibleSpace: FlexibleSpaceBar(
+              title: const Text('Daily Inputs'),
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFF4CC9F0).withOpacity(0.3),
+                      const Color(0xFF0F1419),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+              ),
+            ),
           ),
-          const SizedBox(height: 10),
-          DropdownButtonFormField<Map>(
-            value: job,
-            items: jobsForMachine.map((j)=>DropdownMenuItem(value:j, child: Text('${j['productName']} • ${j['color']??''}'))).toList(),
-            onChanged: (v)=>setState(()=>job=v),
-            decoration: const InputDecoration(labelText:'Job (optional)'),
+          SliverPadding(
+            padding: const EdgeInsets.all(16),
+            sliver: SliverToBoxAdapter(
+              child: Card(
+                color: const Color(0xFF0F1419),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: const BorderSide(color: Colors.white12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Record Production',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      DropdownButtonFormField<String>(
+                        value: machineId ?? (machines.isNotEmpty? machines.first['id'] as String: null),
+                        dropdownColor: const Color(0xFF0F1419),
+                        style: const TextStyle(color: Colors.white),
+                        items: machines.map((m)=>DropdownMenuItem<String>(
+                          value:m['id'] as String, 
+                          child: Text('${m['name']}')
+                        )).toList(),
+                        onChanged: (v)=>setState(()=>machineId=v),
+                        decoration: InputDecoration(
+                          labelText:'Machine',
+                          labelStyle: const TextStyle(color: Colors.white70),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: Colors.white12),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: Color(0xFF4CC9F0)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<Map>(
+                        value: job,
+                        dropdownColor: const Color(0xFF0F1419),
+                        style: const TextStyle(color: Colors.white),
+                        items: jobsForMachine.map((j)=>DropdownMenuItem(
+                          value:j, 
+                          child: Text('${j['productName']} • ${j['color']??''}')
+                        )).toList(),
+                        onChanged: (v)=>setState(()=>job=v),
+                        decoration: InputDecoration(
+                          labelText:'Job (optional)',
+                          labelStyle: const TextStyle(color: Colors.white70),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: Colors.white12),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: Color(0xFF4CC9F0)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(children:[
+                        Expanded(
+                          child: TextField(
+                            controller: shotsCtrl, 
+                            keyboardType: TextInputType.number,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: InputDecoration(
+                              labelText:'Good Shots',
+                              labelStyle: const TextStyle(color: Colors.white70),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(color: Colors.white12),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(color: Color(0xFF06D6A0)),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: TextField(
+                            controller: scrapCtrl, 
+                            keyboardType: TextInputType.number,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: InputDecoration(
+                              labelText:'Scrap',
+                              labelStyle: const TextStyle(color: Colors.white70),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(color: Colors.white12),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(color: Color(0xFFEF476F)),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ]),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<String>(
+                        value: scrapReason,
+                        dropdownColor: const Color(0xFF0F1419),
+                        style: const TextStyle(color: Colors.white),
+                        items: reasons.map((s)=>DropdownMenuItem(value:s, child: Text(s))).toList(),
+                        onChanged: (v)=>setState(()=>scrapReason=v??'Other'),
+                        decoration: InputDecoration(
+                          labelText:'Scrap Reason',
+                          labelStyle: const TextStyle(color: Colors.white70),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: Colors.white12),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: Color(0xFF4CC9F0)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity, 
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed:_save,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF4CC9F0),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            'Save Entry',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
-          const SizedBox(height: 10),
-          Row(children:[
-            Expanded(child: TextField(controller: shotsCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText:'Good Shots'))),
-            const SizedBox(width: 12),
-            Expanded(child: TextField(controller: scrapCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText:'Scrap'))),
-          ]),
-          const SizedBox(height: 10),
-          DropdownButtonFormField<String>(
-            value: scrapReason,
-            items: reasons.map((s)=>DropdownMenuItem(value:s, child: Text(s))).toList(),
-            onChanged: (v)=>setState(()=>scrapReason=v??'Other'),
-            decoration: const InputDecoration(labelText:'Scrap Reason'),
-          ),
-          const SizedBox(height: 16),
-          SizedBox(width: double.infinity, child: ElevatedButton(onPressed:_save, child: const Text('Save Entry'))),
-        ]),
+        ],
       ),
     );
   }

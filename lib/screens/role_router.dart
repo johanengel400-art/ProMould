@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'dashboard_screen_v2.dart';
 import 'timeline_screen_v2.dart';
 import 'daily_input_screen.dart';
-import 'issues_screen.dart';
+import 'issues_screen_v2.dart';
 import 'manage_machines_screen.dart';
 import 'manage_jobs_screen.dart';
 import 'manage_moulds_screen.dart';
@@ -103,7 +103,7 @@ class _RoleRouterState extends State<RoleRouter> {
           _drawerItem(Icons.edit_note_outlined, 'Inputs',
               DailyInputScreen(username: widget.username, level: widget.level)),
           _drawerItem(Icons.report_problem_outlined, 'Issues',
-              IssuesScreen(username: widget.username, level: widget.level)),
+              IssuesScreenV2(username: widget.username, level: widget.level)),
           _drawerItem(Icons.task_alt, 'My Tasks',
               MyTasksScreen(username: widget.username, level: widget.level)),
           if (isManager) const Divider(),

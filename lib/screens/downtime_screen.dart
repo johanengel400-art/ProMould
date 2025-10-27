@@ -169,102 +169,202 @@ class _DowntimeScreenState extends State<DowntimeScreen> {
     final minutes = totalMinutes % 60;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Downtime Tracking'),
-        actions: [
-          if (items.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Center(
-                child: Text(
-                  'Total: ${hours}h ${minutes}m',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+      backgroundColor: const Color(0xFF0A0E1A),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 120,
+            floating: false,
+            pinned: true,
+            backgroundColor: const Color(0xFF0F1419),
+            flexibleSpace: FlexibleSpaceBar(
+              title: const Text('Downtime Tracking'),
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFFEF476F).withOpacity(0.3),
+                      const Color(0xFF0F1419),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
                 ),
               ),
             ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _addOrEdit(),
-        child: const Icon(Icons.add),
-      ),
-      body: items.isEmpty
-          ? const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.access_time, size: 64, color: Colors.white24),
-                  SizedBox(height: 16),
-                  Text('No downtime recorded', style: TextStyle(color: Colors.white54)),
-                ],
-              ),
-            )
-          : ListView.builder(
-              itemCount: items.length,
-              itemBuilder: (_, i) {
-                final d = items[i];
-                final categoryColor = _getCategoryColor(d['category'] ?? '');
-                final machineId = d['machineId'] as String?;
-                final machine = machineId != null 
-                    ? machinesBox.get(machineId) as Map?
-                    : null;
-                final machineName = machine?['name'] ?? 'No machine';
-                
-                return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: categoryColor.withOpacity(0.2),
-                      child: Icon(
-                        _getCategoryIcon(d['category'] ?? ''),
-                        color: categoryColor,
+            actions: [
+              if (items.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEF476F).withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0xFFEF476F).withOpacity(0.5)),
+                      ),
+                      child: Text(
+                        'Total: ${hours}h ${minutes}m',
+                        style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFEF476F)),
                       ),
                     ),
-                    title: Text('$machineName • ${d['category']} • ${d['minutes']} min'),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('${d['reason'] ?? 'No description'}'),
-                        Text(_formatDate(d['date'])),
-                        if (d['photoUrl'] != null)
-                          const Row(
-                            children: [
-                              Icon(Icons.photo, size: 14, color: Colors.white54),
-                              SizedBox(width: 4),
-                              Text('Photo attached', style: TextStyle(fontSize: 12, color: Colors.white54)),
-                            ],
-                          ),
-                      ],
-                    ),
-                    isThreeLine: true,
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (d['photoUrl'] != null)
-                          IconButton(
-                            icon: const Icon(Icons.photo_outlined),
-                            onPressed: () => _showPhoto(d['photoUrl'] as String),
-                          ),
-                        IconButton(
-                          icon: const Icon(Icons.edit_outlined),
-                          onPressed: () => _addOrEdit(item: Map<String, dynamic>.from(d)),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete_outline),
-                          onPressed: () async {
-                            final downtimeId = d['id'] as String;
-                            await box.delete(downtimeId);
-                            await SyncService.deleteRemote('downtimeBox', downtimeId);
-                            setState(() {});
-                          },
-                        ),
-                      ],
-                    ),
-                    onTap: () => _addOrEdit(item: Map<String, dynamic>.from(d)),
                   ),
-                );
-              },
-            ),
+                ),
+            ],
+          ),
+          items.isEmpty
+              ? SliverFillRemaining(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.access_time, size: 64, color: Colors.white24),
+                        SizedBox(height: 16),
+                        Text('No downtime recorded', style: TextStyle(color: Colors.white54)),
+                      ],
+                    ),
+                  ),
+                )
+              : SliverPadding(
+                  padding: const EdgeInsets.all(16),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (_, i) {
+                        final d = items[i];
+                        final categoryColor = _getCategoryColor(d['category'] ?? '');
+                        final machineId = d['machineId'] as String?;
+                        final machine = machineId != null 
+                            ? machinesBox.get(machineId) as Map?
+                            : null;
+                        final machineName = machine?['name'] ?? 'No machine';
+                        
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          color: const Color(0xFF0F1419),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            side: const BorderSide(color: Colors.white12),
+                          ),
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.all(16),
+                            leading: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: categoryColor.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                _getCategoryIcon(d['category'] ?? ''),
+                                color: categoryColor,
+                              ),
+                            ),
+                            title: Text(
+                              '$machineName • ${d['category']}',
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 8),
+                                Text(
+                                  '${d['reason'] ?? 'No description'}',
+                                  style: const TextStyle(color: Colors.white70),
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Icon(Icons.timer, size: 14, color: categoryColor),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '${d['minutes']} min',
+                                      style: TextStyle(color: categoryColor, fontWeight: FontWeight.bold),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    const Icon(Icons.access_time, size: 14, color: Colors.white38),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      _formatDate(d['date']),
+                                      style: const TextStyle(color: Colors.white38, fontSize: 12),
+                                    ),
+                                  ],
+                                ),
+                                if (d['photoUrl'] != null) ...[
+                                  const SizedBox(height: 4),
+                                  const Row(
+                                    children: [
+                                      Icon(Icons.photo, size: 14, color: Colors.white54),
+                                      SizedBox(width: 4),
+                                      Text('Photo attached', style: TextStyle(fontSize: 12, color: Colors.white54)),
+                                    ],
+                                  ),
+                                ],
+                              ],
+                            ),
+                            trailing: PopupMenuButton(
+                              icon: const Icon(Icons.more_vert, color: Colors.white38),
+                              itemBuilder: (context) => [
+                                if (d['photoUrl'] != null)
+                                  const PopupMenuItem(
+                                    value: 'photo',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.photo_outlined),
+                                        SizedBox(width: 8),
+                                        Text('View Photo'),
+                                      ],
+                                    ),
+                                  ),
+                                const PopupMenuItem(
+                                  value: 'edit',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.edit_outlined),
+                                      SizedBox(width: 8),
+                                      Text('Edit'),
+                                    ],
+                                  ),
+                                ),
+                                const PopupMenuItem(
+                                  value: 'delete',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.delete_outline, color: Colors.red),
+                                      SizedBox(width: 8),
+                                      Text('Delete', style: TextStyle(color: Colors.red)),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                              onSelected: (value) async {
+                                if (value == 'photo' && d['photoUrl'] != null) {
+                                  _showPhoto(d['photoUrl'] as String);
+                                } else if (value == 'edit') {
+                                  _addOrEdit(item: Map<String, dynamic>.from(d));
+                                } else if (value == 'delete') {
+                                  final downtimeId = d['id'] as String;
+                                  await box.delete(downtimeId);
+                                  await SyncService.deleteRemote('downtimeBox', downtimeId);
+                                  setState(() {});
+                                }
+                              },
+                            ),
+                            onTap: () => _addOrEdit(item: Map<String, dynamic>.from(d)),
+                          ),
+                        );
+                      },
+                      childCount: items.length,
+                    ),
+                  ),
+                ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _addOrEdit(),
+        backgroundColor: const Color(0xFFEF476F),
+        icon: const Icon(Icons.add),
+        label: const Text('Log Downtime'),
+      ),
     );
   }
 
