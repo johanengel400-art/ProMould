@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 import '../services/sync_service.dart';
+import '../services/photo_service.dart';
 
 class ManageMouldsScreen extends StatefulWidget{
   final int level;
@@ -19,6 +20,7 @@ class _ManageMouldsScreenState extends State<ManageMouldsScreen>{
     final cavCtrl = TextEditingController(text: item?['cavities']?.toString()??'1');
     final cycCtrl = TextEditingController(text: item?['cycleTime']?.toString()??'30');
     bool hotRunner = item?['hotRunner']==true;
+    String? photoUrl = item?['photoUrl'];
 
     await showDialog(context: context, builder: (dialogContext)=>StatefulBuilder(
       builder: (context, setDialogState) => AlertDialog(
@@ -39,6 +41,25 @@ class _ManageMouldsScreenState extends State<ManageMouldsScreen>{
             onChanged:(v)=> setDialogState(()=>hotRunner=v), 
             title: const Text('Hot runner')
           ),
+          const SizedBox(height:8),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.photo_camera),
+            title: Text(photoUrl != null ? 'Photo attached' : 'Add photo (optional)'),
+            trailing: photoUrl != null 
+              ? IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => setDialogState(() => photoUrl = null),
+                )
+              : null,
+            onTap: () async {
+              final tempId = item?['id'] ?? uuid.v4();
+              final url = await PhotoService.uploadMouldPhoto(tempId);
+              if (url != null) {
+                setDialogState(() => photoUrl = url);
+              }
+            },
+          ),
         ])),
         actions: [
           TextButton(onPressed: ()=>Navigator.pop(dialogContext), child: const Text('Cancel')),
@@ -54,6 +75,7 @@ class _ManageMouldsScreenState extends State<ManageMouldsScreen>{
               'cycleTime': double.tryParse(cycCtrl.text.trim())??30.0,
               'hotRunner': hotRunner,
               'status': item?['status']??'Available',
+              if (photoUrl != null) 'photoUrl': photoUrl,
             };
             await box.put(id, data);
             await SyncService.pushChange('mouldsBox', id, data);
@@ -75,7 +97,25 @@ class _ManageMouldsScreenState extends State<ManageMouldsScreen>{
         itemCount: items.length,
         itemBuilder: (_,i){
           final m = items[i];
+          final photoUrl = m['photoUrl'] as String?;
           return Card(child: ListTile(
+            leading: photoUrl != null
+              ? GestureDetector(
+                  onTap: () => _showPhoto(photoUrl),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      photoUrl,
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const Icon(Icons.broken_image),
+                    ),
+                  ),
+                )
+              : const CircleAvatar(
+                  child: Icon(Icons.precision_manufacturing),
+                ),
             title: Text('${m['number']} • ${m['name']}'),
             subtitle: Text('Mat: ${m['material']} • Cav: ${m['cavities']} • Cycle: ${m['cycleTime']}s • ${m['hotRunner']==true?'Hot runner':'Cold'}'),
             onTap: ()=>_addOrEdit(item: Map<String,dynamic>.from(m)),
@@ -87,6 +127,24 @@ class _ManageMouldsScreenState extends State<ManageMouldsScreen>{
             }),
           ));
         }),
+    );
+  }
+
+  void _showPhoto(String url) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.network(url, fit: BoxFit.contain),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

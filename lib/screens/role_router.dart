@@ -17,6 +17,7 @@ import 'planning_screen.dart';
 import 'downtime_screen.dart';
 import 'oee_screen.dart';
 import 'settings_screen.dart';
+import 'paperwork_screen.dart';
 
 class RoleRouter extends StatefulWidget {
   final int level;
@@ -126,6 +127,9 @@ class _RoleRouterState extends State<RoleRouter> {
           if (isManager)
             _drawerItem(Icons.timer_outlined, 'Downtime',
                 DowntimeScreen(level: widget.level)),
+          if (isManager)
+            _drawerItem(Icons.assignment_outlined, 'Paperwork',
+                PaperworkScreen(level: widget.level, username: widget.username)),
           if (isManager)
             _drawerItem(Icons.insights_outlined, 'Reports / OEE',
                 OEEScreen(level: widget.level)),

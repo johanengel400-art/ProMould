@@ -95,20 +95,26 @@ class TimelineScreen extends StatelessWidget {
               children: [
                 Expanded(
                   child: SfCartesianChart(
-                    title: ChartTitle(text: 'Production Schedule'),
+                    title: ChartTitle(
+                      text: 'Production Schedule',
+                      textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
                     primaryXAxis: CategoryAxis(
                       title: AxisTitle(text: 'Machines'),
+                      labelStyle: const TextStyle(fontSize: 12),
                     ),
                     primaryYAxis: DateTimeAxis(
                       intervalType: DateTimeIntervalType.hours,
-                      dateFormat: DateFormat.Hm(),
+                      dateFormat: DateFormat('MMM d HH:mm'),
                       interval: 2,
                       edgeLabelPlacement: EdgeLabelPlacement.shift,
-                      title: AxisTitle(text: 'Time'),
+                      title: AxisTitle(text: 'Completion Time'),
+                      labelStyle: const TextStyle(fontSize: 11),
                     ),
                     tooltipBehavior: TooltipBehavior(
                       enable: true,
-                      format: 'point.x: point.y',
+                      format: 'point.x\nStart: point.low\nEnd: point.high',
+                      textStyle: const TextStyle(fontSize: 12),
                     ),
                     series: <RangeColumnSeries<_JobBar, String>>[
                       RangeColumnSeries<_JobBar, String>(
@@ -119,11 +125,42 @@ class TimelineScreen extends StatelessWidget {
                         pointColorMapper: (d, _) => d.status == 'Running'
                             ? const Color(0xFF00D26A)
                             : const Color(0xFFFFD166),
-                        dataLabelSettings: const DataLabelSettings(
+                        dataLabelSettings: DataLabelSettings(
                           isVisible: true,
                           labelAlignment: ChartDataLabelAlignment.middle,
+                          textStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                          builder: (data, point, series, pointIndex, seriesIndex) {
+                            final job = data as _JobBar;
+                            final endDate = DateFormat('MMM d HH:mm').format(job.end);
+                            return Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.7),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    job.product,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Done: $endDate',
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 9,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
                         ),
-                        dataLabelMapper: (d, _) => d.product,
                       ),
                     ],
                   ),
@@ -136,6 +173,11 @@ class TimelineScreen extends StatelessWidget {
                     const SizedBox(width: 24),
                     _buildLegend('Queued', const Color(0xFFFFD166)),
                   ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Timeline shows estimated completion dates',
+                  style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.5)),
                 ),
               ],
             ),

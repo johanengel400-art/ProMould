@@ -1,10 +1,11 @@
 // lib/screens/downtime_screen.dart
-// v7.2 – Downtime tracking + OEE data source
+// v7.2 – Downtime tracking + OEE data source + machine selection + photo upload
 
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:uuid/uuid.dart';
 import '../services/sync_service.dart';
+import '../services/photo_service.dart';
 
 class DowntimeScreen extends StatefulWidget {
   final int level;
@@ -27,10 +28,15 @@ class _DowntimeScreenState extends State<DowntimeScreen> {
   ];
 
   Future<void> _addOrEdit({Map<String, dynamic>? item}) async {
+    final machinesBox = Hive.box('machinesBox');
+    final machines = machinesBox.values.cast<Map>().toList();
+    
     final reasonCtrl = TextEditingController(text: item?['reason'] ?? '');
     final minCtrl = TextEditingController(
         text: item?['minutes'] != null ? '${item!['minutes']}' : '0');
     String category = item?['category'] ?? categories.first;
+    String? machineId = item?['machineId'] ?? (machines.isNotEmpty ? machines.first['id'] as String : null);
+    String? photoUrl = item?['photoUrl'];
     DateTime date = DateTime.tryParse(item?['date'] ?? '') ?? DateTime.now();
 
     await showDialog(
@@ -50,6 +56,18 @@ class _DowntimeScreenState extends State<DowntimeScreen> {
                       .toList(),
                   onChanged: (v) => setDialogState(() => category = v ?? categories.first),
                 ),
+                const SizedBox(height: 8),
+                if (machines.isNotEmpty)
+                  DropdownButtonFormField<String>(
+                    value: machineId,
+                    decoration: const InputDecoration(labelText: 'Machine'),
+                    items: machines
+                        .map((m) => DropdownMenuItem(
+                            value: m['id'] as String, 
+                            child: Text(m['name'] as String)))
+                        .toList(),
+                    onChanged: (v) => setDialogState(() => machineId = v),
+                  ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: reasonCtrl,
@@ -86,6 +104,25 @@ class _DowntimeScreenState extends State<DowntimeScreen> {
                     }
                   },
                 ),
+                const SizedBox(height: 8),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.photo_camera),
+                  title: Text(photoUrl != null ? 'Photo attached' : 'Add photo (optional)'),
+                  trailing: photoUrl != null 
+                    ? IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => setDialogState(() => photoUrl = null),
+                      )
+                    : null,
+                  onTap: () async {
+                    final tempId = item?['id'] ?? uuid.v4();
+                    final url = await PhotoService.uploadDowntimePhoto(tempId);
+                    if (url != null) {
+                      setDialogState(() => photoUrl = url);
+                    }
+                  },
+                ),
               ],
             ),
           ),
@@ -101,9 +138,11 @@ class _DowntimeScreenState extends State<DowntimeScreen> {
                 final data = {
                   'id': id,
                   'category': category,
+                  'machineId': machineId,
                   'reason': reasonCtrl.text.trim(),
                   'minutes': int.tryParse(minCtrl.text) ?? 0,
                   'date': date.toIso8601String(),
+                  if (photoUrl != null) 'photoUrl': photoUrl,
                 };
                 await box.put(id, data);
                 await SyncService.push('downtimeBox', id, data);
@@ -121,6 +160,7 @@ class _DowntimeScreenState extends State<DowntimeScreen> {
   @override
   Widget build(BuildContext context) {
     final box = Hive.box('downtimeBox');
+    final machinesBox = Hive.box('machinesBox');
     final items = box.values.cast<Map>().toList().reversed.toList();
 
     // Calculate total downtime
@@ -164,6 +204,12 @@ class _DowntimeScreenState extends State<DowntimeScreen> {
               itemBuilder: (_, i) {
                 final d = items[i];
                 final categoryColor = _getCategoryColor(d['category'] ?? '');
+                final machineId = d['machineId'] as String?;
+                final machine = machineId != null 
+                    ? machinesBox.get(machineId) as Map?
+                    : null;
+                final machineName = machine?['name'] ?? 'No machine';
+                
                 return Card(
                   margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   child: ListTile(
@@ -174,12 +220,31 @@ class _DowntimeScreenState extends State<DowntimeScreen> {
                         color: categoryColor,
                       ),
                     ),
-                    title: Text('${d['category']} • ${d['minutes']} min'),
-                    subtitle: Text('${d['reason'] ?? 'No description'}\n${_formatDate(d['date'])}'),
+                    title: Text('$machineName • ${d['category']} • ${d['minutes']} min'),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('${d['reason'] ?? 'No description'}'),
+                        Text(_formatDate(d['date'])),
+                        if (d['photoUrl'] != null)
+                          const Row(
+                            children: [
+                              Icon(Icons.photo, size: 14, color: Colors.white54),
+                              SizedBox(width: 4),
+                              Text('Photo attached', style: TextStyle(fontSize: 12, color: Colors.white54)),
+                            ],
+                          ),
+                      ],
+                    ),
                     isThreeLine: true,
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        if (d['photoUrl'] != null)
+                          IconButton(
+                            icon: const Icon(Icons.photo_outlined),
+                            onPressed: () => _showPhoto(d['photoUrl'] as String),
+                          ),
                         IconButton(
                           icon: const Icon(Icons.edit_outlined),
                           onPressed: () => _addOrEdit(item: Map<String, dynamic>.from(d)),
@@ -200,6 +265,24 @@ class _DowntimeScreenState extends State<DowntimeScreen> {
                 );
               },
             ),
+    );
+  }
+
+  void _showPhoto(String url) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.network(url, fit: BoxFit.contain),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
