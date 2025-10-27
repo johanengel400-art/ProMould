@@ -5,6 +5,7 @@ import 'theme/dark_theme.dart';
 import 'services/sync_service.dart';
 import 'services/background_sync.dart';
 import 'services/live_progress_service.dart';
+import 'services/notification_service.dart';
 import 'screens/login_screen.dart';
 
 import 'firebase_options.dart';
@@ -21,6 +22,8 @@ Future<void> _openCoreBoxes() async {
   await Hive.openBox('downtimeBox');
   await Hive.openBox('checklistsBox');
   await Hive.openBox('mouldChangesBox');
+  await Hive.openBox('qualityInspectionsBox');
+  await Hive.openBox('qualityHoldsBox');
 }
 
 void main() async {
@@ -52,6 +55,10 @@ void main() async {
   print('⏱️ Starting live progress service...');
   LiveProgressService.start();
   print('✅ Live progress service started');
+
+  print('🔔 Starting notification service...');
+  NotificationService.start();
+  print('✅ Notification service started');
 
   print('🎨 Launching app UI...');
   runApp(const ProMouldApp());

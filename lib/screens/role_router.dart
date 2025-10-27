@@ -19,6 +19,9 @@ import 'oee_screen.dart';
 import 'settings_screen.dart';
 import 'paperwork_screen.dart';
 import 'mould_change_scheduler_screen.dart';
+import 'job_queue_manager_screen.dart';
+import 'my_tasks_screen.dart';
+import 'quality_control_screen.dart';
 
 class RoleRouter extends StatefulWidget {
   final int level;
@@ -101,6 +104,8 @@ class _RoleRouterState extends State<RoleRouter> {
               DailyInputScreen(username: widget.username, level: widget.level)),
           _drawerItem(Icons.report_problem_outlined, 'Issues',
               IssuesScreen(username: widget.username, level: widget.level)),
+          _drawerItem(Icons.task_alt, 'My Tasks',
+              MyTasksScreen(username: widget.username, level: widget.level)),
           if (isManager) const Divider(),
           if (isManager)
             const Padding(
@@ -113,6 +118,9 @@ class _RoleRouterState extends State<RoleRouter> {
           if (isManager)
             _drawerItem(Icons.fact_check_outlined, 'Jobs',
                 ManageJobsScreen(level: widget.level)),
+          if (isManager)
+            _drawerItem(Icons.reorder, 'Job Queue',
+                JobQueueManagerScreen(level: widget.level)),
           if (isManager)
             _drawerItem(Icons.apps_outage_outlined, 'Moulds',
                 ManageMouldsScreen(level: widget.level)),
@@ -137,6 +145,9 @@ class _RoleRouterState extends State<RoleRouter> {
           if (isManager)
             _drawerItem(Icons.insights_outlined, 'Reports / OEE',
                 OEEScreen(level: widget.level)),
+          if (isManager)
+            _drawerItem(Icons.verified_outlined, 'Quality Control',
+                QualityControlScreen(level: widget.level, username: widget.username)),
           if (isAdmin) const Divider(),
           if (isAdmin)
             _drawerItem(Icons.settings_outlined, 'Settings',
