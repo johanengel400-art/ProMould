@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:intl/intl.dart';
 
 class DashboardScreen extends StatefulWidget{
   final String username; final int level;
@@ -13,6 +14,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   late Box machinesBox;
   late Box jobsBox;
   late Box floorsBox;
+  late Box mouldsBox;
   String? selectedFloorId;
 
   @override
@@ -21,6 +23,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     machinesBox = Hive.box('machinesBox');
     jobsBox = Hive.box('jobsBox');
     floorsBox = Hive.box('floorsBox');
+    mouldsBox = Hive.box('mouldsBox');
     machinesBox.listenable().addListener(_onDataChanged);
     jobsBox.listenable().addListener(_onDataChanged);
   }
@@ -43,6 +46,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
       case 'Breakdown': return const Color(0xFFFF6B6B);
       default: return const Color(0xFF6C757D);
     }
+  }
+
+  String _calculateETA(Map job) {
+    final mould = mouldsBox.values.cast<Map?>().firstWhere(
+      (m) => m != null && m['id'] == job['mouldId'],
+      orElse: () => null,
+    );
+    
+    if (mould == null) return 'No mould assigned';
+    
+    final cycleTime = (mould['cycleTime'] as num?)?.toDouble() ?? 30.0;
+    final remaining = (job['targetShots'] as num? ?? 0) - (job['shotsCompleted'] as num? ?? 0);
+    
+    if (remaining <= 0) return 'Target reached';
+    
+    final minutes = (remaining * cycleTime / 60).toDouble();
+    final eta = DateTime.now().add(Duration(minutes: minutes.round()));
+    final etaText = DateFormat('HH:mm').format(eta);
+    
+    final hours = minutes ~/ 60;
+    final mins = (minutes % 60).round();
+    final durationText = hours > 0 ? '${hours}h ${mins}m' : '${mins}m';
+    
+    return 'ETA $etaText ($durationText)';
   }
 
   @override Widget build(BuildContext context){
@@ -127,7 +154,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const SizedBox(height: 6),
               Text(job==null ? 'No active job'
                 : 'Job: ${job['productName']} • ${progress100}%',
-                style: const TextStyle(color: Colors.white70)),
+                style: const TextStyle(color: Colors.white70, fontSize: 13)),
+              if (job != null) ...[
+                const SizedBox(height: 4),
+                Row(children: [
+                  const Icon(Icons.schedule, size: 14, color: Colors.white54),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      _calculateETA(job),
+                      style: const TextStyle(color: Colors.white60, fontSize: 11),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ]),
+              ],
               const Spacer(),
               Row(children:[
                 const Icon(Icons.precision_manufacturing_outlined, size:18, color: Colors.white54),

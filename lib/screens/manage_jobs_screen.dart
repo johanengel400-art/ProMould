@@ -138,41 +138,56 @@ class _ManageJobsScreenState extends State<ManageJobsScreen>{
     final productCtrl=TextEditingController();
     final colorCtrl=TextEditingController();
     final targetCtrl=TextEditingController();
+    final mouldsBox = Hive.box('mouldsBox');
+    final moulds = mouldsBox.values.cast<Map>().toList();
+    String? selectedMould = moulds.isNotEmpty ? moulds.first['id'] as String : null;
     
-    await showDialog(context: context, builder: (_)=>AlertDialog(
-      title: const Text('New Job'),
-      content: Column(mainAxisSize: MainAxisSize.min, children:[
-        TextField(controller:productCtrl, decoration: const InputDecoration(labelText:'Product Name')),
-        const SizedBox(height:8),
-        TextField(controller:colorCtrl, decoration: const InputDecoration(labelText:'Color')),
-        const SizedBox(height:8),
-        TextField(controller:targetCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText:'Target Shots')),
-        const SizedBox(height:8),
-        const Text('Note: Assign this job to a machine in Production Planning', 
-          style: TextStyle(fontSize: 12, color: Colors.white70)),
-      ]),
-      actions: [
-        TextButton(onPressed: ()=>Navigator.pop(context), child: const Text('Cancel')),
-        ElevatedButton(onPressed: () async {
-          final box = Hive.box('jobsBox');
-          final id = uuid.v4();
-          final data = {
-            'id': id,
-            'productName': productCtrl.text.trim(),
-            'color': colorCtrl.text.trim(),
-            'targetShots': int.tryParse(targetCtrl.text.trim()) ?? 0,
-            'shotsCompleted': 0,
-            'machineId': '',
-            'status': 'Pending',
-            'startTime': null,
-            'endTime': null,
-            'eta': null,
-          };
-          await box.put(id, data);
-          await SyncService.pushChange('jobsBox', id, data);
-          Navigator.pop(context);
-        }, child: const Text('Save')),
-      ],
+    await showDialog(context: context, builder: (_)=>StatefulBuilder(
+      builder: (context, setDialogState) => AlertDialog(
+        title: const Text('New Job'),
+        content: Column(mainAxisSize: MainAxisSize.min, children:[
+          TextField(controller:productCtrl, decoration: const InputDecoration(labelText:'Product Name')),
+          const SizedBox(height:8),
+          TextField(controller:colorCtrl, decoration: const InputDecoration(labelText:'Color')),
+          const SizedBox(height:8),
+          TextField(controller:targetCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText:'Target Shots')),
+          const SizedBox(height:8),
+          DropdownButtonFormField<String>(
+            value: selectedMould,
+            items: moulds.map((m)=>DropdownMenuItem<String>(
+              value:m['id'] as String, 
+              child: Text('${m['name']} (${m['cycleTime']}s)')
+            )).toList(),
+            onChanged: (v)=>setDialogState(()=>selectedMould=v),
+            decoration: const InputDecoration(labelText:'Mould'),
+          ),
+          const SizedBox(height:8),
+          const Text('Note: Assign this job to a machine in Production Planning', 
+            style: TextStyle(fontSize: 12, color: Colors.white70)),
+        ]),
+        actions: [
+          TextButton(onPressed: ()=>Navigator.pop(context), child: const Text('Cancel')),
+          ElevatedButton(onPressed: () async {
+            final box = Hive.box('jobsBox');
+            final id = uuid.v4();
+            final data = {
+              'id': id,
+              'productName': productCtrl.text.trim(),
+              'color': colorCtrl.text.trim(),
+              'targetShots': int.tryParse(targetCtrl.text.trim()) ?? 0,
+              'shotsCompleted': 0,
+              'machineId': '',
+              'mouldId': selectedMould ?? '',
+              'status': 'Pending',
+              'startTime': null,
+              'endTime': null,
+            };
+            await box.put(id, data);
+            await SyncService.pushChange('jobsBox', id, data);
+            Navigator.pop(context);
+          }, child: const Text('Save')),
+        ],
+      ),
     ));
     setState((){});
   }
