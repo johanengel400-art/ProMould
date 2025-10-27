@@ -97,57 +97,60 @@ class _PlanningScreenState extends State<PlanningScreen> {
           SliverToBoxAdapter(
             child: Column(
               children: [
-          // Statistics Cards
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Theme.of(context).primaryColor.withOpacity(0.1),
-                  Colors.transparent,
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(child: _statCard('Total Jobs', totalJobs.toString(), Icons.work_outline, const Color(0xFF4CC9F0))),
-                      const SizedBox(width: 12),
-                      Expanded(child: _statCard('Running', runningJobs.toString(), Icons.play_circle_outline, const Color(0xFF00D26A))),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(child: _statCard('Queued', queuedJobs.toString(), Icons.schedule, const Color(0xFFFFD166))),
-                      const SizedBox(width: 12),
-                      Expanded(child: _statCard('Active Machines', activeMachines.toString(), Icons.precision_manufacturing, const Color(0xFF9D4EDD))),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    value: floorId,
-                    items: floors
-                        .map((f) =>
-                            DropdownMenuItem(value: f['id'] as String, child: Text('${f['name']}')))
-                        .toList(),
-                    onChanged: (v) => setState(() => selectedFloorId = v),
-                    decoration: InputDecoration(
-                      labelText: 'Select Floor',
-                      prefixIcon: const Icon(Icons.apartment),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      filled: true,
-                      fillColor: Colors.white.withOpacity(0.05),
+                // Statistics Cards
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Theme.of(context).primaryColor.withOpacity(0.1),
+                        Colors.transparent,
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
                     ),
                   ),
-                ],
-              ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(child: _statCard('Total Jobs', totalJobs.toString(), Icons.work_outline, const Color(0xFF4CC9F0))),
+                            const SizedBox(width: 12),
+                            Expanded(child: _statCard('Running', runningJobs.toString(), Icons.play_circle_outline, const Color(0xFF00D26A))),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(child: _statCard('Queued', queuedJobs.toString(), Icons.schedule, const Color(0xFFFFD166))),
+                            const SizedBox(width: 12),
+                            Expanded(child: _statCard('Active Machines', activeMachines.toString(), Icons.precision_manufacturing, const Color(0xFF9D4EDD))),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        DropdownButtonFormField<String>(
+                          value: floorId,
+                          items: floors
+                              .map((f) =>
+                                  DropdownMenuItem(value: f['id'] as String, child: Text('${f['name']}')))
+                              .toList(),
+                          onChanged: (v) => setState(() => selectedFloorId = v),
+                          decoration: InputDecoration(
+                            labelText: 'Select Floor',
+                            prefixIcon: const Icon(Icons.apartment),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            filled: true,
+                            fillColor: Colors.white.withOpacity(0.05),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           // Machines List
