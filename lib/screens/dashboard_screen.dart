@@ -64,13 +64,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     
     final minutes = (remaining * cycleTime / 60).toDouble();
     final eta = DateTime.now().add(Duration(minutes: minutes.round()));
-    final etaText = DateFormat('HH:mm').format(eta);
+    final etaDate = DateFormat('MMM d').format(eta);
+    final etaTime = DateFormat('HH:mm').format(eta);
     
     final hours = minutes ~/ 60;
     final mins = (minutes % 60).round();
     final durationText = hours > 0 ? '${hours}h ${mins}m' : '${mins}m';
     
-    return 'ETA $etaText ($durationText)';
+    return 'ETA $etaDate $etaTime ($durationText)';
   }
 
   @override Widget build(BuildContext context){

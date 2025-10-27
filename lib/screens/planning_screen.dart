@@ -143,12 +143,13 @@ class _PlanningScreenState extends State<PlanningScreen> {
         (job['targetShots'] as num? ?? 0) - (job['shotsCompleted'] as num? ?? 0);
     final minutes = (remaining * cycle / 60).toDouble();
     final eta = startTime.add(Duration(minutes: minutes.round()));
-    final etaText = DateFormat('HH:mm').format(eta);
+    final etaDate = DateFormat('MMM d').format(eta);
+    final etaTime = DateFormat('HH:mm').format(eta);
     final duration = Duration(minutes: minutes.round());
     final hours = duration.inHours;
     final mins = duration.inMinutes % 60;
     final durationText = hours > 0 ? '${hours}h ${mins}m' : '${mins}m';
-    return 'ETA $etaText • $durationText • ${remaining} shots';
+    return 'ETA $etaDate $etaTime • $durationText • ${remaining} shots';
   }
 
   Future<void> _assignJobDialog() async {
