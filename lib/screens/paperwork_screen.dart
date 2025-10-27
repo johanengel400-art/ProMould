@@ -75,73 +75,76 @@ class _PaperworkScreenState extends State<PaperworkScreen> {
           ),
           SliverToBoxAdapter(
             child: Column(
-        children: [
-          // Category Selection
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Theme.of(context).primaryColor.withOpacity(0.1),
-                  Colors.transparent,
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Date: ${DateFormat('EEEE, MMM d, yyyy').format(selectedDate)}',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16),
-                SegmentedButton<String>(
-                  segments: const [
-                    ButtonSegment(
-                      value: 'Daily Checklists',
-                      label: Text('Daily Checklists'),
-                      icon: Icon(Icons.checklist),
-                    ),
-                    ButtonSegment(
-                      value: 'By Setter',
-                      label: Text('By Setter'),
-                      icon: Icon(Icons.person),
-                    ),
-                  ],
-                  selected: {selectedCategory},
-                  onSelectionChanged: (Set<String> newSelection) {
-                    setState(() {
-                      selectedCategory = newSelection.first;
-                      if (selectedCategory == 'By Setter' && setters.isNotEmpty) {
-                        selectedSetter ??= setters.first['username'] as String;
-                      }
-                    });
-                  },
-                ),
-                if (selectedCategory == 'By Setter' && setters.isNotEmpty) ...[
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    value: selectedSetter ?? setters.first['username'] as String,
-                    items: setters
-                        .map((s) => DropdownMenuItem(
-                            value: s['username'] as String,
-                            child: Text(s['username'] as String)))
-                        .toList(),
-                    onChanged: (v) => setState(() => selectedSetter = v),
-                    decoration: InputDecoration(
-                      labelText: 'Select Setter',
-                      prefixIcon: const Icon(Icons.person),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      filled: true,
-                      fillColor: Colors.white.withOpacity(0.05),
+                // Category Selection
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Theme.of(context).primaryColor.withOpacity(0.1),
+                        Colors.transparent,
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
                     ),
                   ),
-                ],
-              ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Date: ${DateFormat('EEEE, MMM d, yyyy').format(selectedDate)}',
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 16),
+                      SegmentedButton<String>(
+                        segments: const [
+                          ButtonSegment(
+                            value: 'Daily Checklists',
+                            label: Text('Daily Checklists'),
+                            icon: Icon(Icons.checklist),
+                          ),
+                          ButtonSegment(
+                            value: 'By Setter',
+                            label: Text('By Setter'),
+                            icon: Icon(Icons.person),
+                          ),
+                        ],
+                        selected: {selectedCategory},
+                        onSelectionChanged: (Set<String> newSelection) {
+                          setState(() {
+                            selectedCategory = newSelection.first;
+                            if (selectedCategory == 'By Setter' && setters.isNotEmpty) {
+                              selectedSetter ??= setters.first['username'] as String;
+                            }
+                          });
+                        },
+                      ),
+                      if (selectedCategory == 'By Setter' && setters.isNotEmpty) ...[
+                        const SizedBox(height: 16),
+                        DropdownButtonFormField<String>(
+                          value: selectedSetter ?? setters.first['username'] as String,
+                          items: setters
+                              .map((s) => DropdownMenuItem(
+                                  value: s['username'] as String,
+                                  child: Text(s['username'] as String)))
+                              .toList(),
+                          onChanged: (v) => setState(() => selectedSetter = v),
+                          decoration: InputDecoration(
+                            labelText: 'Select Setter',
+                            prefixIcon: const Icon(Icons.person),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            filled: true,
+                            fillColor: Colors.white.withOpacity(0.05),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
           // Content
