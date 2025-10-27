@@ -141,7 +141,7 @@ class _PaperworkScreenState extends State<PaperworkScreen> {
                           ),
                         ),
                       ],
-                    ],
+                    ),
                   ),
                 ),
               ],
