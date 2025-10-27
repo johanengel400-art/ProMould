@@ -150,9 +150,6 @@ class _PlanningScreenState extends State<PlanningScreen> {
               ),
             ),
           ),
-              ),
-            ),
-          ),
           // Machines List
           machines.isEmpty
               ? SliverFillRemaining(

@@ -144,9 +144,6 @@ class _PaperworkScreenState extends State<PaperworkScreen> {
               ],
             ),
           ),
-              ),
-            ),
-          ),
           // Content
           selectedCategory == 'Daily Checklists'
               ? _buildDailyChecklists()
