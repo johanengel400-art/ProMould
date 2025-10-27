@@ -24,7 +24,6 @@ class _PlanningScreenState extends State<PlanningScreen> {
     final floorsBox = Hive.box('floorsBox');
     final machinesBox = Hive.box('machinesBox');
     final jobsBox = Hive.box('jobsBox');
-    final queueBox = Hive.box('queueBox');
     final mouldsBox = Hive.box('mouldsBox');
 
     final floors = floorsBox.values.cast<Map>().toList();
@@ -118,12 +117,15 @@ class _PlanningScreenState extends State<PlanningScreen> {
   Future<void> _assignJobDialog() async {
     final machinesBox = Hive.box('machinesBox');
     final jobsBox = Hive.box('jobsBox');
-    final queueBox = Hive.box('queueBox');
+
+    // Only show unassigned jobs (Pending status or empty machineId)
+    final availableJobs = jobsBox.values.cast<Map>().where((j) =>
+        (j['status'] == 'Pending' || j['machineId'] == '' || j['machineId'] == null)).toList();
 
     String? machineId =
         machinesBox.values.cast<Map>().isNotEmpty ? machinesBox.values.cast<Map>().first['id'] as String : null;
     String? jobId =
-        jobsBox.values.cast<Map>().isNotEmpty ? jobsBox.values.cast<Map>().first['id'] as String : null;
+        availableJobs.isNotEmpty ? availableJobs.first['id'] as String : null;
 
     await showDialog(
       context: context,
@@ -146,13 +148,12 @@ class _PlanningScreenState extends State<PlanningScreen> {
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 value: jobId,
-                items: jobsBox.values
-                    .cast<Map>()
+                items: availableJobs
                     .map((j) => DropdownMenuItem(
                         value: j['id'] as String, child: Text('${j['productName']}')))
                     .toList(),
                 onChanged: (v) => setDialogState(() => jobId = v),
-                decoration: const InputDecoration(labelText: 'Job'),
+                decoration: const InputDecoration(labelText: 'Job (Unassigned)'),
               ),
             ],
           ),
@@ -162,20 +163,40 @@ class _PlanningScreenState extends State<PlanningScreen> {
             ElevatedButton(
               onPressed: () async {
                 if (machineId == null || jobId == null) return;
-                final id = uuid.v4();
-                final existing =
-                    queueBox.values.cast<Map>().where((e) => e['machineId'] == machineId);
-                final order = existing.isEmpty
-                    ? 1
-                    : (existing.map((e) => e['order'] as int).reduce((a, b) => a > b ? a : b) + 1);
-                final data = {
-                  'id': id,
-                  'machineId': machineId,
-                  'jobId': jobId,
-                  'order': order,
-                };
-                await queueBox.put(id, data);
-                await SyncService.push('queueBox', id, data);
+                
+                // Update the job with machineId and status
+                final job = jobsBox.get(jobId) as Map?;
+                if (job != null) {
+                  final updatedJob = Map<String, dynamic>.from(job);
+                  updatedJob['machineId'] = machineId;
+                  
+                  // Check if this is the first job for this machine
+                  final existingJobs = jobsBox.values.cast<Map>().where((j) =>
+                      j['machineId'] == machineId && 
+                      (j['status'] == 'Running' || j['status'] == 'Queued')).toList();
+                  
+                  if (existingJobs.isEmpty) {
+                    // First job - set to Running and update machine status
+                    updatedJob['status'] = 'Running';
+                    updatedJob['startTime'] = DateTime.now().toIso8601String();
+                    
+                    // Update machine status to Running
+                    final machine = machinesBox.get(machineId) as Map?;
+                    if (machine != null) {
+                      final updatedMachine = Map<String, dynamic>.from(machine);
+                      updatedMachine['status'] = 'Running';
+                      await machinesBox.put(machineId, updatedMachine);
+                      await SyncService.pushChange('machinesBox', machineId, updatedMachine);
+                    }
+                  } else {
+                    // Additional job - set to Queued
+                    updatedJob['status'] = 'Queued';
+                  }
+                  
+                  await jobsBox.put(jobId, updatedJob);
+                  await SyncService.pushChange('jobsBox', jobId, updatedJob);
+                }
+                
                 Navigator.pop(dialogContext);
               },
               child: const Text('Assign'),

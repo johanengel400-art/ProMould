@@ -15,29 +15,19 @@ class _ManageJobsScreenState extends State<ManageJobsScreen>{
     final productCtrl=TextEditingController();
     final colorCtrl=TextEditingController();
     final targetCtrl=TextEditingController();
-    String? selectedMachine;
-    
-    final machinesBox = Hive.box('machinesBox');
-    final machines = machinesBox.values.cast<Map>().toList();
     
     await showDialog(context: context, builder: (_)=>AlertDialog(
       title: const Text('New Job'),
-      content: StatefulBuilder(
-        builder: (context, setDialogState) => Column(mainAxisSize: MainAxisSize.min, children:[
-          TextField(controller:productCtrl, decoration: const InputDecoration(labelText:'Product Name')),
-          const SizedBox(height:8),
-          TextField(controller:colorCtrl, decoration: const InputDecoration(labelText:'Color')),
-          const SizedBox(height:8),
-          TextField(controller:targetCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText:'Target Shots')),
-          const SizedBox(height:8),
-          DropdownButtonFormField<String>(
-            value: selectedMachine,
-            items: machines.map((m)=>DropdownMenuItem<String>(value:m['id'] as String, child: Text('${m['name']}'))).toList(),
-            onChanged: (v)=>setDialogState(()=>selectedMachine=v),
-            decoration: const InputDecoration(labelText:'Machine'),
-          ),
-        ]),
-      ),
+      content: Column(mainAxisSize: MainAxisSize.min, children:[
+        TextField(controller:productCtrl, decoration: const InputDecoration(labelText:'Product Name')),
+        const SizedBox(height:8),
+        TextField(controller:colorCtrl, decoration: const InputDecoration(labelText:'Color')),
+        const SizedBox(height:8),
+        TextField(controller:targetCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText:'Target Shots')),
+        const SizedBox(height:8),
+        const Text('Note: Assign this job to a machine in Production Planning', 
+          style: TextStyle(fontSize: 12, color: Colors.white70)),
+      ]),
       actions: [
         TextButton(onPressed: ()=>Navigator.pop(context), child: const Text('Cancel')),
         ElevatedButton(onPressed: () async {
@@ -49,8 +39,8 @@ class _ManageJobsScreenState extends State<ManageJobsScreen>{
             'color': colorCtrl.text.trim(),
             'targetShots': int.tryParse(targetCtrl.text.trim()) ?? 0,
             'shotsCompleted': 0,
-            'machineId': selectedMachine ?? '',
-            'status': 'Queued',
+            'machineId': '',
+            'status': 'Pending',
             'startTime': null,
             'endTime': null,
             'eta': null,
@@ -79,13 +69,44 @@ class _ManageJobsScreenState extends State<ManageJobsScreen>{
             : 0;
           return Card(child: ListTile(
             title: Text('${j['productName']} • ${j['color']??''}'),
-            subtitle: Text('Status: ${j['status']} • Progress: $progress%'),
-            trailing: IconButton(icon: const Icon(Icons.delete_outline), onPressed: () async {
-              final jobId = j['id'] as String;
-              await box.delete(jobId);
-              await SyncService.deleteRemote('jobsBox', jobId);
-              setState((){});
-            }),
+            subtitle: Text('Status: ${j['status']} • Machine: ${j['machineId'] != '' ? j['machineId'] : 'Unassigned'} • Progress: $progress%'),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (j['status'] == 'Queued')
+                  IconButton(
+                    icon: const Icon(Icons.play_arrow, color: Colors.green),
+                    onPressed: () async {
+                      final jobId = j['id'] as String;
+                      final updated = Map<String,dynamic>.from(j);
+                      updated['status'] = 'Running';
+                      updated['startTime'] = DateTime.now().toIso8601String();
+                      await box.put(jobId, updated);
+                      await SyncService.pushChange('jobsBox', jobId, updated);
+                      
+                      // Update machine status
+                      final machinesBox = Hive.box('machinesBox');
+                      final machineId = j['machineId'] as String;
+                      if (machineId.isNotEmpty) {
+                        final machine = machinesBox.get(machineId) as Map?;
+                        if (machine != null) {
+                          final updatedMachine = Map<String,dynamic>.from(machine);
+                          updatedMachine['status'] = 'Running';
+                          await machinesBox.put(machineId, updatedMachine);
+                          await SyncService.pushChange('machinesBox', machineId, updatedMachine);
+                        }
+                      }
+                      setState((){});
+                    },
+                  ),
+                IconButton(icon: const Icon(Icons.delete_outline), onPressed: () async {
+                  final jobId = j['id'] as String;
+                  await box.delete(jobId);
+                  await SyncService.deleteRemote('jobsBox', jobId);
+                  setState((){});
+                }),
+              ],
+            ),
           ));
         }),
     );
