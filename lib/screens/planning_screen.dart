@@ -181,20 +181,20 @@ class _PlanningScreenState extends State<PlanningScreen> {
                     updatedJob['startTime'] = DateTime.now().toIso8601String();
                     
                     // Update machine status to Running
-                    final machine = machinesBox.get(machineId) as Map?;
+                    final machine = machinesBox.get(machineId!) as Map?;
                     if (machine != null) {
                       final updatedMachine = Map<String, dynamic>.from(machine);
                       updatedMachine['status'] = 'Running';
-                      await machinesBox.put(machineId, updatedMachine);
-                      await SyncService.pushChange('machinesBox', machineId, updatedMachine);
+                      await machinesBox.put(machineId!, updatedMachine);
+                      await SyncService.pushChange('machinesBox', machineId!, updatedMachine);
                     }
                   } else {
                     // Additional job - set to Queued
                     updatedJob['status'] = 'Queued';
                   }
                   
-                  await jobsBox.put(jobId, updatedJob);
-                  await SyncService.pushChange('jobsBox', jobId, updatedJob);
+                  await jobsBox.put(jobId!, updatedJob);
+                  await SyncService.pushChange('jobsBox', jobId!, updatedJob);
                 }
                 
                 Navigator.pop(dialogContext);
