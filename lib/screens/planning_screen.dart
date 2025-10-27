@@ -1,11 +1,13 @@
 // lib/screens/planning_screen.dart
 // v7.2 – Professional planning page with enhanced layout and styling
 
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../services/sync_service.dart';
+import '../services/live_progress_service.dart';
 
 class PlanningScreen extends StatefulWidget {
   final int level;
@@ -18,6 +20,22 @@ class PlanningScreen extends StatefulWidget {
 class _PlanningScreenState extends State<PlanningScreen> {
   final uuid = const Uuid();
   String? selectedFloorId;
+  Timer? _uiUpdateTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Update UI every 2 seconds for live progress
+    _uiUpdateTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _uiUpdateTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -181,7 +199,7 @@ class _PlanningScreenState extends State<PlanningScreen> {
     final queuedJobs = jobs.skip(1).toList();
     final statusColor = _getStatusColor(m['status'] as String? ?? 'Idle');
 
-    // Calculate cumulative time for queued jobs
+    // Calculate cumulative time for queued jobs using live progress
     DateTime cumulativeTime = DateTime.now();
     if (runningJob != null) {
       final mould = mouldsBox.values.cast<Map?>().firstWhere(
@@ -189,8 +207,11 @@ class _PlanningScreenState extends State<PlanningScreen> {
         orElse: () => null,
       );
       final cycle = (mould?['cycleTime'] as num?)?.toDouble() ?? 30.0;
-      final remaining = (runningJob['targetShots'] as num? ?? 0) - 
-                       (runningJob['shotsCompleted'] as num? ?? 0);
+      
+      // Use live estimated shots for accurate remaining calculation
+      final currentShots = LiveProgressService.getEstimatedShots(runningJob, mouldsBox);
+      final remaining = (runningJob['targetShots'] as num? ?? 0) - currentShots;
+      
       final minutes = (remaining * cycle / 60).toDouble();
       cumulativeTime = cumulativeTime.add(Duration(minutes: minutes.round()));
     }
@@ -279,17 +300,28 @@ class _PlanningScreenState extends State<PlanningScreen> {
                     style: const TextStyle(fontSize: 13, color: Colors.white70),
                   ),
                   const SizedBox(height: 4),
-                  LinearProgressIndicator(
-                    value: (runningJob['shotsCompleted'] as num? ?? 0) / 
-                           (runningJob['targetShots'] as num? ?? 1),
-                    backgroundColor: Colors.white12,
-                    valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF00D26A)),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${runningJob['shotsCompleted'] ?? 0} / ${runningJob['targetShots'] ?? 0} shots',
-                    style: const TextStyle(fontSize: 12, color: Colors.white60),
-                  ),
+                  Builder(builder: (context) {
+                    // Use live estimated shots for progress bar
+                    final currentShots = LiveProgressService.getEstimatedShots(runningJob, mouldsBox);
+                    final targetShots = runningJob['targetShots'] as num? ?? 1;
+                    final progress = currentShots / targetShots;
+                    
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        LinearProgressIndicator(
+                          value: progress.clamp(0.0, 1.0),
+                          backgroundColor: Colors.white12,
+                          valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF00D26A)),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '$currentShots / $targetShots shots',
+                          style: const TextStyle(fontSize: 12, color: Colors.white60),
+                        ),
+                      ],
+                    );
+                  }),
                 ],
               ),
             ),
@@ -400,8 +432,13 @@ class _PlanningScreenState extends State<PlanningScreen> {
           orElse: () => null,
         );
     final cycle = (mould?['cycleTime'] as num?)?.toDouble() ?? 30.0;
-    final remaining =
-        (job['targetShots'] as num? ?? 0) - (job['shotsCompleted'] as num? ?? 0);
+    
+    // Use live estimated shots for accurate remaining calculation
+    final currentShots = job['status'] == 'Running'
+        ? LiveProgressService.getEstimatedShots(job, mouldsBox)
+        : (job['shotsCompleted'] as num? ?? 0);
+    final remaining = (job['targetShots'] as num? ?? 0) - currentShots;
+    
     final minutes = (remaining * cycle / 60).toDouble();
     final eta = startTime.add(Duration(minutes: minutes.round()));
     final etaDate = DateFormat('MMM d').format(eta);

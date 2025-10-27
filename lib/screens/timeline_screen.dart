@@ -1,11 +1,35 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:intl/intl.dart';
+import '../services/live_progress_service.dart';
 
-class TimelineScreen extends StatelessWidget {
+class TimelineScreen extends StatefulWidget {
   final int level;
   const TimelineScreen({super.key, required this.level});
+
+  @override
+  State<TimelineScreen> createState() => _TimelineScreenState();
+}
+
+class _TimelineScreenState extends State<TimelineScreen> {
+  Timer? _uiUpdateTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Update UI every 3 seconds for live progress
+    _uiUpdateTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _uiUpdateTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +83,12 @@ class TimelineScreen extends StatelessWidget {
               );
               
               final cycleTime = (mould?['cycleTime'] as num?)?.toDouble() ?? 30.0;
-              final remaining = (j['targetShots'] as num? ?? 0) - (j['shotsCompleted'] as num? ?? 0);
+              
+              // Use live estimated shots for accurate remaining calculation
+              final currentShots = j['status'] == 'Running'
+                  ? LiveProgressService.getEstimatedShots(j, mouldsBox)
+                  : (j['shotsCompleted'] as num? ?? 0);
+              final remaining = (j['targetShots'] as num? ?? 0) - currentShots;
               final durationMinutes = (remaining * cycleTime / 60).toDouble();
               
               DateTime startTime;
@@ -69,7 +98,7 @@ class TimelineScreen extends StatelessWidget {
                 startTime = currentTime;
               }
               
-              final endTime = startTime.add(Duration(minutes: durationMinutes.round()));
+              final endTime = currentTime.add(Duration(minutes: durationMinutes.round()));
               
               data.add(_JobBar(
                 j['productName'] ?? 'Job',

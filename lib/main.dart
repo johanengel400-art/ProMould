@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'theme/dark_theme.dart';
 import 'services/sync_service.dart';
 import 'services/background_sync.dart';
+import 'services/live_progress_service.dart';
 import 'screens/login_screen.dart';
 
 import 'firebase_options.dart';
@@ -46,6 +47,10 @@ void main() async {
   await SyncService.start();
   await BackgroundSync.initialize();
   print('✅ Sync services started');
+
+  print('⏱️ Starting live progress service...');
+  LiveProgressService.start();
+  print('✅ Live progress service started');
 
   print('🎨 Launching app UI...');
   runApp(const ProMouldApp());

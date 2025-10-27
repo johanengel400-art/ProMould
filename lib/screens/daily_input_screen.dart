@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:uuid/uuid.dart';
 import '../services/sync_service.dart';
+import '../services/live_progress_service.dart';
 
 class DailyInputScreen extends StatefulWidget{
   final String username; final int level;
@@ -38,9 +39,13 @@ class _DailyInputScreenState extends State<DailyInputScreen>{
       final machinesBox = Hive.box('machinesBox');
       final jobId = job!['id'] as String;
       final updated = Map<String,dynamic>.from(job!);
-      updated['shotsCompleted'] = (updated['shotsCompleted'] ?? 0) + shots;
+      final newTotal = (updated['shotsCompleted'] ?? 0) + shots;
+      updated['shotsCompleted'] = newTotal;
       
-      if((updated['shotsCompleted'] ?? 0) >= (updated['targetShots'] ?? 0)){
+      // Record manual input to reset the live progress baseline
+      await LiveProgressService.recordManualInput(jobId, newTotal);
+      
+      if(newTotal >= (updated['targetShots'] ?? 0)){
         updated['status']='Finished'; 
         updated['endTime']=DateTime.now().toIso8601String();
         
@@ -70,12 +75,11 @@ class _DailyInputScreenState extends State<DailyInputScreen>{
           }
         }
       }
-      await jobsBox.put(jobId, updated);
-      await SyncService.pushChange('jobsBox', jobId, updated);
+      // Note: recordManualInput already saved the job, no need to save again here
     }
 
     shotsCtrl.clear(); scrapCtrl.clear();
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Entry saved.')));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Entry saved. Live progress reset to actual count.')));
   }
 
   @override Widget build(BuildContext context){

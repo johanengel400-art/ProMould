@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'machine_detail_screen.dart';
+import '../services/live_progress_service.dart';
 
 class DashboardScreen extends StatefulWidget{
   final String username; final int level;
@@ -17,6 +19,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   late Box floorsBox;
   late Box mouldsBox;
   String? selectedFloorId;
+  Timer? _uiUpdateTimer;
 
   @override
   void initState() {
@@ -27,12 +30,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
     mouldsBox = Hive.box('mouldsBox');
     machinesBox.listenable().addListener(_onDataChanged);
     jobsBox.listenable().addListener(_onDataChanged);
+    
+    // Update UI every 2 seconds to show live progress
+    _uiUpdateTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
   void dispose() {
     machinesBox.listenable().removeListener(_onDataChanged);
     jobsBox.listenable().removeListener(_onDataChanged);
+    _uiUpdateTimer?.cancel();
     super.dispose();
   }
 
@@ -58,7 +67,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (mould == null) return 'No mould assigned';
     
     final cycleTime = (mould['cycleTime'] as num?)?.toDouble() ?? 30.0;
-    final remaining = (job['targetShots'] as num? ?? 0) - (job['shotsCompleted'] as num? ?? 0);
+    
+    // Use live estimated shots for accurate ETA
+    final currentShots = LiveProgressService.getEstimatedShots(job, mouldsBox);
+    final remaining = (job['targetShots'] as num? ?? 0) - currentShots;
     
     if (remaining <= 0) return 'Target reached';
     
@@ -129,7 +141,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
           final job = jobsBox.values.cast<Map?>().firstWhere(
             (j)=> j!=null && j!['machineId']==mId && j!['status']=='Running',
             orElse: ()=>null);
-          final shots = (job?['shotsCompleted'] ?? 0) as int;
+          
+          // Use live progress service to get real-time estimated shots
+          final shots = job != null 
+              ? LiveProgressService.getEstimatedShots(job, mouldsBox)
+              : 0;
           final target = (job?['targetShots'] ?? 0) as int;
           final progress = target>0 ? (shots/target).clamp(0.0,1.0) : 0.0;
           final progress100 = (progress*100).round();
