@@ -83,6 +83,57 @@ class _ManageJobsScreenState extends State<ManageJobsScreen>{
     setState((){});
   }
 
+  Future<void> _endJob(Map j) async {
+    final box = Hive.box('jobsBox');
+    final machinesBox = Hive.box('machinesBox');
+    final jobId = j['id'] as String;
+    final machineId = j['machineId'] as String;
+    
+    // Mark job as finished
+    final updated = Map<String,dynamic>.from(j);
+    updated['status'] = 'Finished';
+    updated['endTime'] = DateTime.now().toIso8601String();
+    await box.put(jobId, updated);
+    await SyncService.pushChange('jobsBox', jobId, updated);
+    
+    // Start next queued job for this machine
+    if (machineId.isNotEmpty) {
+      final nextJob = box.values.cast<Map?>().firstWhere(
+        (job) => job != null && job['machineId'] == machineId && job['status'] == 'Queued',
+        orElse: () => null,
+      );
+      
+      if (nextJob != null) {
+        final nextJobId = nextJob['id'] as String;
+        final updatedNext = Map<String,dynamic>.from(nextJob);
+        updatedNext['status'] = 'Running';
+        updatedNext['startTime'] = DateTime.now().toIso8601String();
+        await box.put(nextJobId, updatedNext);
+        await SyncService.pushChange('jobsBox', nextJobId, updatedNext);
+        
+        // Keep machine Running
+        final machine = machinesBox.get(machineId) as Map?;
+        if (machine != null) {
+          final updatedMachine = Map<String,dynamic>.from(machine);
+          updatedMachine['status'] = 'Running';
+          await machinesBox.put(machineId, updatedMachine);
+          await SyncService.pushChange('machinesBox', machineId, updatedMachine);
+        }
+      } else {
+        // No more jobs - set machine to Idle
+        final machine = machinesBox.get(machineId) as Map?;
+        if (machine != null) {
+          final updatedMachine = Map<String,dynamic>.from(machine);
+          updatedMachine['status'] = 'Idle';
+          await machinesBox.put(machineId, updatedMachine);
+          await SyncService.pushChange('machinesBox', machineId, updatedMachine);
+        }
+      }
+    }
+    
+    setState((){});
+  }
+
   void _add() async {
     final productCtrl=TextEditingController();
     final colorCtrl=TextEditingController();
@@ -162,6 +213,12 @@ class _ManageJobsScreenState extends State<ManageJobsScreen>{
                     icon: const Icon(Icons.play_arrow, color: Colors.green),
                     tooltip: 'Resume Job',
                     onPressed: () => _resumeJob(j),
+                  ),
+                if (j['status'] == 'Running' || j['status'] == 'Paused')
+                  IconButton(
+                    icon: const Icon(Icons.stop, color: Colors.red),
+                    tooltip: 'End Job',
+                    onPressed: () => _endJob(j),
                   ),
                 IconButton(
                   icon: const Icon(Icons.delete_outline),

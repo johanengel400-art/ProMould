@@ -12,12 +12,15 @@ class DashboardScreen extends StatefulWidget{
 class _DashboardScreenState extends State<DashboardScreen> {
   late Box machinesBox;
   late Box jobsBox;
+  late Box floorsBox;
+  String? selectedFloorId;
 
   @override
   void initState() {
     super.initState();
     machinesBox = Hive.box('machinesBox');
     jobsBox = Hive.box('jobsBox');
+    floorsBox = Hive.box('floorsBox');
     machinesBox.listenable().addListener(_onDataChanged);
     jobsBox.listenable().addListener(_onDataChanged);
   }
@@ -43,11 +46,50 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   @override Widget build(BuildContext context){
-    final machines = machinesBox.values.cast<Map>().toList();
+    final allMachines = machinesBox.values.cast<Map>().toList();
+    final floors = floorsBox.values.cast<Map>().toList();
+    
+    // Filter machines by selected floor
+    final machines = selectedFloorId == null
+        ? allMachines
+        : allMachines.where((m) => m['floorId'] == selectedFloorId).toList();
     
     return Scaffold(
       appBar: AppBar(title: const Text('ProMould • Dashboard')),
-      body: GridView.builder(
+      body: Column(
+        children: [
+          if (floors.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  const Text('Floor: ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: DropdownButtonFormField<String?>(
+                      value: selectedFloorId,
+                      items: [
+                        const DropdownMenuItem<String?>(
+                          value: null,
+                          child: Text('All Floors'),
+                        ),
+                        ...floors.map((f) => DropdownMenuItem<String?>(
+                          value: f['id'] as String,
+                          child: Text('${f['name']}'),
+                        )),
+                      ],
+                      onChanged: (v) => setState(() => selectedFloorId = v),
+                      decoration: const InputDecoration(
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          Expanded(
+            child: GridView.builder(
         padding: const EdgeInsets.all(12),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2, childAspectRatio: 1.1, mainAxisSpacing: 12, crossAxisSpacing: 12),
@@ -95,6 +137,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ]),
           );
         }),
+          ),
+        ],
+      ),
     );
   }
 }
