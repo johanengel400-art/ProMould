@@ -78,29 +78,62 @@ class _PlanningScreenState extends State<PlanningScreen> {
     final runningJob = jobs.isNotEmpty ? jobs.first : null;
     final queuedJobs = jobs.skip(1).toList();
 
+    // Calculate cumulative time for queued jobs
+    DateTime cumulativeTime = DateTime.now();
+    if (runningJob != null) {
+      final mould = mouldsBox.values.cast<Map?>().firstWhere(
+        (m) => m != null && m['id'] == runningJob['mouldId'],
+        orElse: () => null,
+      );
+      final cycle = (mould?['cycleTime'] as num?)?.toDouble() ?? 30.0;
+      final remaining = (runningJob['targetShots'] as num? ?? 0) - 
+                       (runningJob['shotsCompleted'] as num? ?? 0);
+      final minutes = (remaining * cycle / 60).toDouble();
+      cumulativeTime = cumulativeTime.add(Duration(minutes: minutes.round()));
+    }
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       child: ExpansionTile(
         title: Text('${m['name']} • ${m['status']}'),
         subtitle: runningJob == null
             ? const Text('No active job')
-            : Text(_etaText(runningJob, mouldsBox)),
+            : Text(_etaText(runningJob, mouldsBox, DateTime.now())),
         children: [
           if (queuedJobs.isEmpty)
             const ListTile(title: Text('No queued jobs'))
           else
-            for (final j in queuedJobs)
-              ListTile(
-                leading: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
-                title: Text(j['productName'] ?? ''),
-                subtitle: Text(_etaText(j, mouldsBox)),
-              ),
+            for (final j in queuedJobs) ...[
+              Builder(builder: (context) {
+                final etaInfo = _etaText(j, mouldsBox, cumulativeTime);
+                // Update cumulative time for next job
+                final mould = mouldsBox.values.cast<Map?>().firstWhere(
+                  (m) => m != null && m['id'] == j['mouldId'],
+                  orElse: () => null,
+                );
+                final cycle = (mould?['cycleTime'] as num?)?.toDouble() ?? 30.0;
+                final remaining = (j['targetShots'] as num? ?? 0) - 
+                                 (j['shotsCompleted'] as num? ?? 0);
+                final minutes = (remaining * cycle / 60).toDouble();
+                cumulativeTime = cumulativeTime.add(Duration(minutes: minutes.round()));
+                
+                return ListTile(
+                  leading: const Icon(Icons.schedule, size: 18, color: Colors.orange),
+                  title: Text(j['productName'] ?? ''),
+                  subtitle: Text(etaInfo),
+                  trailing: Text(
+                    'Queue #${queuedJobs.indexOf(j) + 1}',
+                    style: const TextStyle(fontSize: 12, color: Colors.white60),
+                  ),
+                );
+              }),
+            ],
         ],
       ),
     );
   }
 
-  String _etaText(Map job, Box mouldsBox) {
+  String _etaText(Map job, Box mouldsBox, DateTime startTime) {
     final mould = mouldsBox.values.cast<Map?>().firstWhere(
           (m) => m != null && m['id'] == job['mouldId'],
           orElse: () => null,
@@ -109,9 +142,13 @@ class _PlanningScreenState extends State<PlanningScreen> {
     final remaining =
         (job['targetShots'] as num? ?? 0) - (job['shotsCompleted'] as num? ?? 0);
     final minutes = (remaining * cycle / 60).toDouble();
-    final eta = DateTime.now().add(Duration(minutes: minutes.round()));
+    final eta = startTime.add(Duration(minutes: minutes.round()));
     final etaText = DateFormat('HH:mm').format(eta);
-    return 'ETA $etaText • ${remaining} shots left';
+    final duration = Duration(minutes: minutes.round());
+    final hours = duration.inHours;
+    final mins = duration.inMinutes % 60;
+    final durationText = hours > 0 ? '${hours}h ${mins}m' : '${mins}m';
+    return 'ETA $etaText • $durationText • ${remaining} shots';
   }
 
   Future<void> _assignJobDialog() async {

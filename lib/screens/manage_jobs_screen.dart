@@ -11,6 +11,78 @@ class ManageJobsScreen extends StatefulWidget{
 class _ManageJobsScreenState extends State<ManageJobsScreen>{
   final uuid=const Uuid();
 
+  Future<void> _startJob(Map j) async {
+    final box = Hive.box('jobsBox');
+    final machinesBox = Hive.box('machinesBox');
+    final jobId = j['id'] as String;
+    final updated = Map<String,dynamic>.from(j);
+    updated['status'] = 'Running';
+    updated['startTime'] = DateTime.now().toIso8601String();
+    await box.put(jobId, updated);
+    await SyncService.pushChange('jobsBox', jobId, updated);
+    
+    // Update machine status
+    final machineId = j['machineId'] as String;
+    if (machineId.isNotEmpty) {
+      final machine = machinesBox.get(machineId) as Map?;
+      if (machine != null) {
+        final updatedMachine = Map<String,dynamic>.from(machine);
+        updatedMachine['status'] = 'Running';
+        await machinesBox.put(machineId, updatedMachine);
+        await SyncService.pushChange('machinesBox', machineId, updatedMachine);
+      }
+    }
+    setState((){});
+  }
+
+  Future<void> _pauseJob(Map j) async {
+    final box = Hive.box('jobsBox');
+    final machinesBox = Hive.box('machinesBox');
+    final jobId = j['id'] as String;
+    final updated = Map<String,dynamic>.from(j);
+    updated['status'] = 'Paused';
+    updated['pausedTime'] = DateTime.now().toIso8601String();
+    await box.put(jobId, updated);
+    await SyncService.pushChange('jobsBox', jobId, updated);
+    
+    // Update machine status to Idle
+    final machineId = j['machineId'] as String;
+    if (machineId.isNotEmpty) {
+      final machine = machinesBox.get(machineId) as Map?;
+      if (machine != null) {
+        final updatedMachine = Map<String,dynamic>.from(machine);
+        updatedMachine['status'] = 'Idle';
+        await machinesBox.put(machineId, updatedMachine);
+        await SyncService.pushChange('machinesBox', machineId, updatedMachine);
+      }
+    }
+    setState((){});
+  }
+
+  Future<void> _resumeJob(Map j) async {
+    final box = Hive.box('jobsBox');
+    final machinesBox = Hive.box('machinesBox');
+    final jobId = j['id'] as String;
+    final updated = Map<String,dynamic>.from(j);
+    updated['status'] = 'Running';
+    updated['resumedTime'] = DateTime.now().toIso8601String();
+    await box.put(jobId, updated);
+    await SyncService.pushChange('jobsBox', jobId, updated);
+    
+    // Update machine status to Running
+    final machineId = j['machineId'] as String;
+    if (machineId.isNotEmpty) {
+      final machine = machinesBox.get(machineId) as Map?;
+      if (machine != null) {
+        final updatedMachine = Map<String,dynamic>.from(machine);
+        updatedMachine['status'] = 'Running';
+        await machinesBox.put(machineId, updatedMachine);
+        await SyncService.pushChange('machinesBox', machineId, updatedMachine);
+      }
+    }
+    setState((){});
+  }
+
   void _add() async {
     final productCtrl=TextEditingController();
     final colorCtrl=TextEditingController();
@@ -76,35 +148,31 @@ class _ManageJobsScreenState extends State<ManageJobsScreen>{
                 if (j['status'] == 'Queued')
                   IconButton(
                     icon: const Icon(Icons.play_arrow, color: Colors.green),
-                    onPressed: () async {
-                      final jobId = j['id'] as String;
-                      final updated = Map<String,dynamic>.from(j);
-                      updated['status'] = 'Running';
-                      updated['startTime'] = DateTime.now().toIso8601String();
-                      await box.put(jobId, updated);
-                      await SyncService.pushChange('jobsBox', jobId, updated);
-                      
-                      // Update machine status
-                      final machinesBox = Hive.box('machinesBox');
-                      final machineId = j['machineId'] as String;
-                      if (machineId.isNotEmpty) {
-                        final machine = machinesBox.get(machineId) as Map?;
-                        if (machine != null) {
-                          final updatedMachine = Map<String,dynamic>.from(machine);
-                          updatedMachine['status'] = 'Running';
-                          await machinesBox.put(machineId, updatedMachine);
-                          await SyncService.pushChange('machinesBox', machineId, updatedMachine);
-                        }
-                      }
-                      setState((){});
-                    },
+                    tooltip: 'Start Job',
+                    onPressed: () => _startJob(j),
                   ),
-                IconButton(icon: const Icon(Icons.delete_outline), onPressed: () async {
-                  final jobId = j['id'] as String;
-                  await box.delete(jobId);
-                  await SyncService.deleteRemote('jobsBox', jobId);
-                  setState((){});
-                }),
+                if (j['status'] == 'Running')
+                  IconButton(
+                    icon: const Icon(Icons.pause, color: Colors.orange),
+                    tooltip: 'Pause Job',
+                    onPressed: () => _pauseJob(j),
+                  ),
+                if (j['status'] == 'Paused')
+                  IconButton(
+                    icon: const Icon(Icons.play_arrow, color: Colors.green),
+                    tooltip: 'Resume Job',
+                    onPressed: () => _resumeJob(j),
+                  ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  tooltip: 'Delete Job',
+                  onPressed: () async {
+                    final jobId = j['id'] as String;
+                    await box.delete(jobId);
+                    await SyncService.deleteRemote('jobsBox', jobId);
+                    setState((){});
+                  },
+                ),
               ],
             ),
           ));
