@@ -137,10 +137,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           crossAxisCount: 2, childAspectRatio: 1.1, mainAxisSpacing: 12, crossAxisSpacing: 12),
         itemCount: machines.length,
         itemBuilder: (_,i){
-          final m = machines[i] as Map;
+          final m = machines[i];
           final mId = (m['id'] ?? '') as String;
           final job = jobsBox.values.cast<Map?>().firstWhere(
-            (j)=> j!=null && j!['machineId']==mId && j!['status']=='Running',
+            (j)=> j!=null && j['machineId']==mId && j['status']=='Running',
             orElse: ()=>null);
           
           // Use live progress service to get real-time estimated shots

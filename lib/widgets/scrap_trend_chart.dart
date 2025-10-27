@@ -90,7 +90,7 @@ class ScrapTrendChart extends StatelessWidget {
         enable: true,
         format: 'point.x: point.y%',
       ),
-      series: <ChartSeries>[
+      series: <CartesianSeries>[
         // Area series for trend
         AreaSeries<_ScrapDataPoint, DateTime>(
           dataSource: chartData,

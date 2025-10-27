@@ -69,7 +69,6 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
     
     // Calculate overall stats
     final runningMachines = machines.where((m) => m['status'] == 'Running').length;
-    final idleMachines = machines.where((m) => m['status'] == 'Idle').length;
     final breakdownMachines = machines.where((m) => m['status'] == 'Breakdown').length;
     
     final allJobs = jobsBox.values.cast<Map>().toList();
