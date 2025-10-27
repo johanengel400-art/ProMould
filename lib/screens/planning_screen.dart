@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../services/sync_service.dart';
 import '../services/live_progress_service.dart';
+import '../services/scrap_rate_service.dart';
 
 class PlanningScreen extends StatefulWidget {
   final int level;
@@ -198,6 +199,12 @@ class _PlanningScreenState extends State<PlanningScreen> {
     final runningJob = jobs.isNotEmpty ? jobs.first : null;
     final queuedJobs = jobs.skip(1).toList();
     final statusColor = _getStatusColor(m['status'] as String? ?? 'Idle');
+    
+    // Calculate scrap rate for this machine
+    final machineId = m['id'] as String;
+    final scrapData = ScrapRateService.calculateMachineScrapRate(machineId);
+    final scrapRate = scrapData['scrapRate'] as double;
+    final scrapColor = scrapData['color'] as Color;
 
     // Calculate cumulative time for queued jobs using live progress
     DateTime cumulativeTime = DateTime.now();
@@ -267,6 +274,17 @@ class _PlanningScreenState extends State<PlanningScreen> {
                 style: const TextStyle(fontSize: 12, color: Colors.white70),
               ),
             ],
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Icon(Icons.warning_outlined, size: 12, color: scrapColor),
+                const SizedBox(width: 4),
+                Text(
+                  'Scrap: ${scrapRate.toStringAsFixed(1)}%',
+                  style: TextStyle(fontSize: 11, color: scrapColor, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
           ],
         ),
         children: [

@@ -20,6 +20,7 @@ Future<void> _openCoreBoxes() async {
   await Hive.openBox('queueBox');
   await Hive.openBox('downtimeBox');
   await Hive.openBox('checklistsBox');
+  await Hive.openBox('mouldChangesBox');
 }
 
 void main() async {

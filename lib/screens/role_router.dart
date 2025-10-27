@@ -4,8 +4,8 @@
 import 'package:flutter/material.dart';
 
 // import all screens
-import 'dashboard_screen.dart';
-import 'timeline_screen.dart';
+import 'dashboard_screen_v2.dart';
+import 'timeline_screen_v2.dart';
 import 'daily_input_screen.dart';
 import 'issues_screen.dart';
 import 'manage_machines_screen.dart';
@@ -18,6 +18,7 @@ import 'downtime_screen.dart';
 import 'oee_screen.dart';
 import 'settings_screen.dart';
 import 'paperwork_screen.dart';
+import 'mould_change_scheduler_screen.dart';
 
 class RoleRouter extends StatefulWidget {
   final int level;
@@ -35,7 +36,7 @@ class _RoleRouterState extends State<RoleRouter> {
   @override
   void initState() {
     super.initState();
-    _activeScreen = DashboardScreen(username: widget.username, level: widget.level);
+    _activeScreen = DashboardScreenV2(username: widget.username, level: widget.level);
     _title = 'Dashboard';
   }
 
@@ -93,9 +94,9 @@ class _RoleRouterState extends State<RoleRouter> {
             ),
           ),
           _drawerItem(Icons.dashboard_outlined, 'Dashboard',
-              DashboardScreen(username: widget.username, level: widget.level)),
+              DashboardScreenV2(username: widget.username, level: widget.level)),
           _drawerItem(Icons.calendar_month_outlined, 'Timeline',
-              TimelineScreen(level: widget.level)),
+              TimelineScreenV2(level: widget.level)),
           _drawerItem(Icons.edit_note_outlined, 'Inputs',
               DailyInputScreen(username: widget.username, level: widget.level)),
           _drawerItem(Icons.report_problem_outlined, 'Issues',
@@ -115,6 +116,9 @@ class _RoleRouterState extends State<RoleRouter> {
           if (isManager)
             _drawerItem(Icons.apps_outage_outlined, 'Moulds',
                 ManageMouldsScreen(level: widget.level)),
+          if (isManager)
+            _drawerItem(Icons.swap_horiz, 'Mould Changes',
+                MouldChangeSchedulerScreen(level: widget.level)),
           if (isManager)
             _drawerItem(Icons.apartment_outlined, 'Floors',
                 ManageFloorsScreen(level: widget.level)),

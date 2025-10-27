@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'machine_detail_screen.dart';
 import '../services/live_progress_service.dart';
+import '../services/scrap_rate_service.dart';
 
 class DashboardScreen extends StatefulWidget{
   final String username; final int level;
@@ -149,6 +150,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
           final target = (job?['targetShots'] ?? 0) as int;
           final progress = target>0 ? (shots/target).clamp(0.0,1.0) : 0.0;
           final progress100 = (progress*100).round();
+          
+          // Calculate scrap rate for this machine
+          final scrapData = ScrapRateService.calculateMachineScrapRate(mId);
+          final scrapRate = scrapData['scrapRate'] as double;
+          final scrapColor = scrapData['color'] as Color;
 
           return GestureDetector(
             onTap: () {
@@ -198,9 +204,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
               const Spacer(),
               Row(children:[
-                const Icon(Icons.precision_manufacturing_outlined, size:18, color: Colors.white54),
-                const SizedBox(width:6),
-                Text('Tonnage: ${m['tonnage']??''}', style: const TextStyle(color: Colors.white60)),
+                Icon(Icons.warning_outlined, size:14, color: scrapColor),
+                const SizedBox(width:4),
+                Text('Scrap: ${scrapRate.toStringAsFixed(1)}%', 
+                  style: TextStyle(color: scrapColor, fontSize: 11, fontWeight: FontWeight.bold)),
+                const Spacer(),
+                const Icon(Icons.precision_manufacturing_outlined, size:14, color: Colors.white54),
+                const SizedBox(width:4),
+                Text('${m['tonnage']??''}T', style: const TextStyle(color: Colors.white60, fontSize: 11)),
               ]),
             ]),
             ),
