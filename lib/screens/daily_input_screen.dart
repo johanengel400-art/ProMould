@@ -59,12 +59,14 @@ class _DailyInputScreenState extends State<DailyInputScreen>{
           await SyncService.pushChange('jobsBox', nextJobId, updatedNext);
         } else {
           // No more jobs - set machine to Idle
-          final machine = machinesBox.get(machineId) as Map?;
-          if (machine != null) {
-            final updatedMachine = Map<String,dynamic>.from(machine);
-            updatedMachine['status'] = 'Idle';
-            await machinesBox.put(machineId, updatedMachine);
-            await SyncService.pushChange('machinesBox', machineId, updatedMachine);
+          if (machineId != null) {
+            final machine = machinesBox.get(machineId!) as Map?;
+            if (machine != null) {
+              final updatedMachine = Map<String,dynamic>.from(machine);
+              updatedMachine['status'] = 'Idle';
+              await machinesBox.put(machineId!, updatedMachine);
+              await SyncService.pushChange('machinesBox', machineId!, updatedMachine);
+            }
           }
         }
       }
