@@ -584,12 +584,86 @@ class _MouldChangeSchedulerScreenState extends State<MouldChangeSchedulerScreen>
 
   Future<void> _updateStatus(Map change, String newStatus) async {
     final mouldChangesBox = Hive.box('mouldChangesBox');
+    final machinesBox = Hive.box('machinesBox');
+    final jobsBox = Hive.box('jobsBox');
     final id = change['id'] as String;
+    final machineId = change['machineId'] as String?;
+    final toMouldId = change['toMouldId'] as String?;
+    
     final updated = Map<String, dynamic>.from(change);
     updated['status'] = newStatus;
-    if (newStatus == 'Completed') {
+    
+    if (newStatus == 'In Progress' && machineId != null) {
+      // Setter starts mould change - stop the machine
+      updated['startedAt'] = DateTime.now().toIso8601String();
+      
+      // Update machine status to "Mould Change"
+      final machine = machinesBox.get(machineId) as Map?;
+      if (machine != null) {
+        final updatedMachine = Map<String, dynamic>.from(machine);
+        updatedMachine['status'] = 'Mould Change';
+        updatedMachine['mouldChangeInProgress'] = true;
+        await machinesBox.put(machineId, updatedMachine);
+        await SyncService.pushChange('machinesBox', machineId, updatedMachine);
+      }
+      
+      // Pause any running jobs on this machine
+      final runningJobs = jobsBox.values.cast<Map>().where((j) =>
+          j['machineId'] == machineId && j['status'] == 'Running').toList();
+      
+      for (final job in runningJobs) {
+        final jobId = job['id'] as String;
+        final updatedJob = Map<String, dynamic>.from(job);
+        updatedJob['status'] = 'Paused';
+        updatedJob['pausedTime'] = DateTime.now().toIso8601String();
+        updatedJob['pauseReason'] = 'Mould Change';
+        await jobsBox.put(jobId, updatedJob);
+        await SyncService.pushChange('jobsBox', jobId, updatedJob);
+      }
+    } else if (newStatus == 'Completed' && machineId != null && toMouldId != null) {
+      // Setter completes mould change
       updated['completedAt'] = DateTime.now().toIso8601String();
+      
+      // Update machine with new mould and set to Running
+      final machine = machinesBox.get(machineId) as Map?;
+      if (machine != null) {
+        final updatedMachine = Map<String, dynamic>.from(machine);
+        updatedMachine['status'] = 'Running';
+        updatedMachine['currentMouldId'] = toMouldId;
+        updatedMachine['mouldChangeInProgress'] = false;
+        await machinesBox.put(machineId, updatedMachine);
+        await SyncService.pushChange('machinesBox', machineId, updatedMachine);
+      }
+      
+      // Find all pending jobs with the same mould and assign them to this machine
+      final pendingJobsWithMould = jobsBox.values.cast<Map>().where((j) =>
+          j['mouldId'] == toMouldId && 
+          (j['status'] == 'Pending' || j['machineId'] == null || j['machineId'] == '')).toList();
+      
+      // Start the first job with this mould
+      if (pendingJobsWithMould.isNotEmpty) {
+        final firstJob = pendingJobsWithMould.first;
+        final jobId = firstJob['id'] as String;
+        final updatedJob = Map<String, dynamic>.from(firstJob);
+        updatedJob['machineId'] = machineId;
+        updatedJob['status'] = 'Running';
+        updatedJob['startTime'] = DateTime.now().toIso8601String();
+        await jobsBox.put(jobId, updatedJob);
+        await SyncService.pushChange('jobsBox', jobId, updatedJob);
+        
+        // Queue remaining jobs with same mould
+        for (var i = 1; i < pendingJobsWithMould.length; i++) {
+          final job = pendingJobsWithMould[i];
+          final jobId = job['id'] as String;
+          final updatedJob = Map<String, dynamic>.from(job);
+          updatedJob['machineId'] = machineId;
+          updatedJob['status'] = 'Queued';
+          await jobsBox.put(jobId, updatedJob);
+          await SyncService.pushChange('jobsBox', jobId, updatedJob);
+        }
+      }
     }
+    
     await mouldChangesBox.put(id, updated);
     await SyncService.push('mouldChangesBox', id, updated);
     setState(() {});

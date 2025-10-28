@@ -22,10 +22,16 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
     final jobsBox = Hive.box('jobsBox');
     final machinesBox = Hive.box('machinesBox');
     final mouldsBox = Hive.box('mouldsBox');
+    final mouldChangesBox = Hive.box('mouldChangesBox');
 
     final machines = machinesBox.values.cast<Map>().toList();
     final allJobs = jobsBox.values.cast<Map>()
         .where((j) => j['status'] == 'Running' || j['status'] == 'Queued')
+        .toList();
+
+    // Get scheduled and in-progress mould changes
+    final mouldChanges = mouldChangesBox.values.cast<Map>()
+        .where((mc) => mc['status'] == 'Scheduled' || mc['status'] == 'In Progress')
         .toList();
 
     // Filter jobs by machine
@@ -33,8 +39,14 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
         ? allJobs
         : allJobs.where((j) => j['machineId'] == _filterMachine).toList();
 
+    // Filter mould changes by machine
+    final filteredMouldChanges = _filterMachine == 'All'
+        ? mouldChanges
+        : mouldChanges.where((mc) => mc['machineId'] == _filterMachine).toList();
+
     // Calculate timeline data
     final timelineData = _calculateTimeline(filteredJobs, mouldsBox);
+    final mouldChangeData = _calculateMouldChangeTimeline(filteredMouldChanges, machinesBox, mouldsBox);
 
     return Scaffold(
       backgroundColor: const Color(0xFF0A0E1A),
@@ -122,6 +134,48 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
 
           const SliverToBoxAdapter(child: SizedBox(height: 16)),
 
+          // Mould Changes Section
+          if (mouldChangeData.isNotEmpty) ...[
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Text(
+                  'Scheduled Mould Changes',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) => _buildMouldChangeCard(mouldChangeData[index]),
+                  childCount: mouldChangeData.length,
+                ),
+              ),
+            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 16)),
+          ],
+
+          // Jobs Section Header
+          const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(
+                'Production Jobs',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+
           // Timeline or List View
           if (_viewMode == 'timeline')
             SliverToBoxAdapter(
@@ -143,6 +197,33 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
         ],
       ),
     );
+  }
+
+  List<Map<String, dynamic>> _calculateMouldChangeTimeline(
+    List<Map> mouldChanges, Box machinesBox, Box mouldsBox) {
+    final timeline = <Map<String, dynamic>>[];
+
+    for (final change in mouldChanges) {
+      final machine = machinesBox.get(change['machineId']) as Map?;
+      final fromMould = mouldsBox.get(change['fromMouldId']) as Map?;
+      final toMould = mouldsBox.get(change['toMouldId']) as Map?;
+      final scheduledDate = DateTime.tryParse(change['scheduledDate'] ?? '');
+      final estimatedDuration = (change['estimatedDuration'] as num? ?? 30).toInt();
+
+      timeline.add({
+        'type': 'mouldChange',
+        'change': change,
+        'machine': machine,
+        'fromMould': fromMould,
+        'toMould': toMould,
+        'scheduledDate': scheduledDate,
+        'estimatedEnd': scheduledDate?.add(Duration(minutes: estimatedDuration)),
+        'duration': estimatedDuration,
+        'status': change['status'],
+      });
+    }
+
+    return timeline;
   }
 
   List<Map<String, dynamic>> _calculateTimeline(List<Map> jobs, Box mouldsBox) {
@@ -731,5 +812,186 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
     } else {
       return '${duration.inMinutes}m';
     }
+  }
+
+  Widget _buildMouldChangeCard(Map<String, dynamic> data) {
+    final change = data['change'] as Map;
+    final machine = data['machine'] as Map?;
+    final fromMould = data['fromMould'] as Map?;
+    final toMould = data['toMould'] as Map?;
+    final scheduledDate = data['scheduledDate'] as DateTime?;
+    final estimatedEnd = data['estimatedEnd'] as DateTime?;
+    final status = data['status'] as String;
+    final duration = data['duration'] as int;
+
+    Color statusColor;
+    IconData statusIcon;
+    switch (status) {
+      case 'Scheduled':
+        statusColor = const Color(0xFFFFD166);
+        statusIcon = Icons.schedule;
+        break;
+      case 'In Progress':
+        statusColor = const Color(0xFF4CC9F0);
+        statusIcon = Icons.build;
+        break;
+      default:
+        statusColor = Colors.grey;
+        statusIcon = Icons.check_circle;
+    }
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      color: const Color(0xFF0F1419),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: statusColor.withOpacity(0.3)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(statusIcon, color: statusColor, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Mould Change - ${machine?['name'] ?? 'Unknown Machine'}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${fromMould?['name'] ?? 'Unknown'} → ${toMould?['name'] ?? 'Unknown'}',
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: statusColor),
+                  ),
+                  child: Text(
+                    status,
+                    style: TextStyle(
+                      color: statusColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _buildInfoItem(
+                      Icons.calendar_today,
+                      'Scheduled',
+                      scheduledDate != null
+                          ? DateFormat('MMM dd, HH:mm').format(scheduledDate)
+                          : 'Not set',
+                    ),
+                  ),
+                  Container(
+                    width: 1,
+                    height: 40,
+                    color: Colors.white12,
+                  ),
+                  Expanded(
+                    child: _buildInfoItem(
+                      Icons.timer,
+                      'Duration',
+                      '$duration min',
+                    ),
+                  ),
+                  Container(
+                    width: 1,
+                    height: 40,
+                    color: Colors.white12,
+                  ),
+                  Expanded(
+                    child: _buildInfoItem(
+                      Icons.access_time,
+                      'Est. End',
+                      estimatedEnd != null
+                          ? DateFormat('HH:mm').format(estimatedEnd)
+                          : 'N/A',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (change['assignedTo'] != null) ...[
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  const Icon(Icons.person, size: 16, color: Colors.white54),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Assigned to: ${change['assignedTo']}',
+                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoItem(IconData icon, String label, String value) {
+    return Column(
+      children: [
+        Icon(icon, size: 16, color: Colors.white54),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white54,
+            fontSize: 10,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
   }
 }

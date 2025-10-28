@@ -57,6 +57,7 @@ class _RoleRouterState extends State<RoleRouter> {
   @override
   Widget build(BuildContext context) {
     final bool isOperator = widget.level == 1;
+    final bool isSetter = widget.level == 2;
     final bool isManager = widget.level >= 3;
     final bool isAdmin = widget.level >= 4;
 
@@ -107,8 +108,21 @@ class _RoleRouterState extends State<RoleRouter> {
             _drawerItem(Icons.report_problem_outlined, 'Report Issue',
                 OperatorQCScreen(username: widget.username)),
           ],
-          // Non-Operator Menu (Level 2+)
-          if (!isOperator) ...[
+          // Setter Menu (Level 2) - Limited access
+          if (isSetter) ...[
+            _drawerItem(Icons.dashboard_outlined, 'Dashboard',
+                DashboardScreenV2(username: widget.username, level: widget.level)),
+            _drawerItem(Icons.swap_horiz, 'Mould Changes',
+                MouldChangeSchedulerScreen(level: widget.level)),
+            _drawerItem(Icons.fact_check, 'Machine Inspections',
+                MachineInspectionChecklistScreen(level: widget.level, username: widget.username)),
+            _drawerItem(Icons.task_alt, 'My Tasks',
+                MyTasksScreen(username: widget.username, level: widget.level)),
+            _drawerItem(Icons.report_problem_outlined, 'Issues',
+                IssuesScreenV2(username: widget.username, level: widget.level)),
+          ],
+          // Manager Menu (Level 3+)
+          if (isManager) ...[
             _drawerItem(Icons.dashboard_outlined, 'Dashboard',
                 DashboardScreenV2(username: widget.username, level: widget.level)),
             _drawerItem(Icons.calendar_month_outlined, 'Timeline',

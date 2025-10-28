@@ -551,6 +551,7 @@ class _PlanningScreenState extends State<PlanningScreen> {
                 if (job != null) {
                   final updatedJob = Map<String, dynamic>.from(job);
                   updatedJob['machineId'] = machineId;
+                  final mouldId = job['mouldId'] as String?;
                   
                   // Check if this is the first job for this machine
                   final existingJobs = jobsBox.values.cast<Map>().where((j) =>
@@ -562,11 +563,12 @@ class _PlanningScreenState extends State<PlanningScreen> {
                     updatedJob['status'] = 'Running';
                     updatedJob['startTime'] = DateTime.now().toIso8601String();
                     
-                    // Update machine status to Running
+                    // Update machine status to Running and assign mould
                     final machine = machinesBox.get(machineId!) as Map?;
                     if (machine != null) {
                       final updatedMachine = Map<String, dynamic>.from(machine);
                       updatedMachine['status'] = 'Running';
+                      updatedMachine['currentMouldId'] = mouldId ?? '';
                       await machinesBox.put(machineId!, updatedMachine);
                       await SyncService.pushChange('machinesBox', machineId!, updatedMachine);
                     }
