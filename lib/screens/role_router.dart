@@ -22,6 +22,7 @@ import 'mould_change_scheduler_screen.dart';
 import 'job_queue_manager_screen.dart';
 import 'my_tasks_screen.dart';
 import 'quality_control_screen.dart';
+import 'production_timeline_screen.dart';
 
 class RoleRouter extends StatefulWidget {
   final int level;
@@ -133,6 +134,9 @@ class _RoleRouterState extends State<RoleRouter> {
           if (isAdmin)
             _drawerItem(Icons.manage_accounts_outlined, 'Users',
                 ManageUsersScreen(level: widget.level)),
+          if (isManager)
+            _drawerItem(Icons.schedule_outlined, 'Production Timeline',
+                const ProductionTimelineScreen()),
           if (isManager)
             _drawerItem(Icons.timeline_outlined, 'Planning',
                 PlanningScreen(level: widget.level)),
