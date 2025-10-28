@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:uuid/uuid.dart';
-import 'package:intl/intl.dart';
 import '../services/checklist_export_service.dart';
 
 class ChecklistManagerScreen extends StatefulWidget {
@@ -54,7 +53,7 @@ class _ChecklistManagerScreenState extends State<ChecklistManagerScreen> {
             child: ValueListenableBuilder(
               valueListenable: Hive.box('checklistsBox').listenable(),
               builder: (context, box, _) {
-                final checklists = box.values.cast<Map>().where((c) {
+                final checklists = box.values.cast<Map>().map((c) => Map<String, dynamic>.from(c)).where((c) {
                   if (_selectedCategory == 'All') return true;
                   return c['category'] == _selectedCategory;
                 }).toList();
@@ -138,7 +137,7 @@ class _ChecklistManagerScreenState extends State<ChecklistManagerScreen> {
     final items = checklist['items'] as List? ?? [];
     final completedCount = items.where((i) => i['isCompleted'] == true).length;
     final totalCount = items.length;
-    final completionRate = totalCount > 0 ? (completedCount / totalCount * 100) : 0;
+    final completionRate = totalCount > 0 ? (completedCount / totalCount * 100).toDouble() : 0.0;
 
     return Card(
       color: const Color(0xFF1E1E1E),
@@ -234,7 +233,7 @@ class _ChecklistManagerScreenState extends State<ChecklistManagerScreen> {
                         ),
                         const SizedBox(height: 4),
                         LinearProgressIndicator(
-                          value: completionRate / 100,
+                          value: (completionRate / 100).toDouble(),
                           backgroundColor: Colors.grey[800],
                           valueColor: AlwaysStoppedAnimation<Color>(
                             _getProgressColor(completionRate),

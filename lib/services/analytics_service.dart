@@ -185,13 +185,7 @@ class AnalyticsService {
   /// Trend Analysis - Last 7 days
   static Map<String, dynamic> calculateTrends() {
     final inputsBox = Hive.box('inputsBox');
-    final downtimeBox = Hive.box('downtimeBox');
-    final issuesBox = Hive.box('issuesBox');
-
     final now = DateTime.now();
-    final trends = <String, List<Map<String, dynamic>>>{};
-
-    // Production trend (last 7 days)
     final productionTrend = <Map<String, dynamic>>[];
     for (var i = 6; i >= 0; i--) {
       final date = now.subtract(Duration(days: i));

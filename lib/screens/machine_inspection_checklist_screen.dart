@@ -128,7 +128,7 @@ class _MachineInspectionChecklistScreenState
     return FutureBuilder(
       future: _getInspectionStatus(machineId, dateKey),
       builder: (context, snapshot) {
-        final inspectionData = snapshot.data as Map<String, dynamic>?;
+        final inspectionData = snapshot.data;
         final isComplete = inspectionData?['isComplete'] ?? false;
         final completionPercent = inspectionData?['completionPercent'] ?? 0;
 

@@ -67,7 +67,7 @@ class _MachineInspectionScreenState extends State<MachineInspectionScreen> {
 
     final box = await Hive.openBox('inspectionsBox');
     await box.add(data);
-    await SyncService.push('inspectionsBox', data['id'], data);
+    await SyncService.push('inspectionsBox', data['id'] as String, data);
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Inspection sheet saved successfully')),
@@ -76,12 +76,16 @@ class _MachineInspectionScreenState extends State<MachineInspectionScreen> {
   }
 
   void _resetForm() {
+    nameCtrl.clear();
     areaCtrl.clear();
     shiftCtrl.clear();
     machineCtrl.clear();
     remarksCtrl.clear();
     addRemarksCtrl.clear();
-    _initializeStatus();
+    status = {
+      for (var c in checks)
+        c: {for (var d in days) d: false}
+    };
     setState(() {});
   }
 
@@ -210,7 +214,7 @@ class _MachineInspectionScreenState extends State<MachineInspectionScreen> {
       scrollDirection: Axis.horizontal,
       child: DataTable(
         headingRowColor:
-            MaterialStateProperty.all(const Color(0xFF06D6A0).withOpacity(0.2)),
+            WidgetStateProperty.all(const Color(0xFF06D6A0).withOpacity(0.2)),
         border: TableBorder.all(color: Colors.grey.shade600),
         columns: [
           const DataColumn(

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../services/scheduled_reports_service.dart';
-import 'package:intl/intl.dart';
 
 class ScheduledReportsScreen extends StatefulWidget {
   const ScheduledReportsScreen({super.key});
