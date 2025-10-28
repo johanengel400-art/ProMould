@@ -267,7 +267,7 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
               ),
               delegate: SliverChildBuilderDelegate(
                 (context, i) {
-                  final m = machines[i] as Map;
+                  final m = machines[i];
                   return _buildMachineCard(m);
                 },
                 childCount: machines.length,
@@ -437,7 +437,7 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
   Widget _buildMachineCard(Map m) {
     final mId = (m['id'] ?? '') as String;
     final job = jobsBox.values.cast<Map?>().firstWhere(
-      (j) => j != null && j!['machineId'] == mId && j!['status'] == 'Running',
+      (j) => j != null && j['machineId'] == mId && j['status'] == 'Running',
       orElse: () => null,
     );
     
@@ -663,29 +663,5 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
     }
   }
 
-  String _calculateETA(Map job) {
-    final mould = mouldsBox.values.cast<Map?>().firstWhere(
-      (m) => m != null && m['id'] == job['mouldId'],
-      orElse: () => null,
-    );
-    
-    if (mould == null) return 'No mould assigned';
-    
-    final cycleTime = (mould['cycleTime'] as num?)?.toDouble() ?? 30.0;
-    final currentShots = LiveProgressService.getEstimatedShots(job, mouldsBox);
-    final remaining = (job['targetShots'] as num? ?? 0) - currentShots;
-    
-    if (remaining <= 0) return 'Target reached';
-    
-    final minutes = (remaining * cycleTime / 60).toDouble();
-    final eta = DateTime.now().add(Duration(minutes: minutes.round()));
-    final etaDate = DateFormat('MMM d').format(eta);
-    final etaTime = DateFormat('HH:mm').format(eta);
-    
-    final hours = minutes ~/ 60;
-    final mins = (minutes % 60).round();
-    final durationText = hours > 0 ? '${hours}h ${mins}m' : '${mins}m';
-    
-    return 'ETA $etaDate $etaTime ($durationText)';
-  }
+
 }

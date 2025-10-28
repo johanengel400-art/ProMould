@@ -8,7 +8,6 @@ import 'scrap_rate_service.dart';
 class HealthScoreService {
   /// Calculate comprehensive health score for a machine (0-100)
   static Map<String, dynamic> calculateMachineHealth(String machineId) {
-    final inputsBox = Hive.box('inputsBox');
     final downtimeBox = Hive.box('downtimeBox');
     final jobsBox = Hive.box('jobsBox');
     

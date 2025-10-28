@@ -151,11 +151,6 @@ class _MouldChangesScreenState extends State<MouldChangesScreen> {
     setState(() {});
   }
 
-  Future<void> _editMouldChange(Map change) async {
-    // Similar to add but with existing data
-    // Implementation similar to _addMouldChange
-  }
-
   Future<void> _deleteMouldChange(String id) async {
     final box = Hive.box('mouldChangesBox');
     await box.delete(id);

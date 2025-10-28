@@ -83,8 +83,8 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
                 }
                 if (_searchQuery.isNotEmpty) {
                   items = items.where((i) => 
-                    i['title']?.toString().toLowerCase().contains(_searchQuery.toLowerCase()) ?? false ||
-                    i['description']?.toString().toLowerCase().contains(_searchQuery.toLowerCase()) ?? false
+                    (i['title']?.toString().toLowerCase().contains(_searchQuery.toLowerCase()) ?? false) ||
+                    (i['description']?.toString().toLowerCase().contains(_searchQuery.toLowerCase()) ?? false)
                   ).toList();
                 }
                 
@@ -686,7 +686,7 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
                 if (confirm == true) {
                   final issuesBox = Hive.box('issuesBox');
                   await issuesBox.delete(issue['id']);
-                  await SyncService.deleteChange('issuesBox', issue['id']);
+                  await SyncService.deleteRemote('issuesBox', issue['id']);
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Issue deleted')),
