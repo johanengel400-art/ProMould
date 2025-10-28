@@ -24,6 +24,7 @@ import 'my_tasks_screen.dart';
 import 'quality_control_screen.dart';
 import 'production_timeline_screen.dart';
 import 'operator_qc_screen.dart';
+import 'machine_inspection_checklist_screen.dart';
 
 class RoleRouter extends StatefulWidget {
   final int level;
@@ -158,6 +159,9 @@ class _RoleRouterState extends State<RoleRouter> {
           if (isManager)
             _drawerItem(Icons.assignment_outlined, 'Paperwork',
                 PaperworkScreen(level: widget.level, username: widget.username)),
+          if (isManager)
+            _drawerItem(Icons.fact_check, 'Machine Inspections',
+                MachineInspectionChecklistScreen(level: widget.level, username: widget.username)),
           if (isManager)
             _drawerItem(Icons.insights_outlined, 'Reports / OEE',
                 OEEScreen(level: widget.level)),

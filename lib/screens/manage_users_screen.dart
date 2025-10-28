@@ -18,9 +18,12 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>{
     int level = (user?['level']??1) as int;
     String shift = user?['shift']??'Day';
     String? assignedMachineId = user?['assignedMachineId'] as String?;
+    String? assignedFloorId = user?['assignedFloorId'] as String?;
     
     final machinesBox = Hive.box('machinesBox');
     final machines = machinesBox.values.cast<Map>().toList();
+    final floorsBox = Hive.box('floorsBox');
+    final floors = floorsBox.values.cast<Map>().toList();
 
     await showDialog(context: context, builder: (dialogContext)=>StatefulBuilder(
       builder: (context, setDialogState) => AlertDialog(
@@ -62,6 +65,26 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>{
               ),
             ),
           ],
+          if (level >= 2 && level <= 3) ...[
+            const Divider(),
+            const Text('Setter/Material Floor Assignment', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height:8),
+            DropdownButtonFormField<String?>(
+              value: assignedFloorId,
+              items: [
+                const DropdownMenuItem(value: null, child: Text('No Assignment (All Floors)')),
+                ...floors.map((f)=>DropdownMenuItem(
+                  value: f['id'] as String, 
+                  child: Text(f['name'] as String)
+                )),
+              ],
+              onChanged: (v)=> setDialogState(()=>assignedFloorId = v), 
+              decoration: const InputDecoration(
+                labelText:'Assigned Floor',
+                helperText: 'Setters see only machines on their floor',
+              ),
+            ),
+          ],
         ])),
         actions: [
           TextButton(onPressed: ()=>Navigator.pop(dialogContext), child: const Text('Cancel')),
@@ -75,6 +98,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>{
               'level': level,
               'shift': shift,
               'assignedMachineId': level == 1 ? assignedMachineId : null,
+              'assignedFloorId': (level >= 2 && level <= 3) ? assignedFloorId : null,
             };
             await box.put(id, data);
             await SyncService.pushChange('usersBox', id, data);
@@ -214,8 +238,21 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>{
                                 const Icon(Icons.precision_manufacturing, size: 12, color: Color(0xFF4CC9F0)),
                                 const SizedBox(width: 4),
                                 Text(
-                                  'Assigned: ${_getMachineName(u['assignedMachineId'] as String)}',
+                                  'Machine: ${_getMachineName(u['assignedMachineId'] as String)}',
                                   style: const TextStyle(color: Color(0xFF4CC9F0), fontSize: 11),
+                                ),
+                              ],
+                            ),
+                          ],
+                          if ((u['level'] == 2 || u['level'] == 3) && u['assignedFloorId'] != null) ...[
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
+                                const Icon(Icons.apartment, size: 12, color: Color(0xFFFFD166)),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Floor: ${_getFloorName(u['assignedFloorId'] as String)}',
+                                  style: const TextStyle(color: Color(0xFFFFD166), fontSize: 11),
                                 ),
                               ],
                             ),
@@ -264,6 +301,12 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>{
     final machinesBox = Hive.box('machinesBox');
     final machine = machinesBox.get(machineId) as Map?;
     return machine?['name'] ?? 'Unknown';
+  }
+  
+  String _getFloorName(String floorId) {
+    final floorsBox = Hive.box('floorsBox');
+    final floor = floorsBox.get(floorId) as Map?;
+    return floor?['name'] ?? 'Unknown';
   }
   
   Widget _buildStatCard(String label, String value, Color color) {
