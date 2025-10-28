@@ -1,0 +1,123 @@
+name: Create Backup Archive
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g., v7.1.0)'
+        required: true
+        default: 'v7.1.0'
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  create-backup:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Get version
+      id: version
+      run: |
+        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+        else
+          echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Create backup archive
+      run: |
+        VERSION="${{ steps.version.outputs.VERSION }}"
+        BACKUP_NAME="ProMould_${VERSION}_Backup_$(date +%Y%m%d_%H%M%S)"
+        
+        # Create README
+        cat > BACKUP_README.md << 'EOF'
+        # ProMould v7.1 - Backup Archive
+        
+        ## Contents
+        This backup contains the complete ProMould v7.1 Smart Factory application source code.
+        
+        ## Restoration Instructions
+        
+        1. Extract the archive
+        2. Run `flutter pub get` to install dependencies
+        3. Configure Firebase credentials
+        4. Run `flutter run` to start the app
+        
+        For detailed instructions, see the main README.md file.
+        
+        ## Features
+        - Real-time production monitoring
+        - Analytics dashboard with KPIs
+        - Predictive maintenance
+        - Custom report builder
+        - Scheduled reports
+        - Checklist management with PDF/CSV export
+        
+        Backup created: $(date)
+        Version: $VERSION
+        EOF
+        
+        # Create archive excluding unnecessary files
+        zip -r "${BACKUP_NAME}.zip" . \
+          -x "*.git*" \
+          -x "*build/*" \
+          -x "*.dart_tool/*" \
+          -x "*.idea/*" \
+          -x "*.iml" \
+          -x "*android/.gradle/*" \
+          -x "*android/app/build/*" \
+          -x "*android/build/*" \
+          -x "*ios/Pods/*" \
+          -x "*ios/.symlinks/*" \
+          -x "*node_modules/*"
+        
+        echo "BACKUP_FILE=${BACKUP_NAME}.zip" >> $GITHUB_OUTPUT
+        echo "BACKUP_NAME=${BACKUP_NAME}" >> $GITHUB_OUTPUT
+      id: backup
+      
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.version.outputs.VERSION }}
+        name: ProMould ${{ steps.version.outputs.VERSION }}
+        body: |
+          ## ProMould ${{ steps.version.outputs.VERSION }} - Complete Backup
+          
+          ### 📦 What's Included
+          - Complete Flutter application source code
+          - All analytics and reporting features
+          - Predictive maintenance system
+          - Checklist management with export
+          - Documentation and setup guides
+          
+          ### 🚀 Quick Start
+          1. Download and extract the backup archive
+          2. Run `flutter pub get`
+          3. Configure Firebase credentials
+          4. Run `flutter run`
+          
+          ### ✨ Features
+          - Real-time KPI dashboard
+          - Predictive analytics
+          - Custom report builder
+          - Scheduled reports
+          - PDF/CSV export
+          - Role-based access control
+          
+          ### 📝 Notes
+          - Build artifacts excluded (restore with `flutter pub get`)
+          - Firebase credentials not included (add your own)
+          - See BACKUP_README.md for detailed instructions
+          
+          ---
+          Created: $(date)
+        files: |
+          ${{ steps.backup.outputs.BACKUP_FILE }}
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
