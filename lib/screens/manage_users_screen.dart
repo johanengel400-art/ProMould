@@ -17,6 +17,10 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>{
     final pCtrl = TextEditingController(text: user?['password']??'');
     int level = (user?['level']??1) as int;
     String shift = user?['shift']??'Day';
+    String? assignedMachineId = user?['assignedMachineId'] as String?;
+    
+    final machinesBox = Hive.box('machinesBox');
+    final machines = machinesBox.values.cast<Map>().toList();
 
     await showDialog(context: context, builder: (dialogContext)=>StatefulBuilder(
       builder: (context, setDialogState) => AlertDialog(
@@ -37,6 +41,27 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>{
             items: const ['Day','Night','Any'].map((s)=>DropdownMenuItem(value:s, child: Text(s))).toList(),
             onChanged: (v)=> setDialogState(()=>shift = v ?? 'Day'), 
             decoration: const InputDecoration(labelText:'Shift')),
+          const SizedBox(height:8),
+          if (level == 1) ...[
+            const Divider(),
+            const Text('Operator Machine Assignment', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height:8),
+            DropdownButtonFormField<String?>(
+              value: assignedMachineId,
+              items: [
+                const DropdownMenuItem(value: null, child: Text('No Assignment (See All)')),
+                ...machines.map((m)=>DropdownMenuItem(
+                  value: m['id'] as String, 
+                  child: Text(m['name'] as String)
+                )),
+              ],
+              onChanged: (v)=> setDialogState(()=>assignedMachineId = v), 
+              decoration: const InputDecoration(
+                labelText:'Assigned Machine',
+                helperText: 'Operators only see their assigned machine',
+              ),
+            ),
+          ],
         ])),
         actions: [
           TextButton(onPressed: ()=>Navigator.pop(dialogContext), child: const Text('Cancel')),
@@ -49,6 +74,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>{
               'password': pCtrl.text,
               'level': level,
               'shift': shift,
+              'assignedMachineId': level == 1 ? assignedMachineId : null,
             };
             await box.put(id, data);
             await SyncService.pushChange('usersBox', id, data);
@@ -181,6 +207,19 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>{
                               ),
                             ],
                           ),
+                          if (u['level'] == 1 && u['assignedMachineId'] != null) ...[
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
+                                const Icon(Icons.precision_manufacturing, size: 12, color: Color(0xFF4CC9F0)),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Assigned: ${_getMachineName(u['assignedMachineId'] as String)}',
+                                  style: const TextStyle(color: Color(0xFF4CC9F0), fontSize: 11),
+                                ),
+                              ],
+                            ),
+                          ],
                         ],
                       ),
                       onTap: ()=>_addOrEdit(user: Map<String,dynamic>.from(u)),
@@ -219,6 +258,12 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>{
         label: const Text('Add User'),
       ),
     );
+  }
+  
+  String _getMachineName(String machineId) {
+    final machinesBox = Hive.box('machinesBox');
+    final machine = machinesBox.get(machineId) as Map?;
+    return machine?['name'] ?? 'Unknown';
   }
   
   Widget _buildStatCard(String label, String value, Color color) {

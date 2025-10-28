@@ -63,9 +63,30 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
     final allMachines = machinesBox.values.cast<Map>().toList();
     final floors = floorsBox.values.cast<Map>().toList();
     
-    final machines = selectedFloorId == null
-        ? allMachines
-        : allMachines.where((m) => m['floorId'] == selectedFloorId).toList();
+    // Filter by assigned machine for operators (level 1)
+    List<Map> machines;
+    if (widget.level == 1) {
+      // Get operator's assigned machine
+      final usersBox = Hive.box('usersBox');
+      final user = usersBox.values.cast<Map>().firstWhere(
+        (u) => u['username'] == widget.username,
+        orElse: () => {},
+      );
+      final assignedMachineId = user['assignedMachineId'] as String?;
+      
+      if (assignedMachineId != null) {
+        // Show only assigned machine
+        machines = allMachines.where((m) => m['id'] == assignedMachineId).toList();
+      } else {
+        // No assignment - show all (fallback)
+        machines = allMachines;
+      }
+    } else {
+      // For non-operators, apply floor filter
+      machines = selectedFloorId == null
+          ? allMachines
+          : allMachines.where((m) => m['floorId'] == selectedFloorId).toList();
+    }
     
     // Calculate overall stats
     final runningMachines = machines.where((m) => m['status'] == 'Running').length;
@@ -197,8 +218,8 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
 
                   const SizedBox(height: 24),
 
-                  // Floor Filter
-                  if (floors.isNotEmpty)
+                  // Floor Filter (hidden for operators)
+                  if (floors.isNotEmpty && widget.level > 1)
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(

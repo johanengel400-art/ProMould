@@ -23,6 +23,7 @@ import 'job_queue_manager_screen.dart';
 import 'my_tasks_screen.dart';
 import 'quality_control_screen.dart';
 import 'production_timeline_screen.dart';
+import 'operator_qc_screen.dart';
 
 class RoleRouter extends StatefulWidget {
   final int level;
@@ -54,6 +55,7 @@ class _RoleRouterState extends State<RoleRouter> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isOperator = widget.level == 1;
     final bool isManager = widget.level >= 3;
     final bool isAdmin = widget.level >= 4;
 
@@ -97,16 +99,26 @@ class _RoleRouterState extends State<RoleRouter> {
               ],
             ),
           ),
-          _drawerItem(Icons.dashboard_outlined, 'Dashboard',
-              DashboardScreenV2(username: widget.username, level: widget.level)),
-          _drawerItem(Icons.calendar_month_outlined, 'Timeline',
-              TimelineScreenV2(level: widget.level)),
-          _drawerItem(Icons.edit_note_outlined, 'Inputs',
-              DailyInputScreen(username: widget.username, level: widget.level)),
-          _drawerItem(Icons.report_problem_outlined, 'Issues',
-              IssuesScreenV2(username: widget.username, level: widget.level)),
-          _drawerItem(Icons.task_alt, 'My Tasks',
-              MyTasksScreen(username: widget.username, level: widget.level)),
+          // Operator Menu (Level 1) - Only Dashboard and QC
+          if (isOperator) ...[
+            _drawerItem(Icons.dashboard_outlined, 'Dashboard',
+                DashboardScreenV2(username: widget.username, level: widget.level)),
+            _drawerItem(Icons.report_problem_outlined, 'Report Issue',
+                OperatorQCScreen(username: widget.username)),
+          ],
+          // Non-Operator Menu (Level 2+)
+          if (!isOperator) ...[
+            _drawerItem(Icons.dashboard_outlined, 'Dashboard',
+                DashboardScreenV2(username: widget.username, level: widget.level)),
+            _drawerItem(Icons.calendar_month_outlined, 'Timeline',
+                TimelineScreenV2(level: widget.level)),
+            _drawerItem(Icons.edit_note_outlined, 'Inputs',
+                DailyInputScreen(username: widget.username, level: widget.level)),
+            _drawerItem(Icons.report_problem_outlined, 'Issues',
+                IssuesScreenV2(username: widget.username, level: widget.level)),
+            _drawerItem(Icons.task_alt, 'My Tasks',
+                MyTasksScreen(username: widget.username, level: widget.level)),
+          ],
           if (isManager) const Divider(),
           if (isManager)
             const Padding(
