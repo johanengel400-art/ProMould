@@ -14,72 +14,58 @@ class _DailyInputScreenState extends State<DailyInputScreen>{
   final uuid=const Uuid(); String? machineId; Map? job;
   final shotsCtrl=TextEditingController(); final scrapCtrl=TextEditingController();
   String scrapReason='Other'; final reasons=['Short Shot','Flash','Burn','Contamination','Color Variation','Other'];
+  bool isAddMode = true; // true = Add to count, false = Set count
 
   void _save() async {
     final shots=int.tryParse(shotsCtrl.text.trim())??0;
     final scrap=int.tryParse(scrapCtrl.text.trim())??0;
     if(machineId==null){ ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Select a machine'))); return; }
+    
     final inputs = Hive.box('inputsBox');
     final id = uuid.v4();
+    
+    // Calculate actual shots to record based on mode
+    int shotsToRecord = shots;
+    if (!isAddMode && job != null) {
+      // Set mode: calculate difference from current count
+      final currentShots = (job!['shotsCompleted'] ?? 0) as int;
+      shotsToRecord = shots - currentShots;
+    }
+    
     final data = {
       'id': id,
       'machineId': machineId!,
       'jobId': job?['id'] ?? '',
       'date': DateTime.now().toIso8601String(),
-      'shots': shots,
+      'shots': shotsToRecord,
       'scrap': scrap,
       'scrapReason': scrapReason,
-      'notes': '',
+      'notes': isAddMode ? '' : 'Set to $shots',
     };
     await inputs.put(id, data);
     await SyncService.pushChange('inputsBox', id, data);
 
     if(job!=null){
-      final jobsBox = Hive.box('jobsBox');
-      final machinesBox = Hive.box('machinesBox');
       final jobId = job!['id'] as String;
       final updated = Map<String,dynamic>.from(job!);
-      final newTotal = (updated['shotsCompleted'] ?? 0) + shots;
+      
+      // Update total based on mode
+      final newTotal = isAddMode 
+        ? (updated['shotsCompleted'] ?? 0) + shots
+        : shots; // Set mode: use the value directly
+      
       updated['shotsCompleted'] = newTotal;
       
       // Record manual input to reset the live progress baseline
       await LiveProgressService.recordManualInput(jobId, newTotal);
       
-      if(newTotal >= (updated['targetShots'] ?? 0)){
-        updated['status']='Finished'; 
-        updated['endTime']=DateTime.now().toIso8601String();
-        
-        // Start next queued job for this machine
-        final nextJob = jobsBox.values.cast<Map?>().firstWhere(
-          (j) => j != null && j['machineId'] == machineId && j['status'] == 'Queued',
-          orElse: () => null,
-        );
-        
-        if (nextJob != null) {
-          final nextJobId = nextJob['id'] as String;
-          final updatedNext = Map<String,dynamic>.from(nextJob);
-          updatedNext['status'] = 'Running';
-          updatedNext['startTime'] = DateTime.now().toIso8601String();
-          await jobsBox.put(nextJobId, updatedNext);
-          await SyncService.pushChange('jobsBox', nextJobId, updatedNext);
-        } else {
-          // No more jobs - set machine to Idle
-          if (machineId != null) {
-            final machine = machinesBox.get(machineId!) as Map?;
-            if (machine != null) {
-              final updatedMachine = Map<String,dynamic>.from(machine);
-              updatedMachine['status'] = 'Idle';
-              await machinesBox.put(machineId!, updatedMachine);
-              await SyncService.pushChange('machinesBox', machineId!, updatedMachine);
-            }
-          }
-        }
-      }
-      // Note: recordManualInput already saved the job, no need to save again here
+      // NO AUTO-STOP: Job continues running even past target
+      // User must manually stop the job
     }
 
     shotsCtrl.clear(); scrapCtrl.clear();
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Entry saved. Live progress reset to actual count.')));
+    final modeText = isAddMode ? 'Added $shots shots' : 'Set to $shots shots';
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$modeText. Live progress reset to actual count.')));
   }
 
   @override Widget build(BuildContext context){
@@ -129,12 +115,72 @@ class _DailyInputScreenState extends State<DailyInputScreen>{
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Record Production',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Record Production',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: isAddMode ? const Color(0xFF06D6A0) : const Color(0xFF4CC9F0),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  isAddMode ? Icons.add : Icons.edit,
+                                  size: 16,
+                                  color: Colors.white,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  isAddMode ? 'ADD' : 'SET',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      SegmentedButton<bool>(
+                        segments: const [
+                          ButtonSegment(
+                            value: true,
+                            label: Text('Add to Count'),
+                            icon: Icon(Icons.add_circle_outline),
+                          ),
+                          ButtonSegment(
+                            value: false,
+                            label: Text('Set Count'),
+                            icon: Icon(Icons.edit_outlined),
+                          ),
+                        ],
+                        selected: {isAddMode},
+                        onSelectionChanged: (Set<bool> newSelection) {
+                          setState(() {
+                            isAddMode = newSelection.first;
+                          });
+                        },
+                        style: ButtonStyle(
+                          backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+                            if (states.contains(WidgetState.selected)) {
+                              return isAddMode ? const Color(0xFF06D6A0) : const Color(0xFF4CC9F0);
+                            }
+                            return Colors.transparent;
+                          }),
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -184,6 +230,30 @@ class _DailyInputScreenState extends State<DailyInputScreen>{
                         ),
                       ),
                       const SizedBox(height: 16),
+                      if (job != null)
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.info_outline, size: 16, color: Colors.blue[300]),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  isAddMode 
+                                    ? 'Current: ${job!['shotsCompleted'] ?? 0} • Enter shots to ADD'
+                                    : 'Current: ${job!['shotsCompleted'] ?? 0} • Enter new total to SET',
+                                  style: TextStyle(fontSize: 12, color: Colors.blue[300]),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      if (job != null) const SizedBox(height: 16),
                       Row(children:[
                         Expanded(
                           child: TextField(
@@ -191,7 +261,7 @@ class _DailyInputScreenState extends State<DailyInputScreen>{
                             keyboardType: TextInputType.number,
                             style: const TextStyle(color: Colors.white),
                             decoration: InputDecoration(
-                              labelText:'Good Shots',
+                              labelText: isAddMode ? 'Good Shots (Add)' : 'Good Shots (Set Total)',
                               labelStyle: const TextStyle(color: Colors.white70),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),

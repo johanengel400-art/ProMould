@@ -233,13 +233,57 @@ class _MachineDetailScreenState extends State<MachineDetailScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const SizedBox(height: 4),
-                            Text('${runningJob['shotsCompleted']}/${runningJob['targetShots']} shots', style: const TextStyle(color: Colors.white70)),
+                            Builder(
+                              builder: (context) {
+                                final completed = (runningJob['shotsCompleted'] as num? ?? 0).toInt();
+                                final target = (runningJob['targetShots'] as num? ?? 1).toInt();
+                                final overrun = completed > target ? completed - target : 0;
+                                final isOverrun = completed > target;
+                                return Text(
+                                  isOverrun 
+                                    ? '$completed/$target shots (+$overrun overrun)'
+                                    : '$completed/$target shots',
+                                  style: TextStyle(
+                                    color: isOverrun ? const Color(0xFFFFD166) : Colors.white70,
+                                    fontWeight: isOverrun ? FontWeight.bold : FontWeight.normal,
+                                  ),
+                                );
+                              },
+                            ),
                             Text(_calculateETA(runningJob, DateTime.now()), style: const TextStyle(fontSize: 12, color: Colors.white38)),
                           ],
                         ),
-                        trailing: Text(
-                          '${((runningJob['shotsCompleted'] as num? ?? 0) / (runningJob['targetShots'] as num? ?? 1) * 100).round()}%',
-                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF06D6A0)),
+                        trailing: Builder(
+                          builder: (context) {
+                            final completed = (runningJob['shotsCompleted'] as num? ?? 0).toInt();
+                            final target = (runningJob['targetShots'] as num? ?? 1).toInt();
+                            final overrun = completed > target ? completed - target : 0;
+                            final isOverrun = completed > target;
+                            final percentage = ((completed / target) * 100).round().clamp(0, 100);
+                            return Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  isOverrun ? '100%' : '$percentage%',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: isOverrun ? const Color(0xFFFFD166) : const Color(0xFF06D6A0),
+                                  ),
+                                ),
+                                if (isOverrun)
+                                  Text(
+                                    '+$overrun',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFFFFD166),
+                                    ),
+                                  ),
+                              ],
+                            );
+                          },
                         ),
                       ),
                     ),

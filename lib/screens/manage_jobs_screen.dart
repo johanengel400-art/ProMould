@@ -96,31 +96,71 @@ class _ManageJobsScreenState extends State<ManageJobsScreen>{
     await box.put(jobId, updated);
     await SyncService.pushChange('jobsBox', jobId, updated);
     
-    // Start next queued job for this machine
-    if (machineId.isNotEmpty) {
-      final nextJob = box.values.cast<Map?>().firstWhere(
-        (job) => job != null && job['machineId'] == machineId && job['status'] == 'Queued',
-        orElse: () => null,
-      );
+    // Show dialog to select next job
+    if (machineId.isNotEmpty && context.mounted) {
+      final queuedJobs = box.values.cast<Map?>()
+        .where((job) => job != null && job['machineId'] == machineId && job['status'] == 'Queued')
+        .toList();
       
-      if (nextJob != null) {
-        final nextJobId = nextJob['id'] as String;
-        final updatedNext = Map<String,dynamic>.from(nextJob);
-        updatedNext['status'] = 'Running';
-        updatedNext['startTime'] = DateTime.now().toIso8601String();
-        await box.put(nextJobId, updatedNext);
-        await SyncService.pushChange('jobsBox', nextJobId, updatedNext);
+      if (queuedJobs.isNotEmpty) {
+        final selectedJob = await showDialog<Map?>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Job Completed'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('${j['productName']} completed with ${j['shotsCompleted'] ?? 0} shots.'),
+                const SizedBox(height: 16),
+                const Text('Select next job to start:', style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                ...queuedJobs.map((job) => ListTile(
+                  title: Text(job!['productName'] ?? 'Unknown'),
+                  subtitle: Text('${job['color'] ?? ''} • Target: ${job['targetShots'] ?? 0}'),
+                  trailing: const Icon(Icons.arrow_forward),
+                  onTap: () => Navigator.pop(context, job),
+                )),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, null),
+                child: const Text('No Next Job (Set Idle)'),
+              ),
+            ],
+          ),
+        );
         
-        // Keep machine Running
-        final machine = machinesBox.get(machineId) as Map?;
-        if (machine != null) {
-          final updatedMachine = Map<String,dynamic>.from(machine);
-          updatedMachine['status'] = 'Running';
-          await machinesBox.put(machineId, updatedMachine);
-          await SyncService.pushChange('machinesBox', machineId, updatedMachine);
+        if (selectedJob != null) {
+          // Start selected job
+          final nextJobId = selectedJob['id'] as String;
+          final updatedNext = Map<String,dynamic>.from(selectedJob);
+          updatedNext['status'] = 'Running';
+          updatedNext['startTime'] = DateTime.now().toIso8601String();
+          await box.put(nextJobId, updatedNext);
+          await SyncService.pushChange('jobsBox', nextJobId, updatedNext);
+          
+          // Keep machine Running
+          final machine = machinesBox.get(machineId) as Map?;
+          if (machine != null) {
+            final updatedMachine = Map<String,dynamic>.from(machine);
+            updatedMachine['status'] = 'Running';
+            await machinesBox.put(machineId, updatedMachine);
+            await SyncService.pushChange('machinesBox', machineId, updatedMachine);
+          }
+        } else {
+          // User chose no next job - set machine to Idle
+          final machine = machinesBox.get(machineId) as Map?;
+          if (machine != null) {
+            final updatedMachine = Map<String,dynamic>.from(machine);
+            updatedMachine['status'] = 'Idle';
+            await machinesBox.put(machineId, updatedMachine);
+            await SyncService.pushChange('machinesBox', machineId, updatedMachine);
+          }
         }
       } else {
-        // No more jobs - set machine to Idle
+        // No queued jobs - set machine to Idle
         final machine = machinesBox.get(machineId) as Map?;
         if (machine != null) {
           final updatedMachine = Map<String,dynamic>.from(machine);

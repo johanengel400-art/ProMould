@@ -445,6 +445,8 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
     final target = (job?['targetShots'] ?? 0) as int;
     final progress = target > 0 ? (shots / target).clamp(0.0, 1.0) : 0.0;
     final progress100 = (progress * 100).round();
+    final overrun = shots > target ? shots - target : 0;
+    final isOverrun = shots > target;
     
     final scrapData = ScrapRateService.calculateMachineScrapRate(mId);
     final scrapRate = scrapData['scrapRate'] as double;
@@ -588,16 +590,16 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '$progress100%',
+                          isOverrun ? '100% +$overrun' : '$progress100%',
                           style: TextStyle(
-                            color: statusColor,
+                            color: isOverrun ? const Color(0xFFFFD166) : statusColor,
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         Text(
-                          '$shots/$target',
-                          style: const TextStyle(
+                          isOverrun ? '$shots/$target (+$overrun)' : '$shots/$target',
+                          style: TextStyle(
                             color: Colors.white60,
                             fontSize: 11,
                           ),
