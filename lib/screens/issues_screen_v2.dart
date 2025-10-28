@@ -359,6 +359,78 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
                   ],
                 ],
               ),
+              
+              // Resolution Info or Button
+              if (status == 'Resolved' || status == 'Closed') ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF06D6A0).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFF06D6A0).withOpacity(0.3)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.check_circle, color: Color(0xFF06D6A0), size: 16),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Resolved by ${issue['resolvedBy'] ?? 'Unknown'}',
+                            style: const TextStyle(
+                              color: Color(0xFF06D6A0),
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const Spacer(),
+                          if (issue['resolvedAt'] != null)
+                            Text(
+                              _formatTimestamp(issue['resolvedAt']),
+                              style: const TextStyle(color: Colors.white38, fontSize: 11),
+                            ),
+                        ],
+                      ),
+                      if (issue['resolutionAction'] != null && (issue['resolutionAction'] as String).isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          'Action: ${issue['resolutionAction']}',
+                          style: const TextStyle(color: Colors.white70, fontSize: 11),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                      if (issue['resolutionNextSteps'] != null && (issue['resolutionNextSteps'] as String).isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          'Next: ${issue['resolutionNextSteps']}',
+                          style: const TextStyle(color: Colors.white54, fontSize: 11),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ] else if (widget.level >= 2) ...[
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _showResolveDialog(issue),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF06D6A0),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    icon: const Icon(Icons.check_circle_outline, size: 18),
+                    label: const Text('Resolve Issue'),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -585,6 +657,66 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
               _buildDetailRow('Created', _formatTimestamp(issue['timestamp']), Colors.white70),
               if (issue['updatedAt'] != null)
                 _buildDetailRow('Updated', _formatTimestamp(issue['updatedAt']), Colors.white70),
+              
+              // Resolution Details
+              if (issue['status'] == 'Resolved' || issue['status'] == 'Closed') ...[
+                const Divider(color: Colors.white12, height: 24),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF06D6A0).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFF06D6A0).withOpacity(0.3)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.check_circle, color: Color(0xFF06D6A0), size: 20),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Resolution Details',
+                            style: TextStyle(
+                              color: Color(0xFF06D6A0),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      _buildDetailRow('Resolved By', issue['resolvedBy'] ?? 'Unknown', const Color(0xFF06D6A0)),
+                      _buildDetailRow('Resolved At', _formatTimestamp(issue['resolvedAt']), Colors.white70),
+                      if (issue['resolutionType'] != null)
+                        _buildDetailRow('Type', issue['resolutionType'], Colors.white70),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Action Taken:',
+                        style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 12),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        issue['resolutionAction'] ?? 'No details provided',
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      if (issue['resolutionNextSteps'] != null && (issue['resolutionNextSteps'] as String).isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Next Steps:',
+                          style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 12),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          issue['resolutionNextSteps'],
+                          style: const TextStyle(color: Colors.white70),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+              
               const Divider(color: Colors.white12, height: 24),
               const Text('Description:', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
@@ -638,6 +770,206 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
             child: Text(value, style: TextStyle(color: color, fontSize: 14, fontWeight: FontWeight.w500)),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showResolveDialog(Map issue) {
+    final actionCtrl = TextEditingController();
+    final nextStepsCtrl = TextEditingController();
+    String resolutionType = 'Fixed';
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: const Color(0xFF0F1419),
+          title: Row(
+            children: [
+              const Icon(Icons.check_circle, color: Color(0xFF06D6A0)),
+              const SizedBox(width: 12),
+              const Text('Resolve Issue'),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Issue Summary
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        issue['title'] ?? 'Issue',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Priority: ${issue['priority']} • Category: ${issue['category']}',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Colors.white54,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                
+                // Resolution Type
+                const Text(
+                  'Resolution Type',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white70,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                SegmentedButton<String>(
+                  segments: const [
+                    ButtonSegment(
+                      value: 'Fixed',
+                      label: Text('Fixed'),
+                      icon: Icon(Icons.build),
+                    ),
+                    ButtonSegment(
+                      value: 'Workaround',
+                      label: Text('Workaround'),
+                      icon: Icon(Icons.settings_suggest),
+                    ),
+                    ButtonSegment(
+                      value: 'No Action',
+                      label: Text('No Action'),
+                      icon: Icon(Icons.block),
+                    ),
+                  ],
+                  selected: {resolutionType},
+                  onSelectionChanged: (Set<String> newSelection) {
+                    setDialogState(() {
+                      resolutionType = newSelection.first;
+                    });
+                  },
+                ),
+                const SizedBox(height: 16),
+                
+                // Action Taken
+                TextField(
+                  controller: actionCtrl,
+                  decoration: InputDecoration(
+                    labelText: 'Action Taken *',
+                    hintText: 'What did you do to resolve this?',
+                    helperText: 'Describe the solution or fix applied',
+                    prefixIcon: const Icon(Icons.construction),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  maxLines: 3,
+                  autofocus: true,
+                ),
+                const SizedBox(height: 16),
+                
+                // Next Steps
+                TextField(
+                  controller: nextStepsCtrl,
+                  decoration: InputDecoration(
+                    labelText: 'Next Steps / Follow-up',
+                    hintText: 'Any monitoring or future actions needed?',
+                    helperText: 'Optional: What should be watched or done next',
+                    prefixIcon: const Icon(Icons.arrow_forward),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  maxLines: 2,
+                ),
+                const SizedBox(height: 8),
+                
+                // Info box
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.info_outline, size: 16, color: Colors.blue),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'This will mark the issue as Resolved and record your name',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.blue[300],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton.icon(
+              onPressed: () async {
+                if (actionCtrl.text.trim().isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please describe the action taken')),
+                  );
+                  return;
+                }
+
+                final issuesBox = Hive.box('issuesBox');
+                final issueId = issue['id'] as String;
+                final updated = Map<String, dynamic>.from(issue);
+                
+                updated['status'] = 'Resolved';
+                updated['resolvedBy'] = widget.username;
+                updated['resolvedAt'] = DateTime.now().toIso8601String();
+                updated['resolutionType'] = resolutionType;
+                updated['resolutionAction'] = actionCtrl.text.trim();
+                updated['resolutionNextSteps'] = nextStepsCtrl.text.trim();
+                
+                await issuesBox.put(issueId, updated);
+                await SyncService.pushChange('issuesBox', issueId, updated);
+
+                if (context.mounted) {
+                  Navigator.pop(dialogContext);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Issue resolved by ${widget.username}'),
+                      backgroundColor: const Color(0xFF06D6A0),
+                    ),
+                  );
+                  setState(() {});
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF06D6A0),
+              ),
+              icon: const Icon(Icons.check_circle),
+              label: const Text('Mark as Resolved'),
+            ),
+          ],
+        ),
       ),
     );
   }
