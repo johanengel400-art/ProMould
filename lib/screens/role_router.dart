@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 
 // import all screens
+import 'login_screen.dart';
 import 'dashboard_screen_v2.dart';
 import 'timeline_screen_v2.dart';
 import 'daily_input_screen.dart';
@@ -190,7 +191,35 @@ class _RoleRouterState extends State<RoleRouter> {
           ListTile(
             leading: const Icon(Icons.exit_to_app_outlined, color: Color(0xFFFF6B6B)),
             title: const Text('Logout', style: TextStyle(color: Color(0xFFFF6B6B))),
-            onTap: () => Navigator.of(context).popUntil((r) => r.isFirst),
+            onTap: () {
+              // Show confirmation dialog
+              showDialog(
+                context: context,
+                builder: (dialogContext) => AlertDialog(
+                  title: const Text('Logout'),
+                  content: const Text('Are you sure you want to logout?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(dialogContext),
+                      child: const Text('Cancel'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(dialogContext); // Close dialog
+                        Navigator.pop(context); // Close drawer
+                        // Navigate back to login and remove all routes
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(builder: (_) => const LoginScreen()),
+                          (route) => false,
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF6B6B)),
+                      child: const Text('Logout'),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
         ],
       ),

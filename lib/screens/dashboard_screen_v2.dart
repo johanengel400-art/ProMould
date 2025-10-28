@@ -476,14 +476,14 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
     final statusColor = _getStatusColor(m['status'] as String? ?? 'Idle');
 
     return GestureDetector(
-      onTap: () {
+      onTap: widget.level >= 3 ? () {
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => MachineDetailScreen(machine: m),
           ),
         );
-      },
+      } : null,
       child: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
