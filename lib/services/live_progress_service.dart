@@ -45,11 +45,12 @@ class LiveProgressService {
         
         if (mouldId == null) continue;
         
-        // Get mould to find cycle time
+        // Get mould to find cycle time and cavities
         final mould = mouldsBox.get(mouldId) as Map?;
         if (mould == null) continue;
         
         final cycleTime = (mould['cycleTime'] as num?)?.toDouble() ?? 30.0;
+        final cavities = (mould['cavities'] as int?) ?? 1;
         
         // Get start time and last manual update
         final startTimeStr = job['startTime'] as String?;
@@ -74,8 +75,9 @@ class LiveProgressService {
         // Calculate elapsed time since reference point
         final elapsedSeconds = now.difference(referenceTime).inSeconds;
         
-        // Calculate estimated shots based on cycle time
-        final estimatedNewShots = (elapsedSeconds / cycleTime).floor();
+        // Calculate estimated shots based on cycle time and cavities
+        // Each cycle produces 'cavities' number of parts
+        final estimatedNewShots = ((elapsedSeconds / cycleTime) * cavities).floor();
         final estimatedTotalShots = baselineShots + estimatedNewShots;
         
         // Don't exceed target
@@ -178,6 +180,7 @@ class LiveProgressService {
     if (mould == null) return job['shotsCompleted'] as int? ?? 0;
     
     final cycleTime = (mould['cycleTime'] as num?)?.toDouble() ?? 30.0;
+    final cavities = (mould['cavities'] as int?) ?? 1;
     final startTimeStr = job['startTime'] as String?;
     final lastManualUpdate = job['lastManualUpdate'] as String?;
     final manualShotsCompleted = job['manualShotsCompleted'] as int?;
@@ -196,7 +199,7 @@ class LiveProgressService {
     }
     
     final elapsedSeconds = DateTime.now().difference(referenceTime).inSeconds;
-    final estimatedNewShots = (elapsedSeconds / cycleTime).floor();
+    final estimatedNewShots = ((elapsedSeconds / cycleTime) * cavities).floor();
     final estimatedTotalShots = baselineShots + estimatedNewShots;
     final targetShots = job['targetShots'] as int? ?? 0;
     
