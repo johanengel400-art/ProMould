@@ -14,6 +14,18 @@ class _DailyInspectionTrackingScreenState extends State<DailyInspectionTrackingS
   DateTime selectedDate = DateTime.now();
   String? selectedSetter;
 
+  Future<void> _ensureBoxesOpen() async {
+    if (!Hive.isBoxOpen('usersBox')) {
+      await Hive.openBox('usersBox');
+    }
+    if (!Hive.isBoxOpen('dailyInspectionsBox')) {
+      await Hive.openBox('dailyInspectionsBox');
+    }
+    if (!Hive.isBoxOpen('machinesBox')) {
+      await Hive.openBox('machinesBox');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,20 +78,26 @@ class _DailyInspectionTrackingScreenState extends State<DailyInspectionTrackingS
   Widget _buildSetterList() {
     return Expanded(
       child: FutureBuilder(
-        future: Future.wait([
-          Hive.openBox('usersBox'),
-          Hive.openBox('dailyInspectionsBox'),
-          Hive.openBox('machinesBox'),
-        ]),
+        future: _ensureBoxesOpen(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(
+              child: Text(
+                'Error loading data: ${snapshot.error}',
+                style: const TextStyle(color: Colors.red),
+              ),
+            );
           }
 
           final usersBox = Hive.box('usersBox');
           final inspectionsBox = Hive.box('dailyInspectionsBox');
           final machinesBox = Hive.box('machinesBox');
 
+          // Filter for Setters only (Level 2)
           final setters = usersBox.values.cast<Map>().where((u) => (u['level'] as int? ?? 0) == 2).toList();
           final dateKey = DateFormat('yyyy-MM-dd').format(selectedDate);
 

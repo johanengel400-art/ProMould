@@ -71,16 +71,33 @@ class _MachineInspectionChecklistV2State
     });
   }
 
+  Future<void> _ensureBoxesOpen() async {
+    if (!Hive.isBoxOpen('machinesBox')) {
+      await Hive.openBox('machinesBox');
+    }
+    if (!Hive.isBoxOpen('dailyInspectionsBox')) {
+      await Hive.openBox('dailyInspectionsBox');
+    }
+  }
+
   Future<bool> _hasCompletedToday(String machineId) async {
-    final inspectionsBox = Hive.box('dailyInspectionsBox');
-    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-    
-    final todayInspections = inspectionsBox.values.cast<Map>().where((i) =>
-        i['machineId'] == machineId &&
-        i['inspectorUsername'] == widget.username &&
-        i['date'] == today).toList();
-    
-    return todayInspections.isNotEmpty;
+    try {
+      if (!Hive.isBoxOpen('dailyInspectionsBox')) {
+        await Hive.openBox('dailyInspectionsBox');
+      }
+      final inspectionsBox = Hive.box('dailyInspectionsBox');
+      final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+      
+      final todayInspections = inspectionsBox.values.cast<Map>().where((i) =>
+          i['machineId'] == machineId &&
+          i['inspectorUsername'] == widget.username &&
+          i['date'] == today).toList();
+      
+      return todayInspections.isNotEmpty;
+    } catch (e) {
+      print('Error checking inspection status: $e');
+      return false;
+    }
   }
 
   @override
@@ -167,7 +184,7 @@ class _MachineInspectionChecklistV2State
 
   Widget _buildMachineSelector() {
     return FutureBuilder(
-      future: Hive.openBox('machinesBox'),
+      future: _ensureBoxesOpen(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -175,6 +192,21 @@ class _MachineInspectionChecklistV2State
 
         final machinesBox = Hive.box('machinesBox');
         final machines = machinesBox.values.cast<Map>().toList();
+        
+        if (machines.isEmpty) {
+          return Card(
+            color: const Color(0xFF0F1419),
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Center(
+                child: Text(
+                  'No machines available',
+                  style: TextStyle(color: Colors.white70),
+                ),
+              ),
+            ),
+          );
+        }
 
         return Card(
           color: const Color(0xFF0F1419),
