@@ -24,7 +24,7 @@ class _MouldChangesScreenState extends State<MouldChangesScreen> {
     final machines = machinesBox.values.cast<Map>().toList();
     final moulds = mouldsBox.values.cast<Map>().toList();
     final jobs = jobsBox.values.cast<Map>().toList();
-    final setters = usersBox.values.cast<Map>().where((u) => u['level'] == 2).toList();
+    final setters = usersBox.values.cast<Map>().where((u) => u['level'] == 3).toList();
 
     String? selectedMachine = machines.isNotEmpty ? machines.first['id'] as String : null;
     String? selectedMould = moulds.isNotEmpty ? moulds.first['id'] as String : null;

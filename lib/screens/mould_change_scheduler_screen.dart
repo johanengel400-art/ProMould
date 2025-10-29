@@ -429,7 +429,7 @@ class _MouldChangeSchedulerScreenState extends State<MouldChangeSchedulerScreen>
 
     final machines = machinesBox.values.cast<Map>().toList();
     final moulds = mouldsBox.values.cast<Map>().toList();
-    final setters = usersBox.values.cast<Map>().where((u) => (u['level'] as int? ?? 0) >= 2).toList();
+    final setters = usersBox.values.cast<Map>().where((u) => (u['level'] as int? ?? 0) == 3).toList();
 
     if (machines.isEmpty || moulds.isEmpty || setters.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(

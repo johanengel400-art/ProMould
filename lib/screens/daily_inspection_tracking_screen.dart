@@ -97,8 +97,8 @@ class _DailyInspectionTrackingScreenState extends State<DailyInspectionTrackingS
           final inspectionsBox = Hive.box('dailyInspectionsBox');
           final machinesBox = Hive.box('machinesBox');
 
-          // Filter for Setters only (Level 2)
-          final setters = usersBox.values.cast<Map>().where((u) => (u['level'] as int? ?? 0) == 2).toList();
+          // Filter for Setters only (Level 3)
+          final setters = usersBox.values.cast<Map>().where((u) => (u['level'] as int? ?? 0) == 3).toList();
           final dateKey = DateFormat('yyyy-MM-dd').format(selectedDate);
 
           if (setters.isEmpty) {
