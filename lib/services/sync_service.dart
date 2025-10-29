@@ -29,6 +29,7 @@ class SyncService {
     await _listenBox('qualityInspectionsBox', 'qualityInspections');
     await _listenBox('qualityHoldsBox', 'qualityHolds');
     await _listenBox('machineInspectionsBox', 'machineInspections');
+    await _listenBox('dailyInspectionsBox', 'dailyInspections');
   }
 
   static Future<void> _listenBox(String hiveBox, String collection) async {

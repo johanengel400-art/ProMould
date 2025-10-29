@@ -25,7 +25,8 @@ import 'my_tasks_screen.dart';
 import 'quality_control_screen.dart';
 import 'production_timeline_screen.dart';
 import 'operator_qc_screen.dart';
-import 'machine_inspection_checklist_screen.dart';
+import 'machine_inspection_checklist_v2.dart';
+import 'daily_inspection_tracking_screen.dart';
 
 class RoleRouter extends StatefulWidget {
   final int level;
@@ -116,7 +117,7 @@ class _RoleRouterState extends State<RoleRouter> {
             _drawerItem(Icons.swap_horiz, 'Mould Changes',
                 MouldChangeSchedulerScreen(level: widget.level)),
             _drawerItem(Icons.fact_check, 'Machine Inspections',
-                MachineInspectionChecklistScreen(level: widget.level, username: widget.username)),
+                MachineInspectionChecklistV2(username: widget.username)),
             _drawerItem(Icons.task_alt, 'My Tasks',
                 MyTasksScreen(username: widget.username, level: widget.level)),
             _drawerItem(Icons.report_problem_outlined, 'Issues',
@@ -176,7 +177,10 @@ class _RoleRouterState extends State<RoleRouter> {
                 PaperworkScreen(level: widget.level, username: widget.username)),
           if (isManager)
             _drawerItem(Icons.fact_check, 'Machine Inspections',
-                MachineInspectionChecklistScreen(level: widget.level, username: widget.username)),
+                MachineInspectionChecklistV2(username: widget.username)),
+          if (isManager)
+            _drawerItem(Icons.assessment, 'Inspection Tracking',
+                const DailyInspectionTrackingScreen()),
           if (isManager)
             _drawerItem(Icons.insights_outlined, 'Reports / OEE',
                 OEEScreen(level: widget.level)),

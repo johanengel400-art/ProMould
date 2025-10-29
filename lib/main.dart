@@ -25,6 +25,7 @@ Future<void> _openCoreBoxes() async {
   await Hive.openBox('qualityInspectionsBox');
   await Hive.openBox('qualityHoldsBox');
   await Hive.openBox('machineInspectionsBox');
+  await Hive.openBox('dailyInspectionsBox');
 }
 
 void main() async {
