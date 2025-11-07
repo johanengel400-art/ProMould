@@ -8,6 +8,7 @@ import 'services/live_progress_service.dart';
 import 'services/notification_service.dart';
 import 'services/log_service.dart';
 import 'services/error_handler.dart';
+import 'utils/memory_manager.dart';
 import 'screens/login_screen.dart';
 
 import 'firebase_options.dart';
@@ -64,6 +65,10 @@ void main() async {
     LogService.info('Starting notification service...');
     NotificationService.start();
     LogService.info('Notification service started successfully');
+
+    LogService.info('Initializing memory manager...');
+    MemoryManager.initialize();
+    LogService.info('Memory manager initialized successfully');
 
     LogService.info('Launching app UI...');
     runApp(const ProMouldApp());

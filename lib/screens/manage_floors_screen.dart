@@ -33,7 +33,9 @@ class _ManageFloorsScreenState extends State<ManageFloorsScreen>{
           };
           await box.put(id, data);
           await SyncService.pushChange('floorsBox', id, data);
-          Navigator.pop(dialogContext);
+          if (dialogContext.mounted) {
+            Navigator.pop(dialogContext);
+          }
         }, child: const Text('Save')),
       ],
     ));
