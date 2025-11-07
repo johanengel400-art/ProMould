@@ -15,8 +15,9 @@ class BackgroundSync {
     );
   }
 
+  @pragma('vm:entry-point')
   static void callbackDispatcher() {
-    Workmanager().executeTask((_, __) async {
+    Workmanager().executeTask((task, inputData) async {
       try {
         final fire = FirebaseFirestore.instance;
         for (final pair in {
@@ -33,8 +34,11 @@ class BackgroundSync {
             }
           }
         }
-      } catch (_) {}
-      return Future.value(true);
+        return Future.value(true);
+      } catch (e) {
+        print('[BackgroundSync] Error: $e');
+        return Future.value(false);
+      }
     });
   }
 }
