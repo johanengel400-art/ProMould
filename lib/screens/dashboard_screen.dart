@@ -186,7 +186,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               LinearProgressIndicator(value: progress, minHeight: 8, borderRadius: BorderRadius.circular(8)),
               const SizedBox(height: 6),
               Text(job==null ? 'No active job'
-                : 'Job: ${job['productName']} • ${progress100}%',
+                : 'Job: ${job['productName']} • $progress100%',
                 style: const TextStyle(color: Colors.white70, fontSize: 13)),
               if (job != null) ...[
                 const SizedBox(height: 4),

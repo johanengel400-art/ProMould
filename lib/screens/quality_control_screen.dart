@@ -373,7 +373,9 @@ class _QualityControlScreenState extends State<QualityControlScreen> {
                 };
                 await inspectionsBox.put(id, data);
                 await SyncService.push('qualityInspectionsBox', id, data);
+                if (context.mounted) {
                 Navigator.pop(dialogContext);
+                }
                 setState(() {});
               },
               child: const Text('Save'),
@@ -461,7 +463,9 @@ class _QualityControlScreenState extends State<QualityControlScreen> {
                 };
                 await holdsBox.put(id, data);
                 await SyncService.push('qualityHoldsBox', id, data);
+                if (context.mounted) {
                 Navigator.pop(dialogContext);
+                }
                 setState(() {});
               },
               child: const Text('Create Hold'),

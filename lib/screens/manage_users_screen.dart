@@ -102,7 +102,9 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>{
             };
             await box.put(id, data);
             await SyncService.pushChange('usersBox', id, data);
+            if (context.mounted) {
             Navigator.pop(dialogContext);
+            }
           }, child: const Text('Save')),
         ],
       ),

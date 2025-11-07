@@ -79,7 +79,9 @@ class _ManageMouldsScreenState extends State<ManageMouldsScreen>{
             };
             await box.put(id, data);
             await SyncService.pushChange('mouldsBox', id, data);
+            if (context.mounted) {
             Navigator.pop(dialogContext);
+            }
           }, child: const Text('Save')),
         ],
       ),

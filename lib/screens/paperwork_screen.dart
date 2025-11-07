@@ -452,7 +452,9 @@ class _PaperworkScreenState extends State<PaperworkScreen> {
                 };
                 await checklistsBox.put(id, data);
                 await SyncService.push('checklistsBox', id, data);
+                if (context.mounted) {
                 Navigator.pop(dialogContext);
+                }
                 setState(() {});
               },
               child: const Text('Add'),
@@ -534,7 +536,9 @@ class _PaperworkScreenState extends State<PaperworkScreen> {
                 updatedItem['setter'] = setter ?? '';
                 await checklistsBox.put(id, updatedItem);
                 await SyncService.push('checklistsBox', id, updatedItem);
+                if (context.mounted) {
                 Navigator.pop(dialogContext);
+                }
                 setState(() {});
               },
               child: const Text('Save'),

@@ -493,7 +493,7 @@ class _PlanningScreenState extends State<PlanningScreen> {
     final hours = duration.inHours;
     final mins = duration.inMinutes % 60;
     final durationText = hours > 0 ? '${hours}h ${mins}m' : '${mins}m';
-    return 'ETA $etaDate $etaTime • $durationText • ${remaining} shots';
+    return 'ETA $etaDate $etaTime • $durationText • $remaining shots';
   }
 
   Future<void> _assignJobDialog() async {
@@ -581,7 +581,9 @@ class _PlanningScreenState extends State<PlanningScreen> {
                   await SyncService.pushChange('jobsBox', jobId!, updatedJob);
                 }
                 
+                if (context.mounted) {
                 Navigator.pop(dialogContext);
+                }
               },
               child: const Text('Assign'),
             ),

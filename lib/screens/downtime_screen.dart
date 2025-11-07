@@ -146,7 +146,9 @@ class _DowntimeScreenState extends State<DowntimeScreen> {
                 };
                 await box.put(id, data);
                 await SyncService.push('downtimeBox', id, data);
-                Navigator.pop(dialogContext);
+                if (dialogContext.mounted) {
+                  Navigator.pop(dialogContext);
+                }
               },
               child: const Text('Save'),
             ),

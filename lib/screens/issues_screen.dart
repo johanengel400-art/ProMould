@@ -28,7 +28,9 @@ class _IssuesScreenState extends State<IssuesScreen>{
     await issuesBox.put(id, data);
     await SyncService.pushChange('issuesBox', id, data);
     descCtrl.clear(); imageUrl=null; setState((){});
+    if (context.mounted) {
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Issue logged.')));
+    }
   }
 
   Future<void> _takePhoto() async {

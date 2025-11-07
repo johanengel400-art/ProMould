@@ -176,7 +176,7 @@ class _JobQueueManagerScreenState extends State<JobQueueManagerScreen> {
             child: isRunning
                 ? Icon(Icons.play_circle, color: color, size: 24)
                 : Text(
-                    '${index}',
+                    '$index',
                     style: TextStyle(
                       color: color,
                       fontWeight: FontWeight.bold,

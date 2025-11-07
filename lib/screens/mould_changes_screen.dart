@@ -140,7 +140,9 @@ class _MouldChangesScreenState extends State<MouldChangesScreen> {
                 };
                 await box.put(id, data);
                 await SyncService.pushChange('mouldChangesBox', id, data);
+                if (context.mounted) {
                 Navigator.pop(context);
+                }
               },
               child: const Text('Save'),
             ),

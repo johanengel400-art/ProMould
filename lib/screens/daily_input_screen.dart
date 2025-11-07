@@ -65,7 +65,9 @@ class _DailyInputScreenState extends State<DailyInputScreen>{
 
     shotsCtrl.clear(); scrapCtrl.clear();
     final modeText = isAddMode ? 'Added $shots shots' : 'Set to $shots shots';
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$modeText. Live progress reset to actual count.')));
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$modeText. Live progress reset to actual count.')));
+    }
   }
 
   @override Widget build(BuildContext context){

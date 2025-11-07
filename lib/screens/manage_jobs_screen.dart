@@ -224,7 +224,9 @@ class _ManageJobsScreenState extends State<ManageJobsScreen>{
             };
             await box.put(id, data);
             await SyncService.pushChange('jobsBox', id, data);
+            if (context.mounted) {
             Navigator.pop(context);
+            }
           }, child: const Text('Save')),
         ],
       ),
@@ -272,7 +274,9 @@ class _ManageJobsScreenState extends State<ManageJobsScreen>{
             data['mouldId'] = selectedMould ?? '';
             await box.put(jobId, data);
             await SyncService.pushChange('jobsBox', jobId, data);
+            if (context.mounted) {
             Navigator.pop(context);
+            }
           }, child: const Text('Save')),
         ],
       ),

@@ -50,7 +50,9 @@ class _ManageMachinesScreenState extends State<ManageMachinesScreen>{
             };
             await box.put(id, data);
             await SyncService.pushChange('machinesBox', id, data);
+            if (context.mounted) {
             Navigator.pop(context);
+            }
           }, child: const Text('Save')),
         ],
       ),
@@ -94,7 +96,9 @@ class _ManageMachinesScreenState extends State<ManageMachinesScreen>{
             data['floorId'] = selectedFloor ?? '';
             await box.put(machineId, data);
             await SyncService.pushChange('machinesBox', machineId, data);
+            if (context.mounted) {
             Navigator.pop(context);
+            }
           }, child: const Text('Save')),
         ],
       ),

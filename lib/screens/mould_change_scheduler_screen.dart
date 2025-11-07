@@ -566,7 +566,9 @@ class _MouldChangeSchedulerScreenState extends State<MouldChangeSchedulerScreen>
                 };
                 await mouldChangesBox.put(id, data);
                 await SyncService.push('mouldChangesBox', id, data);
+                if (context.mounted) {
                 Navigator.pop(dialogContext);
+                }
                 setState(() {});
               },
               child: const Text('Schedule'),
