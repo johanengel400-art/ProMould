@@ -29,7 +29,7 @@ class _IssuesScreenState extends State<IssuesScreen>{
     await SyncService.pushChange('issuesBox', id, data);
     descCtrl.clear(); imageUrl=null; setState((){});
     if (context.mounted) {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Issue logged.')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Issue logged.')));
     }
   }
 

@@ -70,10 +70,10 @@ class _MachineInspectionScreenState extends State<MachineInspectionScreen> {
     await SyncService.push('inspectionsBox', data['id'] as String, data);
 
     if (context.mounted) {
-    ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Inspection sheet saved successfully')),
+      );
     }
-      const SnackBar(content: Text('Inspection sheet saved successfully')),
-    );
     _resetForm();
   }
 
