@@ -186,11 +186,11 @@ class ErrorHandler {
     String? context,
     String? successMessage,
     String? errorMessage,
-    bool showSuccess = false,
+    bool showSuccessMessage = false,
   }) async {
     try {
       final result = await operation();
-      if (showSuccess && successMessage != null) {
+      if (showSuccessMessage && successMessage != null) {
         showSuccess(successMessage);
       }
       return result;

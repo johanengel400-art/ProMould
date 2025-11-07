@@ -4,6 +4,7 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hive/hive.dart';
+import 'log_service.dart';
 
 /// Handles realtime Firestore <-> Hive synchronization.
 /// Each Firestore collection listed below is mirrored locally in Hive.
@@ -56,12 +57,12 @@ class SyncService {
           }
         }
       },
-      onError: (e) => print('[SyncService] Error for $collection: $e'),
+      onError: (e) => LogService.sync('Error for $collection', error: e),
       cancelOnError: false,
     );
 
     _subs.add(sub);
-    print('[SyncService] Listening to $collection');
+    LogService.sync('Listening to $collection');
   }
 
   /// Push a local Hive record to Firestore.
@@ -69,7 +70,7 @@ class SyncService {
     try {
       await _fire.collection(boxName.replaceAll('Box', '')).doc(id).set(data, SetOptions(merge: true));
     } catch (e) {
-      print('[SyncService] Push error ($boxName/$id): $e');
+      LogService.sync('Push error ($boxName/$id)', error: e);
     }
   }
 
@@ -84,7 +85,7 @@ class SyncService {
   /// Stop all listeners (called on logout or app close).
   static Future<void> stop() async {
     _cancelAll();
-    print('[SyncService] All listeners cancelled');
+    LogService.sync('All listeners cancelled');
   }
 
   // Legacy method names for backward compatibility
@@ -96,7 +97,7 @@ class SyncService {
     try {
       await _fire.collection(boxName.replaceAll('Box', '')).doc(id).delete();
     } catch (e) {
-      print('[SyncService] Delete error ($boxName/$id): $e');
+      LogService.sync('Delete error ($boxName/$id)', error: e);
     }
   }
 }

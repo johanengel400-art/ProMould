@@ -6,6 +6,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/material.dart';
 import 'live_progress_service.dart';
 import 'scrap_rate_service.dart';
+import 'log_service.dart';
 
 class NotificationService {
   static final List<Map<String, dynamic>> _notifications = [];
@@ -18,7 +19,7 @@ class NotificationService {
     if (_isRunning) return;
     _isRunning = true;
     
-    print('🔔 NotificationService: Starting...');
+    LogService.service('NotificationService', 'Starting...');
     
     // Check every 30 seconds
     _checkTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
@@ -30,7 +31,7 @@ class NotificationService {
     _checkTimer?.cancel();
     _checkTimer = null;
     _isRunning = false;
-    print('🔕 NotificationService: Stopped');
+    LogService.service('NotificationService', 'Stopped');
   }
   
   static void _checkForAlerts() {

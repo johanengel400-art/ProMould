@@ -4,6 +4,7 @@
 import 'dart:async';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'sync_service.dart';
+import 'log_service.dart';
 
 class LiveProgressService {
   static Timer? _timer;
@@ -13,7 +14,7 @@ class LiveProgressService {
     if (_isRunning) return;
     _isRunning = true;
     
-    print('🔄 LiveProgressService: Starting real-time progress updates...');
+    LogService.service('LiveProgressService', 'Starting real-time progress updates...');
     
     // Update every 5 seconds
     _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
@@ -25,7 +26,7 @@ class LiveProgressService {
     _timer?.cancel();
     _timer = null;
     _isRunning = false;
-    print('⏸️ LiveProgressService: Stopped');
+    LogService.service('LiveProgressService', 'Stopped');
   }
 
   static Future<void> _updateRunningJobs() async {
@@ -106,7 +107,7 @@ class LiveProgressService {
         }
       }
     } catch (e) {
-      print('❌ LiveProgressService error: $e');
+      LogService.error('LiveProgressService error', e);
     }
   }
 
@@ -135,7 +136,7 @@ class LiveProgressService {
       updatedNext['startTime'] = DateTime.now().toIso8601String();
       await jobsBox.put(nextJobId, updatedNext);
       await SyncService.pushChange('jobsBox', nextJobId, updatedNext);
-      print('✅ Started next job: ${updatedNext['productName']}');
+      LogService.info('Started next job: ${updatedNext['productName']}');
     } else {
       // No more jobs - set machine to Idle
       final machine = machinesBox.get(machineId) as Map?;
@@ -144,7 +145,7 @@ class LiveProgressService {
         updatedMachine['status'] = 'Idle';
         await machinesBox.put(machineId, updatedMachine);
         await SyncService.pushChange('machinesBox', machineId, updatedMachine);
-        print('💤 Machine ${machine['name']} set to Idle');
+        LogService.info('Machine ${machine['name']} set to Idle');
       }
     }
   }
@@ -164,7 +165,7 @@ class LiveProgressService {
     await jobsBox.put(jobId, updatedJob);
     await SyncService.pushChange('jobsBox', jobId, updatedJob);
     
-    print('📝 Manual input recorded: $actualShots shots for job $jobId');
+    LogService.info('Manual input recorded: $actualShots shots for job $jobId');
   }
 
   /// Get current estimated shots for a running job (for display purposes)

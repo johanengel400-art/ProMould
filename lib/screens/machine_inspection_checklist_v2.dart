@@ -6,6 +6,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
 import '../services/sync_service.dart';
+import '../services/log_service.dart';
 
 class MachineInspectionChecklistV2 extends StatefulWidget {
   final String username;
@@ -95,7 +96,7 @@ class _MachineInspectionChecklistV2State
       
       return todayInspections.isNotEmpty;
     } catch (e) {
-      print('Error checking inspection status: $e');
+      LogService.error('Error checking inspection status', e);
       return false;
     }
   }

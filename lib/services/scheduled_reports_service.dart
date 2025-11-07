@@ -1,5 +1,6 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:uuid/uuid.dart';
+import 'log_service.dart';
 
 class ScheduledReportsService {
   static const _uuid = Uuid();
@@ -194,7 +195,7 @@ class ScheduledReportsService {
   static Future<void> _runScheduledReport(Map<String, dynamic> schedule) async {
     // This would integrate with the report builder to generate and send the report
     // For now, we'll just log that it ran
-    print('Running scheduled report: ${schedule['reportType']} at ${DateTime.now()}');
+    LogService.info('Running scheduled report: ${schedule['reportType']} at ${DateTime.now()}');
     
     // In a real implementation, this would:
     // 1. Generate the report using ReportBuilderScreen logic

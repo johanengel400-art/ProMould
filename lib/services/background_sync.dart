@@ -1,6 +1,7 @@
 import 'package:workmanager/workmanager.dart';
 import 'package:hive/hive.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'log_service.dart';
 
 class BackgroundSync {
   static const String taskName = "promould_background_sync";
@@ -36,7 +37,7 @@ class BackgroundSync {
         }
         return Future.value(true);
       } catch (e) {
-        print('[BackgroundSync] Error: $e');
+        LogService.error('[BackgroundSync] Error', e);
         return Future.value(false);
       }
     });

@@ -59,7 +59,7 @@ class _RoleRouterState extends State<RoleRouter> {
   @override
   Widget build(BuildContext context) {
     final bool isOperator = widget.level == 1;
-    final bool isMaterial = widget.level == 2;
+    // final bool isMaterial = widget.level == 2; // Reserved for future use
     final bool isSetter = widget.level == 3;
     final bool isManager = widget.level >= 4;
     final bool isAdmin = widget.level >= 4;

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path/path.dart' as p;
+import 'log_service.dart';
 
 class PhotoService {
   static final _picker = ImagePicker();
@@ -17,7 +18,7 @@ class PhotoService {
       final uploadTask = await ref.putFile(file);
       return await uploadTask.ref.getDownloadURL();
     } catch (e) { 
-      print('Photo upload error: $e');
+      LogService.error('Photo upload error', e);
       return null; 
     }
   }
@@ -32,7 +33,7 @@ class PhotoService {
       final uploadTask = await ref.putFile(file);
       return await uploadTask.ref.getDownloadURL();
     } catch (e) { 
-      print('Photo upload error: $e');
+      LogService.error('Photo upload error', e);
       return null; 
     }
   }
@@ -47,7 +48,7 @@ class PhotoService {
       final uploadTask = await ref.putFile(file);
       return await uploadTask.ref.getDownloadURL();
     } catch (e) { 
-      print('Mould photo upload error: $e');
+      LogService.error('Mould photo upload error', e);
       return null; 
     }
   }
@@ -62,7 +63,7 @@ class PhotoService {
       final uploadTask = await ref.putFile(file);
       return await uploadTask.ref.getDownloadURL();
     } catch (e) { 
-      print('Downtime photo upload error: $e');
+      LogService.error('Downtime photo upload error', e);
       return null; 
     }
   }
