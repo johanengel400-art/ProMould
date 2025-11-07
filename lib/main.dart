@@ -6,6 +6,8 @@ import 'services/sync_service.dart';
 import 'services/background_sync.dart';
 import 'services/live_progress_service.dart';
 import 'services/notification_service.dart';
+import 'services/log_service.dart';
+import 'services/error_handler.dart';
 import 'screens/login_screen.dart';
 
 import 'firebase_options.dart';
@@ -31,39 +33,44 @@ Future<void> _openCoreBoxes() async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  print('🚀 ProMould: Starting app...');
+  LogService.info('ProMould: Starting app...');
   
-  print('🔥 Initializing Firebase...');
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  print('✅ Firebase initialized');
-  
-  print('📦 Initializing Hive...');
-  await Hive.initFlutter();
-  await _openCoreBoxes();
-  print('✅ Hive initialized');
+  try {
+    LogService.info('Initializing Firebase...');
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    LogService.info('Firebase initialized successfully');
+    
+    LogService.info('Initializing Hive...');
+    await Hive.initFlutter();
+    await _openCoreBoxes();
+    LogService.info('Hive initialized successfully');
 
-  // Seed one admin if empty
-  final users = Hive.box('usersBox');
-  if(users.isEmpty){
-    users.put('admin', {'username':'admin','password':'admin123','level':4,'shift':'Any'});
-    print('👤 Created admin user');
+    // Seed one admin if empty
+    final users = Hive.box('usersBox');
+    if(users.isEmpty){
+      users.put('admin', {'username':'admin','password':'admin123','level':4,'shift':'Any'});
+      LogService.auth('Created default admin user');
+    }
+
+    LogService.info('Starting sync services...');
+    await SyncService.start();
+    await BackgroundSync.initialize();
+    LogService.info('Sync services started successfully');
+
+    LogService.info('Starting live progress service...');
+    LiveProgressService.start();
+    LogService.info('Live progress service started successfully');
+
+    LogService.info('Starting notification service...');
+    NotificationService.start();
+    LogService.info('Notification service started successfully');
+
+    LogService.info('Launching app UI...');
+    runApp(const ProMouldApp());
+  } catch (e, stackTrace) {
+    LogService.fatal('Failed to start app', e, stackTrace);
+    rethrow;
   }
-
-  print('🔄 Starting sync services...');
-  await SyncService.start();
-  await BackgroundSync.initialize();
-  print('✅ Sync services started');
-
-  print('⏱️ Starting live progress service...');
-  LiveProgressService.start();
-  print('✅ Live progress service started');
-
-  print('🔔 Starting notification service...');
-  NotificationService.start();
-  print('✅ Notification service started');
-
-  print('🎨 Launching app UI...');
-  runApp(const ProMouldApp());
 }
 
 class ProMouldApp extends StatelessWidget {
@@ -73,6 +80,7 @@ class ProMouldApp extends StatelessWidget {
       title: 'ProMould',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.dark(),
+      scaffoldMessengerKey: ErrorHandler.scaffoldMessengerKey,
       home: const LoginScreen(),
     );
   }
