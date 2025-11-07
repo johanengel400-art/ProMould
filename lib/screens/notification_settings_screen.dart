@@ -285,20 +285,21 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   Future<void> _sendTestNotification() async {
     LogService.info('Sending test notification');
     
-    // Show local notification
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Test notification sent! Check your notification tray.'),
-        backgroundColor: AppTheme.accent,
-      ),
-    );
-    
     // In production, this would trigger a backend call to send a real push notification
     await PushNotificationService.sendToTopic(
       'test',
       title: 'Test Notification',
       body: 'This is a test notification from ProMould',
       data: {'type': 'test'},
+    );
+    
+    // Show confirmation after sending
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Test notification sent! Check your notification tray.'),
+        backgroundColor: AppTheme.accent,
+      ),
     );
   }
 }
