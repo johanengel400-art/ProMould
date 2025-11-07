@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'theme/dark_theme.dart';
 import 'services/sync_service.dart';
 import 'services/background_sync.dart';
@@ -13,6 +14,13 @@ import 'utils/memory_manager.dart';
 import 'screens/login_screen.dart';
 
 import 'firebase_options.dart';
+
+/// Handle background messages - must be top-level function
+@pragma('vm:entry-point')
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  LogService.info('Background message received: ${message.messageId}');
+}
 
 Future<void> _openCoreBoxes() async {
   await Hive.openBox('usersBox');
@@ -41,6 +49,10 @@ void main() async {
     LogService.info('Initializing Firebase...');
     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
     LogService.info('Firebase initialized successfully');
+    
+    // Register background message handler
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+    LogService.info('Background message handler registered');
     
     LogService.info('Initializing Hive...');
     await Hive.initFlutter();

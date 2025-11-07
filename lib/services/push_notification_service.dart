@@ -8,13 +8,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hive/hive.dart';
 import 'log_service.dart';
 
-/// Handle background messages
-@pragma('vm:entry-point')
-Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  LogService.info('Background message received: ${message.messageId}');
-  // Handle background message
-}
-
 /// Push notification service using Firebase Cloud Messaging
 class PushNotificationService {
   static final FirebaseMessaging _messaging = FirebaseMessaging.instance;
@@ -68,9 +61,6 @@ class PushNotificationService {
 
       // Set up message handlers
       _setupMessageHandlers();
-
-      // Set up background message handler
-      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
       _initialized = true;
       LogService.info('Push notifications initialized successfully');
