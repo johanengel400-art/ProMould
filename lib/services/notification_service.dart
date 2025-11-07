@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'live_progress_service.dart';
 import 'scrap_rate_service.dart';
 import 'log_service.dart';
+import 'push_notification_service.dart';
 
 class NotificationService {
   static final List<Map<String, dynamic>> _notifications = [];
@@ -42,6 +43,49 @@ class NotificationService {
     _checkMaintenanceAlerts();
     _checkMouldChangeAlerts();
     _checkBreakdownAlerts();
+    
+    // Send push notifications for high priority alerts
+    _sendPushNotifications();
+  }
+  
+  /// Send push notifications for high priority alerts
+  static void _sendPushNotifications() {
+    final highPriorityAlerts = _notifications.where((n) => n['priority'] == 'high').toList();
+    
+    for (final alert in highPriorityAlerts) {
+      // Send to appropriate topic based on alert type
+      String topic = NotificationTopic.allUsers;
+      
+      switch (alert['type']) {
+        case 'breakdown':
+          topic = NotificationTopic.maintenance;
+          break;
+        case 'high_scrap':
+        case 'quality_issue':
+          topic = NotificationTopic.quality;
+          break;
+        case 'maintenance_due':
+          topic = NotificationTopic.maintenance;
+          break;
+        case 'mould_change':
+        case 'mould_change_overdue':
+          topic = NotificationTopic.setters;
+          break;
+        default:
+          topic = NotificationTopic.managers;
+      }
+      
+      PushNotificationService.sendToTopic(
+        topic,
+        title: alert['title'] as String,
+        body: alert['message'] as String,
+        data: {
+          'type': alert['type'] as String,
+          'id': alert['id'] as String,
+        },
+        priority: 'high',
+      );
+    }
   }
   
   /// Check for jobs finishing soon
