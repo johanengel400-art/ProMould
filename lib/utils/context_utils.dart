@@ -33,7 +33,7 @@ class SafeContext {
   }
 
   /// Safely show dialog if context is still mounted
-  static Future<T?>? showDialog<T>(
+  static Future<T?>? showDialogSafe<T>(
     BuildContext context,
     Widget Function(BuildContext) builder,
   ) {

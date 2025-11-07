@@ -74,7 +74,6 @@ class CacheService {
 
   /// Get cache statistics
   static Map<String, dynamic> getStats() {
-    final now = DateTime.now();
     final expired = _cache.values.where((c) => c.isExpired).length;
     final active = _cache.length - expired;
 
