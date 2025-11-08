@@ -39,6 +39,15 @@ android {
     }
 }
 
+dependencies {
+    // Import the Firebase BoM
+    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
+    
+    // Firebase dependencies
+    implementation("com.google.firebase:firebase-messaging")
+    implementation("com.google.firebase:firebase-analytics")
+}
+
 flutter {
     source = "../.."
 }
