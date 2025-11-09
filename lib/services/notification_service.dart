@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'live_progress_service.dart';
 import 'scrap_rate_service.dart';
 import 'log_service.dart';
+import 'push_notification_service.dart';
 
 class NotificationService {
   static final List<Map<String, dynamic>> _notifications = [];
@@ -49,8 +50,6 @@ class NotificationService {
   
   /// Send push notifications for high priority alerts
   static void _sendPushNotifications() {
-    // TODO: Re-enable after fixing build issues
-    /*
     final highPriorityAlerts = _notifications.where((n) => n['priority'] == 'high').toList();
     
     for (final alert in highPriorityAlerts) {
@@ -87,7 +86,6 @@ class NotificationService {
         priority: 'high',
       );
     }
-    */
   }
   
   /// Check for jobs finishing soon

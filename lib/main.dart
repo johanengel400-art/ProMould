@@ -6,6 +6,7 @@ import 'services/sync_service.dart';
 import 'services/background_sync.dart';
 import 'services/live_progress_service.dart';
 import 'services/notification_service.dart';
+import 'services/push_notification_service.dart';
 import 'services/log_service.dart';
 import 'services/error_handler.dart';
 import 'utils/memory_manager.dart';
@@ -66,10 +67,9 @@ void main() async {
     NotificationService.start();
     LogService.info('Notification service started successfully');
 
-    // TODO: Re-enable after fixing build issues
-    // LogService.info('Initializing push notifications...');
-    // await PushNotificationService.initialize();
-    // LogService.info('Push notifications initialized successfully');
+    LogService.info('Initializing push notifications...');
+    await PushNotificationService.initialize();
+    LogService.info('Push notifications initialized successfully');
 
     LogService.info('Initializing memory manager...');
     MemoryManager.initialize();
