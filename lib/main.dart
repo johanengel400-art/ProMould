@@ -79,9 +79,10 @@ void main() async {
     NotificationService.start();
     LogService.info('Notification service started successfully');
 
-    LogService.info('Initializing push notifications...');
-    await PushNotificationService.initialize();
-    LogService.info('Push notifications initialized successfully');
+    // TODO: Re-enable after fixing build issues
+    // LogService.info('Initializing push notifications...');
+    // await PushNotificationService.initialize();
+    // LogService.info('Push notifications initialized successfully');
 
     LogService.info('Initializing memory manager...');
     MemoryManager.initialize();
