@@ -31,7 +31,6 @@ dependencies:
   cloud_firestore: ^5.4.4
   firebase_storage: ^12.3.3
   firebase_messaging: ^15.1.4
-  flutter_local_notifications: ^16.3.3
 
   # Media / background / charts
   image_picker: ^1.1.2
