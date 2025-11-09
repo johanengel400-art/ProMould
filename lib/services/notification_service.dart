@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'live_progress_service.dart';
 import 'scrap_rate_service.dart';
 import 'log_service.dart';
-import 'push_notification_service.dart';
 
 class NotificationService {
   static final List<Map<String, dynamic>> _notifications = [];
