@@ -283,20 +283,20 @@ class _FinishedJobsScreenState extends State<FinishedJobsScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.inbox_outlined,
                               size: 64,
                               color: Colors.white24,
                             ),
                             const SizedBox(height: 16),
-                            Text(
+                            const Text(
                               'No finished jobs found',
                               style: TextStyle(color: Colors.white54, fontSize: 16),
                             ),
                             const SizedBox(height: 8),
                             Text(
                               'for ${DateFormat('MMM d, yyyy').format(_selectedDate)}',
-                              style: TextStyle(color: Colors.white38, fontSize: 14),
+                              style: const TextStyle(color: Colors.white38, fontSize: 14),
                             ),
                           ],
                         ),
@@ -406,9 +406,9 @@ class _FinishedJobsScreenState extends State<FinishedJobsScreen> {
                       borderRadius: BorderRadius.circular(4),
                       border: Border.all(color: const Color(0xFFFF6B6B).withOpacity(0.5)),
                     ),
-                    child: Text(
+                    child: const Text(
                       'OVERRUN',
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Color(0xFFFF6B6B),
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
@@ -517,8 +517,8 @@ class _FinishedJobsScreenState extends State<FinishedJobsScreen> {
       return shots > target;
     }).length;
     
-    final totalShots = _jobs.fold<int>(0, (sum, j) => sum + (j['shotsCompleted'] as int? ?? 0));
-    final totalTarget = _jobs.fold<int>(0, (sum, j) => sum + (j['targetShots'] as int? ?? 0));
+    final totalShots = _jobs.fold<int>(0, (total, j) => total + (j['shotsCompleted'] as int? ?? 0));
+    final totalTarget = _jobs.fold<int>(0, (total, j) => total + (j['targetShots'] as int? ?? 0));
     final totalOverrun = totalShots > totalTarget ? totalShots - totalTarget : 0;
     
     return Row(

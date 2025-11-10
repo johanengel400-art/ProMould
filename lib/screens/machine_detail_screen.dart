@@ -3,7 +3,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import '../services/sync_service.dart';
 import '../utils/job_status.dart';
-import '../widgets/overrun_indicator.dart';
 
 class MachineDetailScreen extends StatefulWidget {
   final Map machine;

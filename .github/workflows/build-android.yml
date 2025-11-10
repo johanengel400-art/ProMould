@@ -40,8 +40,23 @@ jobs:
     - name: Run build_runner
       run: flutter pub run build_runner build --delete-conflicting-outputs
       
-    - name: Analyze code
-      run: flutter analyze --no-fatal-infos --no-fatal-warnings
+    - name: Check code formatting
+      run: |
+        echo "Checking code formatting..."
+        flutter format --set-exit-if-changed lib/ test/ || {
+          echo "❌ Code formatting issues found"
+          echo "Run: flutter format lib/ test/"
+          exit 1
+        }
+      
+    - name: Analyze code (strict)
+      run: |
+        echo "Running strict code analysis..."
+        flutter analyze --fatal-infos --fatal-warnings || {
+          echo "❌ Code analysis failed"
+          echo "Fix all errors, warnings, and infos before pushing"
+          exit 1
+        }
       
     - name: Build APK
       run: flutter build apk --release --verbose

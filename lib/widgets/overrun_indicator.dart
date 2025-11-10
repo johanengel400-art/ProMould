@@ -101,7 +101,7 @@ class _OverrunPulseIndicatorState extends State<OverrunPulseIndicator>
 
   @override
   Widget build(BuildContext context) {
-    final status = job['status'] as String?;
+    final status = widget.job['status'] as String?;
     if (status != JobStatus.overrunning) return const SizedBox.shrink();
     
     return AnimatedBuilder(

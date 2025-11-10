@@ -10,7 +10,6 @@ import '../services/sync_service.dart';
 import '../services/live_progress_service.dart';
 import '../services/scrap_rate_service.dart';
 import '../utils/job_status.dart';
-import '../widgets/overrun_indicator.dart';
 
 class PlanningScreen extends StatefulWidget {
   final int level;

@@ -3,7 +3,6 @@
 
 import 'dart:async';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'log_service.dart';
 import '../utils/job_status.dart';
 
@@ -59,7 +58,7 @@ class OverrunNotificationService {
         
         // Determine notification level and interval
         String? level;
-        Duration interval;
+        Duration? interval;
         
         if (overrunDuration >= _criticalThresholdMinutes) {
           level = 'CRITICAL';
@@ -72,7 +71,7 @@ class OverrunNotificationService {
           interval = const Duration(minutes: 20); // Notify every 20 minutes
         }
         
-        if (level != null) {
+        if (level != null && interval != null) {
           // Check if enough time has passed since last notification
           if (lastNotification == null || 
               now.difference(lastNotification) >= interval) {
