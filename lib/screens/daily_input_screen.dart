@@ -59,9 +59,14 @@ class _DailyInputScreenState extends State<DailyInputScreen>{
       
       // Check if target shots reached and change status to Overrunning
       final targetShots = (updated['targetShots'] ?? 0) as int;
-      if (newTotal >= targetShots && updated['status'] == 'Running') {
+      final currentStatus = updated['status'] as String?;
+      
+      print('DEBUG: newTotal=$newTotal, targetShots=$targetShots, currentStatus=$currentStatus');
+      
+      if (newTotal >= targetShots && currentStatus == 'Running') {
         updated['status'] = 'Overrunning';
         updated['overrunStartTime'] = DateTime.now().toIso8601String();
+        print('DEBUG: Changed status to Overrunning!');
       }
       
       // Save updated job

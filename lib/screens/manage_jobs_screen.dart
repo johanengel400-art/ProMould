@@ -371,6 +371,12 @@ class _ManageJobsScreenState extends State<ManageJobsScreen>{
                     ? ((j['shotsCompleted'] ?? 0) / (j['targetShots'] ?? 1) * 100).round()
                     : 0;
                   final status = j['status'] ?? 'Queued';
+                  
+                  // Debug: Print job status
+                  if (j['shotsCompleted'] != null && j['targetShots'] != null) {
+                    print('DEBUG Job ${j['productName']}: status=$status, shots=${j['shotsCompleted']}/${j['targetShots']}');
+                  }
+                  
                   final statusColor = status == 'Running' ? const Color(0xFF06D6A0) :
                                      status == 'Overrunning' ? const Color(0xFFFF6B6B) :
                                      status == 'Paused' ? const Color(0xFFFFD166) :
