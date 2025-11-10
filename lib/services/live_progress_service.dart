@@ -37,7 +37,7 @@ class LiveProgressService {
       
       final runningJobs = jobsBox.values
           .cast<Map>()
-          .where((j) => j['status'] == 'Running')
+          .where((j) => j['status'] == 'Running' || j['status'] == 'Overrunning')
           .toList();
       
       for (final job in runningJobs) {
@@ -81,28 +81,28 @@ class LiveProgressService {
         final estimatedNewShots = ((elapsedSeconds / cycleTime) * cavities).floor();
         final estimatedTotalShots = baselineShots + estimatedNewShots;
         
-        // Don't exceed target
+        // Allow shots to exceed target (for overrunning)
         final targetShots = job['targetShots'] as int? ?? 0;
-        final currentShots = estimatedTotalShots.clamp(baselineShots, targetShots);
+        final currentShots = estimatedTotalShots;
         
         // Only update if shots changed
         if (currentShots != (job['shotsCompleted'] as int? ?? 0)) {
           final updatedJob = Map<String, dynamic>.from(job);
           updatedJob['shotsCompleted'] = currentShots;
           
-          // Check if job is complete
-          if (currentShots >= targetShots && targetShots > 0) {
-            updatedJob['status'] = 'Finished';
-            updatedJob['endTime'] = now.toIso8601String();
-            
-            // Handle machine status and next job
-            await _handleJobCompletion(jobId, updatedJob);
-          } else {
-            await jobsBox.put(jobId, updatedJob);
-            // Sync to Firebase less frequently to avoid excessive writes
-            if (estimatedNewShots % 10 == 0) {
-              await SyncService.pushChange('jobsBox', jobId, updatedJob);
-            }
+          // Check if target reached - change to Overrunning instead of Finished
+          if (currentShots >= targetShots && targetShots > 0 && updatedJob['status'] == 'Running') {
+            updatedJob['status'] = 'Overrunning';
+            updatedJob['overrunStartTime'] = now.toIso8601String();
+            LogService.info('Job $jobId reached target, status changed to Overrunning');
+          }
+          
+          // Save updated job (never auto-finish)
+          await jobsBox.put(jobId, updatedJob);
+          
+          // Sync to Firebase less frequently to avoid excessive writes
+          if (estimatedNewShots % 10 == 0) {
+            await SyncService.pushChange('jobsBox', jobId, updatedJob);
           }
         }
       }
