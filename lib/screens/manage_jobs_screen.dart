@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 import '../services/sync_service.dart';
+import '../utils/job_status.dart';
+import '../widgets/overrun_indicator.dart';
 
 class ManageJobsScreen extends StatefulWidget{
   final int level; const ManageJobsScreen({super.key, required this.level});

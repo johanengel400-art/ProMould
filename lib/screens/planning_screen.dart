@@ -9,6 +9,8 @@ import 'package:uuid/uuid.dart';
 import '../services/sync_service.dart';
 import '../services/live_progress_service.dart';
 import '../services/scrap_rate_service.dart';
+import '../utils/job_status.dart';
+import '../widgets/overrun_indicator.dart';
 
 class PlanningScreen extends StatefulWidget {
   final int level;
@@ -55,11 +57,11 @@ class _PlanningScreenState extends State<PlanningScreen> {
 
     // Calculate statistics
     final totalJobs = jobsBox.values.cast<Map>().where((j) => 
-        j['status'] == 'Running' || j['status'] == 'Queued').length;
+        JobStatus.isActivelyRunning(j['status'] as String?) || j['status'] == JobStatus.queued).length;
     final runningJobs = jobsBox.values.cast<Map>().where((j) => 
-        j['status'] == 'Running').length;
+        JobStatus.isActivelyRunning(j['status'] as String?)).length;
     final queuedJobs = jobsBox.values.cast<Map>().where((j) => 
-        j['status'] == 'Queued').length;
+        j['status'] == JobStatus.queued).length;
     final activeMachines = machines.where((m) => 
         m['status'] == 'Running').length;
 
@@ -175,7 +177,7 @@ class _PlanningScreenState extends State<PlanningScreen> {
                         final m = machines[i];
                         final jobs = jobsBox.values.cast<Map>().where((j) =>
                             j['machineId'] == m['id'] &&
-                            (j['status'] == 'Running' || j['status'] == 'Queued')).toList();
+                            (JobStatus.isActivelyRunning(j['status'] as String?) || j['status'] == JobStatus.queued)).toList();
                         jobs.sort((a, b) =>
                             (a['startTime'] ?? '').toString().compareTo((b['startTime'] ?? '').toString()));
                         return _machineCard(m, jobs, mouldsBox);
@@ -480,7 +482,7 @@ class _PlanningScreenState extends State<PlanningScreen> {
     final cycle = (mould?['cycleTime'] as num?)?.toDouble() ?? 30.0;
     
     // Use live estimated shots for accurate remaining calculation
-    final currentShots = job['status'] == 'Running'
+    final currentShots = JobStatus.isActivelyRunning(job['status'] as String?)
         ? LiveProgressService.getEstimatedShots(job, mouldsBox)
         : (job['shotsCompleted'] as num? ?? 0);
     final remaining = (job['targetShots'] as num? ?? 0) - currentShots;

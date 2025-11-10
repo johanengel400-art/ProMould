@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import '../services/sync_service.dart';
+import '../utils/job_status.dart';
+import '../widgets/overrun_indicator.dart';
 
 class MachineDetailScreen extends StatefulWidget {
   final Map machine;
@@ -96,16 +98,18 @@ class _MachineDetailScreenState extends State<MachineDetailScreen> {
         .cast<Map>()
         .where((j) =>
             j['machineId'] == machineId &&
-            (j['status'] == 'Running' || j['status'] == 'Queued'))
+            (JobStatus.isActivelyRunning(j['status'] as String?) || j['status'] == JobStatus.queued))
         .toList();
 
     jobs.sort((a, b) {
-      if (a['status'] == 'Running' && b['status'] != 'Running') return -1;
-      if (a['status'] != 'Running' && b['status'] == 'Running') return 1;
+      final aRunning = JobStatus.isActivelyRunning(a['status'] as String?);
+      final bRunning = JobStatus.isActivelyRunning(b['status'] as String?);
+      if (aRunning && !bRunning) return -1;
+      if (!aRunning && bRunning) return 1;
       return 0;
     });
 
-    final runningJob = jobs.isNotEmpty && jobs.first['status'] == 'Running' ? jobs.first : null;
+    final runningJob = jobs.isNotEmpty && JobStatus.isActivelyRunning(jobs.first['status'] as String?) ? jobs.first : null;
     final queuedJobs = runningJob != null ? jobs.skip(1).toList() : jobs;
 
     DateTime cumulativeTime = DateTime.now();

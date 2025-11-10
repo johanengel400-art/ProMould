@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'sync_service.dart';
 import 'log_service.dart';
+import '../utils/job_status.dart';
 
 class LiveProgressService {
   static Timer? _timer;
@@ -37,7 +38,7 @@ class LiveProgressService {
       
       final runningJobs = jobsBox.values
           .cast<Map>()
-          .where((j) => j['status'] == 'Running' || j['status'] == 'Overrunning')
+          .where((j) => JobStatus.shouldTrackProgress(j['status'] as String?))
           .toList();
       
       for (final job in runningJobs) {
@@ -91,8 +92,8 @@ class LiveProgressService {
           updatedJob['shotsCompleted'] = currentShots;
           
           // Check if target reached - change to Overrunning instead of Finished
-          if (currentShots >= targetShots && targetShots > 0 && updatedJob['status'] == 'Running') {
-            updatedJob['status'] = 'Overrunning';
+          if (currentShots >= targetShots && targetShots > 0 && updatedJob['status'] == JobStatus.running) {
+            updatedJob['status'] = JobStatus.overrunning;
             updatedJob['overrunStartTime'] = now.toIso8601String();
             LogService.info('Job $jobId reached target, status changed to Overrunning');
           }

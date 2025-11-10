@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'machine_detail_screen.dart';
 import '../services/live_progress_service.dart';
 import '../services/scrap_rate_service.dart';
+import '../utils/job_status.dart';
 
 class DashboardScreenV2 extends StatefulWidget {
   final String username;
@@ -93,8 +94,9 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
     final breakdownMachines = machines.where((m) => m['status'] == 'Breakdown').length;
     
     final allJobs = jobsBox.values.cast<Map>().toList();
-    final runningJobs = allJobs.where((j) => j['status'] == 'Running').length;
-    final queuedJobs = allJobs.where((j) => j['status'] == 'Queued').length;
+    final runningJobs = allJobs.where((j) => JobStatus.isActivelyRunning(j['status'] as String?)).length;
+    final overrunningJobs = allJobs.where((j) => j['status'] == JobStatus.overrunning).length;
+    final queuedJobs = allJobs.where((j) => j['status'] == JobStatus.queued).length;
     
     final openIssues = issuesBox.values.cast<Map>().where((i) => i['status'] != 'Resolved').length;
     
@@ -162,8 +164,8 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
                   const SizedBox(height: 16),
 
                   // Alerts Section
-                  if (breakdownMachines > 0 || openIssues > 0 || (todayScrap['scrapRate'] as double) > 5.0)
-                    _buildAlertsPanel(breakdownMachines, openIssues, todayScrap),
+                  if (breakdownMachines > 0 || openIssues > 0 || overrunningJobs > 0 || (todayScrap['scrapRate'] as double) > 5.0)
+                    _buildAlertsPanel(breakdownMachines, openIssues, overrunningJobs, todayScrap),
 
                   const SizedBox(height: 16),
 
@@ -182,11 +184,11 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: _buildStatCard(
-                          'Jobs',
+                          'Active Jobs',
                           runningJobs.toString(),
                           Icons.work_outline,
-                          const Color(0xFF4CC9F0),
-                          '$queuedJobs queued',
+                          overrunningJobs > 0 ? const Color(0xFFFF6B6B) : const Color(0xFF4CC9F0),
+                          overrunningJobs > 0 ? '$overrunningJobs overrunning' : '$queuedJobs queued',
                         ),
                       ),
                     ],
@@ -302,7 +304,7 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
     );
   }
 
-  Widget _buildAlertsPanel(int breakdowns, int issues, Map<String, dynamic> scrapData) {
+  Widget _buildAlertsPanel(int breakdowns, int issues, int overrunning, Map<String, dynamic> scrapData) {
     final alerts = <Map<String, dynamic>>[];
     
     if (breakdowns > 0) {
@@ -311,6 +313,15 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
         'color': const Color(0xFFFF6B6B),
         'title': '$breakdowns Machine${breakdowns > 1 ? 's' : ''} Down',
         'subtitle': 'Requires immediate attention',
+      });
+    }
+    
+    if (overrunning > 0) {
+      alerts.add({
+        'icon': Icons.warning,
+        'color': const Color(0xFFFF6B6B),
+        'title': '$overrunning Job${overrunning > 1 ? 's' : ''} Overrunning',
+        'subtitle': 'Exceeded target shots',
       });
     }
     
@@ -458,7 +469,7 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
   Widget _buildMachineCard(Map m) {
     final mId = (m['id'] ?? '') as String;
     final job = jobsBox.values.cast<Map?>().firstWhere(
-      (j) => j != null && j['machineId'] == mId && j['status'] == 'Running',
+      (j) => j != null && j['machineId'] == mId && JobStatus.isActivelyRunning(j['status'] as String?),
       orElse: () => null,
     );
     
