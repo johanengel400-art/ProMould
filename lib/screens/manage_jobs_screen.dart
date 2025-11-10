@@ -89,12 +89,60 @@ class _ManageJobsScreenState extends State<ManageJobsScreen>{
     final jobId = j['id'] as String;
     final machineId = j['machineId'] as String;
     
-    // Mark job as finished
+    // Show dialog to enter final shot count
+    final finalShotsCtrl = TextEditingController(text: '${j['shotsCompleted'] ?? 0}');
+    
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Finish Job'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Product: ${j['productName'] ?? 'Unknown'}'),
+            Text('Target: ${j['targetShots'] ?? 0} shots'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: finalShotsCtrl,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Final Shot Count',
+                helperText: 'Enter the actual final shot count',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Finish Job'),
+          ),
+        ],
+      ),
+    );
+    
+    if (confirmed != true) return;
+    
+    final finalShots = int.tryParse(finalShotsCtrl.text.trim()) ?? (j['shotsCompleted'] ?? 0);
+    
+    // Mark job as finished and move to Finished Jobs collection
     final updated = Map<String,dynamic>.from(j);
     updated['status'] = 'Finished';
     updated['endTime'] = DateTime.now().toIso8601String();
-    await box.put(jobId, updated);
-    await SyncService.pushChange('jobsBox', jobId, updated);
+    updated['finishedDate'] = DateTime.now().toIso8601String();
+    updated['finalShotCount'] = finalShots;
+    updated['shotsCompleted'] = finalShots;
+    
+    // Remove from active jobs
+    await box.delete(jobId);
+    
+    // Add to Finished Jobs in Firestore (subfolder structure)
+    await SyncService.pushFinishedJob(jobId, updated);
     
     // Show dialog to select next job
     if (machineId.isNotEmpty && context.mounted) {
@@ -324,6 +372,7 @@ class _ManageJobsScreenState extends State<ManageJobsScreen>{
                     : 0;
                   final status = j['status'] ?? 'Queued';
                   final statusColor = status == 'Running' ? const Color(0xFF06D6A0) :
+                                     status == 'Overrunning' ? const Color(0xFFFF6B6B) :
                                      status == 'Paused' ? const Color(0xFFFFD166) :
                                      status == 'Finished' ? const Color(0xFF4CC9F0) :
                                      Colors.white38;
@@ -408,10 +457,10 @@ class _ManageJobsScreenState extends State<ManageJobsScreen>{
                                   tooltip: 'Resume Job',
                                   onPressed: () => _resumeJob(j),
                                 ),
-                              if (j['status'] == 'Running' || j['status'] == 'Paused')
+                              if (j['status'] == 'Running' || j['status'] == 'Paused' || j['status'] == 'Overrunning')
                                 IconButton(
                                   icon: const Icon(Icons.stop, color: Color(0xFFEF476F)),
-                                  tooltip: 'End Job',
+                                  tooltip: 'Finish Job',
                                   onPressed: () => _endJob(j),
                                 ),
                               IconButton(

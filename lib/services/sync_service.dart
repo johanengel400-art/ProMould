@@ -100,4 +100,36 @@ class SyncService {
       LogService.sync('Delete error ($boxName/$id)', error: e);
     }
   }
+
+  /// Push a finished job to Firestore 'finishedJobs' collection organized by date
+  static Future<void> pushFinishedJob(String jobId, Map<String, dynamic> jobData) async {
+    try {
+      // Get the finished date
+      final finishedDate = jobData['finishedDate'] as String?;
+      if (finishedDate == null) {
+        LogService.error('Cannot push finished job without finishedDate', jobData);
+        return;
+      }
+
+      // Parse date and create folder structure: YYYY/MM/DD
+      final date = DateTime.parse(finishedDate);
+      final year = date.year.toString();
+      final month = date.month.toString().padLeft(2, '0');
+      final day = date.day.toString().padLeft(2, '0');
+
+      // Store in: finishedJobs/{year}/{month}/{day}/{jobId}
+      await _fire
+          .collection('finishedJobs')
+          .doc(year)
+          .collection(month)
+          .doc(day)
+          .collection('jobs')
+          .doc(jobId)
+          .set(jobData);
+
+      LogService.sync('Finished job archived: $year/$month/$day/$jobId');
+    } catch (e) {
+      LogService.sync('Error pushing finished job', error: e);
+    }
+  }
 }

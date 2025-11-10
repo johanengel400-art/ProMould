@@ -47,6 +47,7 @@ class _DailyInputScreenState extends State<DailyInputScreen>{
 
     if(job!=null){
       final jobId = job!['id'] as String;
+      final jobsBox = Hive.box('jobsBox');
       final updated = Map<String,dynamic>.from(job!);
       
       // Update total based on mode
@@ -55,6 +56,17 @@ class _DailyInputScreenState extends State<DailyInputScreen>{
         : shots; // Set mode: use the value directly
       
       updated['shotsCompleted'] = newTotal;
+      
+      // Check if target shots reached and change status to Overrunning
+      final targetShots = (updated['targetShots'] ?? 0) as int;
+      if (newTotal >= targetShots && updated['status'] == 'Running') {
+        updated['status'] = 'Overrunning';
+        updated['overrunStartTime'] = DateTime.now().toIso8601String();
+      }
+      
+      // Save updated job
+      await jobsBox.put(jobId, updated);
+      await SyncService.pushChange('jobsBox', jobId, updated);
       
       // Record manual input to reset the live progress baseline
       await LiveProgressService.recordManualInput(jobId, newTotal);
