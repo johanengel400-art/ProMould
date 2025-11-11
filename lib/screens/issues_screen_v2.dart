@@ -1046,8 +1046,12 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
                 updated['resolutionAction'] = actionCtrl.text.trim();
                 updated['resolutionNextSteps'] = nextStepsCtrl.text.trim();
 
-                await issuesBox.put(issueId, updated);
-                await SyncService.pushChange('issuesBox', issueId, updated);
+                // Archive to resolved issues collection
+                await SyncService.archiveResolvedIssue(issueId, updated);
+
+                // Remove from active issues
+                await issuesBox.delete(issueId);
+                await SyncService.deleteIssue(issueId);
 
                 if (context.mounted) {
                   Navigator.pop(dialogContext);

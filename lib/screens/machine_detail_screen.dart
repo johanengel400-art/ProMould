@@ -72,12 +72,15 @@ class _MachineDetailScreenState extends State<MachineDetailScreen> {
     if (mould == null) return 'No mould';
 
     final cycleTime = (mould['cycleTime'] as num?)?.toDouble() ?? 30.0;
+    final cavities = (mould['cavities'] as int?) ?? 1;
     final remaining = (job['targetShots'] as num? ?? 0) -
         (job['shotsCompleted'] as num? ?? 0);
 
     if (remaining <= 0) return 'Complete';
 
-    final minutes = (remaining * cycleTime / 60).toDouble();
+    // Calculate cycles needed (remaining shots / cavities per cycle)
+    final cyclesNeeded = (remaining / cavities).ceil();
+    final minutes = (cyclesNeeded * cycleTime / 60).toDouble();
     final eta = startTime.add(Duration(minutes: minutes.round()));
     final etaDate = DateFormat('MMM d').format(eta);
     final etaTime = DateFormat('HH:mm').format(eta);
@@ -124,9 +127,11 @@ class _MachineDetailScreenState extends State<MachineDetailScreen> {
           );
       if (mould != null) {
         final cycle = (mould['cycleTime'] as num?)?.toDouble() ?? 30.0;
+        final cavities = (mould['cavities'] as int?) ?? 1;
         final remaining = (runningJob['targetShots'] as num? ?? 0) -
             (runningJob['shotsCompleted'] as num? ?? 0);
-        final minutes = (remaining * cycle / 60).toDouble();
+        final cyclesNeeded = (remaining / cavities).ceil();
+        final minutes = (cyclesNeeded * cycle / 60).toDouble();
         cumulativeTime = cumulativeTime.add(Duration(minutes: minutes.round()));
       }
     }
@@ -381,9 +386,11 @@ class _MachineDetailScreenState extends State<MachineDetailScreen> {
                       if (mould != null) {
                         final cycle =
                             (mould['cycleTime'] as num?)?.toDouble() ?? 30.0;
+                        final cavities = (mould['cavities'] as int?) ?? 1;
                         final remaining = (j['targetShots'] as num? ?? 0) -
                             (j['shotsCompleted'] as num? ?? 0);
-                        final minutes = (remaining * cycle / 60).toDouble();
+                        final cyclesNeeded = (remaining / cavities).ceil();
+                        final minutes = (cyclesNeeded * cycle / 60).toDouble();
                         cumulativeTime = cumulativeTime
                             .add(Duration(minutes: minutes.round()));
                       }

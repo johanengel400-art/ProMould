@@ -106,6 +106,58 @@ class SyncService {
     }
   }
 
+  /// Delete a job from Firebase (used when finishing a job)
+  static Future<void> deleteJob(String jobId) async {
+    try {
+      await _fire.collection('jobs').doc(jobId).delete();
+      LogService.sync('Job deleted from Firebase: $jobId');
+    } catch (e) {
+      LogService.sync('Error deleting job from Firebase', error: e);
+    }
+  }
+
+  /// Archive a resolved issue to Firebase organized by date
+  static Future<void> archiveResolvedIssue(
+      String issueId, Map<String, dynamic> issueData) async {
+    try {
+      final resolvedAt = issueData['resolvedAt'] as String?;
+      if (resolvedAt == null) {
+        LogService.error('Cannot archive issue without resolvedAt', issueData);
+        return;
+      }
+
+      // Parse date and create folder structure: YYYY/MM/DD
+      final date = DateTime.parse(resolvedAt);
+      final year = date.year.toString();
+      final month = date.month.toString().padLeft(2, '0');
+      final day = date.day.toString().padLeft(2, '0');
+
+      // Store in: resolvedIssues/{year}/{month}/{day}/{issueId}
+      await _fire
+          .collection('resolvedIssues')
+          .doc(year)
+          .collection(month)
+          .doc(day)
+          .collection('issues')
+          .doc(issueId)
+          .set(issueData);
+
+      LogService.sync('Resolved issue archived: $year/$month/$day/$issueId');
+    } catch (e) {
+      LogService.sync('Error archiving resolved issue', error: e);
+    }
+  }
+
+  /// Delete an issue from Firebase (used when archiving)
+  static Future<void> deleteIssue(String issueId) async {
+    try {
+      await _fire.collection('issues').doc(issueId).delete();
+      LogService.sync('Issue deleted from Firebase: $issueId');
+    } catch (e) {
+      LogService.sync('Error deleting issue from Firebase', error: e);
+    }
+  }
+
   /// Push a finished job to Firestore 'finishedJobs' collection organized by date
   static Future<void> pushFinishedJob(
       String jobId, Map<String, dynamic> jobData) async {

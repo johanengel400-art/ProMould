@@ -542,6 +542,7 @@ class _PlanningScreenState extends State<PlanningScreen> {
           orElse: () => null,
         );
     final cycle = (mould?['cycleTime'] as num?)?.toDouble() ?? 30.0;
+    final cavities = (mould?['cavities'] as int?) ?? 1;
 
     // Use live estimated shots for accurate remaining calculation
     final currentShots = JobStatus.isActivelyRunning(job['status'] as String?)
@@ -549,7 +550,9 @@ class _PlanningScreenState extends State<PlanningScreen> {
         : (job['shotsCompleted'] as num? ?? 0);
     final remaining = (job['targetShots'] as num? ?? 0) - currentShots;
 
-    final minutes = (remaining * cycle / 60).toDouble();
+    // Calculate cycles needed (remaining shots / cavities per cycle)
+    final cyclesNeeded = (remaining / cavities).ceil();
+    final minutes = (cyclesNeeded * cycle / 60).toDouble();
     final eta = startTime.add(Duration(minutes: minutes.round()));
     final etaDate = DateFormat('MMM d').format(eta);
     final etaTime = DateFormat('HH:mm').format(eta);

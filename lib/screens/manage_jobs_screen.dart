@@ -142,11 +142,12 @@ class _ManageJobsScreenState extends State<ManageJobsScreen> {
     updated['finalShotCount'] = finalShots;
     updated['shotsCompleted'] = finalShots;
 
-    // Remove from active jobs
-    await box.delete(jobId);
-
     // Add to Finished Jobs in Firestore (subfolder structure)
     await SyncService.pushFinishedJob(jobId, updated);
+
+    // Remove from active jobs (both local and Firebase)
+    await box.delete(jobId);
+    await SyncService.deleteJob(jobId);
 
     // Show dialog to select next job
     if (machineId.isNotEmpty && context.mounted) {

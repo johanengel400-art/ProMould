@@ -527,7 +527,9 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
     final scrapRate = scrapData['scrapRate'] as double;
     final scrapColor = scrapData['color'] as Color;
 
-    final statusColor = _getStatusColor(m['status'] as String? ?? 'Idle');
+    // Determine actual machine status based on job
+    final actualStatus = job != null ? 'Running' : (m['status'] as String? ?? 'Idle');
+    final statusColor = _getStatusColor(actualStatus);
 
     return GestureDetector(
       onTap: widget.level >= 3
@@ -567,7 +569,7 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
                   border: Border.all(color: statusColor.withOpacity(0.5)),
                 ),
                 child: Text(
-                  '${m['status'] ?? 'Idle'}',
+                  actualStatus,
                   style: TextStyle(
                     color: statusColor,
                     fontSize: 10,
@@ -667,7 +669,7 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          isOverrun ? '100% +$overrun' : '$progress100%',
+                          '$progress100%',
                           style: TextStyle(
                             color: isOverrun
                                 ? const Color(0xFFFFD166)
@@ -676,15 +678,34 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        Text(
-                          isOverrun
-                              ? '$shots/$target (+$overrun)'
-                              : '$shots/$target',
-                          style: TextStyle(
-                            color: Colors.white60,
-                            fontSize: 11,
+                        if (isOverrun)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFF6B6B).withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                  color: const Color(0xFFFF6B6B)
+                                      .withOpacity(0.5)),
+                            ),
+                            child: Text(
+                              '+$overrun',
+                              style: const TextStyle(
+                                color: Color(0xFFFF6B6B),
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
-                        ),
+                        if (!isOverrun)
+                          Text(
+                            '$shots/$target',
+                            style: const TextStyle(
+                              color: Colors.white60,
+                              fontSize: 11,
+                            ),
+                          ),
                       ],
                     ),
                   ] else ...[
@@ -700,32 +721,33 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
 
                   const SizedBox(height: 12),
 
-                  // Scrap Rate
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: scrapColor.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: scrapColor.withOpacity(0.3)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.warning_outlined,
-                            size: 12, color: scrapColor),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Scrap: ${scrapRate.toStringAsFixed(1)}%',
-                          style: TextStyle(
-                            color: scrapColor,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
+                  // Scrap Rate (only show if job is running)
+                  if (job != null && scrapRate > 0)
+                    Container(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: scrapColor.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: scrapColor.withOpacity(0.3)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.warning_outlined,
+                              size: 12, color: scrapColor),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Scrap: ${scrapRate.toStringAsFixed(1)}%',
+                            style: TextStyle(
+                              color: scrapColor,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),
