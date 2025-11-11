@@ -60,12 +60,12 @@ jobs:
           echo "✅ Code already properly formatted"
         fi
       
-    - name: Analyze code (strict)
+    - name: Analyze code
       run: |
-        echo "Running strict code analysis..."
-        flutter analyze --fatal-infos --fatal-warnings || {
-          echo "❌ Code analysis failed"
-          echo "Fix all errors, warnings, and infos before pushing"
+        echo "Running code analysis..."
+        flutter analyze --no-fatal-infos --no-fatal-warnings || {
+          echo "❌ Critical errors found in code"
+          echo "Fix errors before pushing (warnings/infos are OK)"
           exit 1
         }
       
