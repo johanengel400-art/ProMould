@@ -18,7 +18,6 @@ import 'planning_screen.dart';
 import 'downtime_screen.dart';
 import 'oee_screen.dart';
 import 'settings_screen.dart';
-import 'paperwork_screen.dart';
 import 'mould_change_scheduler_screen.dart';
 import 'job_queue_manager_screen.dart';
 import 'my_tasks_screen.dart';
