@@ -135,7 +135,7 @@ git push origin main
 
 ```bash
 # Format code
-flutter format lib/ test/
+dart format lib/ test/
 
 # Analyze code
 flutter analyze --fatal-infos --fatal-warnings

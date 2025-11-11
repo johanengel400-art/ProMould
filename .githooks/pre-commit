@@ -12,20 +12,20 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Check if Flutter is available
-if ! command -v flutter &> /dev/null; then
-    echo -e "${YELLOW}⚠️  Flutter not found. Skipping checks.${NC}"
-    echo "   Install Flutter or run checks manually with: flutter analyze"
+# Check if Dart is available
+if ! command -v dart &> /dev/null; then
+    echo -e "${YELLOW}⚠️  Dart not found. Skipping checks.${NC}"
+    echo "   Install Flutter/Dart or run checks manually"
     exit 0
 fi
 
 # 1. Format check
 echo "📝 Checking code formatting..."
-if ! flutter format --set-exit-if-changed lib/ test/ 2>&1 | grep -q "Formatted"; then
+if dart format --output=none --set-exit-if-changed lib/ test/ > /dev/null 2>&1; then
     echo -e "${GREEN}✅ Code formatting OK${NC}"
 else
     echo -e "${RED}❌ Code formatting issues found${NC}"
-    echo "   Run: flutter format lib/ test/"
+    echo "   Run: dart format lib/ test/"
     exit 1
 fi
 

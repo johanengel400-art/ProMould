@@ -31,7 +31,7 @@ The pre-commit hook will automatically run, but you can also run manually:
 flutter analyze --fatal-infos --fatal-warnings
 
 # Or just format
-flutter format lib/ test/
+dart format lib/ test/
 ```
 
 ---
@@ -40,7 +40,7 @@ flutter format lib/ test/
 
 Before committing, ensure:
 
-- [ ] ✅ Code is formatted (`flutter format lib/ test/`)
+- [ ] ✅ Code is formatted (`dart format lib/ test/`)
 - [ ] ✅ No analyzer errors (`flutter analyze`)
 - [ ] ✅ No unused imports
 - [ ] ✅ All variables properly typed

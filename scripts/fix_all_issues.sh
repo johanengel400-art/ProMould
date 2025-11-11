@@ -8,7 +8,7 @@ echo ""
 
 # 1. Format all code
 echo "📝 Formatting code..."
-flutter format lib/ test/
+dart format lib/ test/
 echo "✅ Code formatted"
 echo ""
 

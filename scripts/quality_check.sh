@@ -18,8 +18,13 @@ echo ""
 
 FAILED=0
 
-# 1. Check Flutter installation
-echo -e "${BLUE}[1/7]${NC} Checking Flutter installation..."
+# 1. Check Dart/Flutter installation
+echo -e "${BLUE}[1/7]${NC} Checking Dart/Flutter installation..."
+if ! command -v dart &> /dev/null; then
+    echo -e "${RED}❌ Dart not found${NC}"
+    echo "   Please install Flutter: https://flutter.dev/docs/get-started/install"
+    exit 1
+fi
 if ! command -v flutter &> /dev/null; then
     echo -e "${RED}❌ Flutter not found${NC}"
     echo "   Please install Flutter: https://flutter.dev/docs/get-started/install"
@@ -40,12 +45,11 @@ echo ""
 
 # 3. Format check
 echo -e "${BLUE}[3/7]${NC} Checking code formatting..."
-UNFORMATTED=$(flutter format --set-exit-if-changed --dry-run lib/ test/ 2>&1 | grep -c "Formatted" || true)
-if [ "$UNFORMATTED" -eq 0 ]; then
+if dart format --output=none --set-exit-if-changed lib/ test/ > /dev/null 2>&1; then
     echo -e "${GREEN}✅ All files properly formatted${NC}"
 else
-    echo -e "${YELLOW}⚠️  $UNFORMATTED file(s) need formatting${NC}"
-    echo "   Run: flutter format lib/ test/"
+    echo -e "${YELLOW}⚠️  Some files need formatting${NC}"
+    echo "   Run: dart format lib/ test/"
     FAILED=1
 fi
 echo ""
