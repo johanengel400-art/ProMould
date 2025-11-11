@@ -30,12 +30,13 @@ class _DowntimeScreenState extends State<DowntimeScreen> {
   Future<void> _addOrEdit({Map<String, dynamic>? item}) async {
     final machinesBox = Hive.box('machinesBox');
     final machines = machinesBox.values.cast<Map>().toList();
-    
+
     final reasonCtrl = TextEditingController(text: item?['reason'] ?? '');
     final minCtrl = TextEditingController(
         text: item?['minutes'] != null ? '${item!['minutes']}' : '0');
     String category = item?['category'] ?? categories.first;
-    String? machineId = item?['machineId'] ?? (machines.isNotEmpty ? machines.first['id'] as String : null);
+    String? machineId = item?['machineId'] ??
+        (machines.isNotEmpty ? machines.first['id'] as String : null);
     String? photoUrl = item?['photoUrl'];
     DateTime date = DateTime.tryParse(item?['date'] ?? '') ?? DateTime.now();
 
@@ -54,7 +55,8 @@ class _DowntimeScreenState extends State<DowntimeScreen> {
                   items: categories
                       .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                       .toList(),
-                  onChanged: (v) => setDialogState(() => category = v ?? categories.first),
+                  onChanged: (v) =>
+                      setDialogState(() => category = v ?? categories.first),
                 ),
                 const SizedBox(height: 8),
                 if (machines.isNotEmpty)
@@ -63,7 +65,7 @@ class _DowntimeScreenState extends State<DowntimeScreen> {
                     decoration: const InputDecoration(labelText: 'Machine'),
                     items: machines
                         .map((m) => DropdownMenuItem(
-                            value: m['id'] as String, 
+                            value: m['id'] as String,
                             child: Text(m['name'] as String)))
                         .toList(),
                     onChanged: (v) => setDialogState(() => machineId = v),
@@ -71,7 +73,8 @@ class _DowntimeScreenState extends State<DowntimeScreen> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: reasonCtrl,
-                  decoration: const InputDecoration(labelText: 'Reason / Description'),
+                  decoration:
+                      const InputDecoration(labelText: 'Reason / Description'),
                 ),
                 const SizedBox(height: 8),
                 TextField(
@@ -108,13 +111,16 @@ class _DowntimeScreenState extends State<DowntimeScreen> {
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.photo_camera),
-                  title: Text(photoUrl != null ? 'Photo attached' : 'Add photo (optional)'),
-                  trailing: photoUrl != null 
-                    ? IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => setDialogState(() => photoUrl = null),
-                      )
-                    : null,
+                  title: Text(photoUrl != null
+                      ? 'Photo attached'
+                      : 'Add photo (optional)'),
+                  trailing: photoUrl != null
+                      ? IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () =>
+                              setDialogState(() => photoUrl = null),
+                        )
+                      : null,
                   onTap: () async {
                     final tempId = item?['id'] ?? uuid.v4();
                     final url = await PhotoService.uploadDowntimePhoto(tempId);
@@ -166,7 +172,8 @@ class _DowntimeScreenState extends State<DowntimeScreen> {
     final items = box.values.cast<Map>().toList().reversed.toList();
 
     // Calculate total downtime
-    final totalMinutes = items.fold<int>(0, (sum, item) => sum + (item['minutes'] as int? ?? 0));
+    final totalMinutes =
+        items.fold<int>(0, (sum, item) => sum + (item['minutes'] as int? ?? 0));
     final hours = totalMinutes ~/ 60;
     final minutes = totalMinutes % 60;
 
@@ -200,15 +207,19 @@ class _DowntimeScreenState extends State<DowntimeScreen> {
                   padding: const EdgeInsets.all(16),
                   child: Center(
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: const Color(0xFFEF476F).withOpacity(0.2),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: const Color(0xFFEF476F).withOpacity(0.5)),
+                        border: Border.all(
+                            color: const Color(0xFFEF476F).withOpacity(0.5)),
                       ),
                       child: Text(
                         'Total: ${hours}h ${minutes}m',
-                        style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFEF476F)),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFEF476F)),
                       ),
                     ),
                   ),
@@ -221,9 +232,11 @@ class _DowntimeScreenState extends State<DowntimeScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: const [
-                        Icon(Icons.access_time, size: 64, color: Colors.white24),
+                        Icon(Icons.access_time,
+                            size: 64, color: Colors.white24),
                         SizedBox(height: 16),
-                        Text('No downtime recorded', style: TextStyle(color: Colors.white54)),
+                        Text('No downtime recorded',
+                            style: TextStyle(color: Colors.white54)),
                       ],
                     ),
                   ),
@@ -234,13 +247,14 @@ class _DowntimeScreenState extends State<DowntimeScreen> {
                     delegate: SliverChildBuilderDelegate(
                       (_, i) {
                         final d = items[i];
-                        final categoryColor = _getCategoryColor(d['category'] ?? '');
+                        final categoryColor =
+                            _getCategoryColor(d['category'] ?? '');
                         final machineId = d['machineId'] as String?;
-                        final machine = machineId != null 
+                        final machine = machineId != null
                             ? machinesBox.get(machineId) as Map?
                             : null;
                         final machineName = machine?['name'] ?? 'No machine';
-                        
+
                         return Card(
                           margin: const EdgeInsets.only(bottom: 12),
                           color: const Color(0xFF0F1419),
@@ -263,7 +277,9 @@ class _DowntimeScreenState extends State<DowntimeScreen> {
                             ),
                             title: Text(
                               '$machineName • ${d['category']}',
-                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold),
                             ),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -276,18 +292,23 @@ class _DowntimeScreenState extends State<DowntimeScreen> {
                                 const SizedBox(height: 4),
                                 Row(
                                   children: [
-                                    Icon(Icons.timer, size: 14, color: categoryColor),
+                                    Icon(Icons.timer,
+                                        size: 14, color: categoryColor),
                                     const SizedBox(width: 4),
                                     Text(
                                       '${d['minutes']} min',
-                                      style: TextStyle(color: categoryColor, fontWeight: FontWeight.bold),
+                                      style: TextStyle(
+                                          color: categoryColor,
+                                          fontWeight: FontWeight.bold),
                                     ),
                                     const SizedBox(width: 16),
-                                    const Icon(Icons.access_time, size: 14, color: Colors.white38),
+                                    const Icon(Icons.access_time,
+                                        size: 14, color: Colors.white38),
                                     const SizedBox(width: 4),
                                     Text(
                                       _formatDate(d['date']),
-                                      style: const TextStyle(color: Colors.white38, fontSize: 12),
+                                      style: const TextStyle(
+                                          color: Colors.white38, fontSize: 12),
                                     ),
                                   ],
                                 ),
@@ -295,16 +316,21 @@ class _DowntimeScreenState extends State<DowntimeScreen> {
                                   const SizedBox(height: 4),
                                   const Row(
                                     children: [
-                                      Icon(Icons.photo, size: 14, color: Colors.white54),
+                                      Icon(Icons.photo,
+                                          size: 14, color: Colors.white54),
                                       SizedBox(width: 4),
-                                      Text('Photo attached', style: TextStyle(fontSize: 12, color: Colors.white54)),
+                                      Text('Photo attached',
+                                          style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.white54)),
                                     ],
                                   ),
                                 ],
                               ],
                             ),
                             trailing: PopupMenuButton(
-                              icon: const Icon(Icons.more_vert, color: Colors.white38),
+                              icon: const Icon(Icons.more_vert,
+                                  color: Colors.white38),
                               itemBuilder: (context) => [
                                 if (d['photoUrl'] != null)
                                   const PopupMenuItem(
@@ -331,9 +357,11 @@ class _DowntimeScreenState extends State<DowntimeScreen> {
                                   value: 'delete',
                                   child: Row(
                                     children: [
-                                      Icon(Icons.delete_outline, color: Colors.red),
+                                      Icon(Icons.delete_outline,
+                                          color: Colors.red),
                                       SizedBox(width: 8),
-                                      Text('Delete', style: TextStyle(color: Colors.red)),
+                                      Text('Delete',
+                                          style: TextStyle(color: Colors.red)),
                                     ],
                                   ),
                                 ),
@@ -342,16 +370,19 @@ class _DowntimeScreenState extends State<DowntimeScreen> {
                                 if (value == 'photo' && d['photoUrl'] != null) {
                                   _showPhoto(d['photoUrl'] as String);
                                 } else if (value == 'edit') {
-                                  _addOrEdit(item: Map<String, dynamic>.from(d));
+                                  _addOrEdit(
+                                      item: Map<String, dynamic>.from(d));
                                 } else if (value == 'delete') {
                                   final downtimeId = d['id'] as String;
                                   await box.delete(downtimeId);
-                                  await SyncService.deleteRemote('downtimeBox', downtimeId);
+                                  await SyncService.deleteRemote(
+                                      'downtimeBox', downtimeId);
                                   setState(() {});
                                 }
                               },
                             ),
-                            onTap: () => _addOrEdit(item: Map<String, dynamic>.from(d)),
+                            onTap: () =>
+                                _addOrEdit(item: Map<String, dynamic>.from(d)),
                           ),
                         );
                       },

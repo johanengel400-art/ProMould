@@ -43,18 +43,19 @@ Future<void> _openCoreBoxes() async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   LogService.info('ProMould: Starting app...');
-  
+
   try {
     LogService.info('Initializing Firebase...');
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform);
     LogService.info('Firebase initialized successfully');
-    
+
     // Register background message handler
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
     LogService.info('Background message handler registered');
-    
+
     LogService.info('Initializing Hive...');
     await Hive.initFlutter();
     await _openCoreBoxes();
@@ -62,8 +63,13 @@ void main() async {
 
     // Seed one admin if empty
     final users = Hive.box('usersBox');
-    if(users.isEmpty){
-      users.put('admin', {'username':'admin','password':'admin123','level':4,'shift':'Any'});
+    if (users.isEmpty) {
+      users.put('admin', {
+        'username': 'admin',
+        'password': 'admin123',
+        'level': 4,
+        'shift': 'Any'
+      });
       LogService.auth('Created default admin user');
     }
 
@@ -102,7 +108,8 @@ void main() async {
 
 class ProMouldApp extends StatelessWidget {
   const ProMouldApp({super.key});
-  @override Widget build(BuildContext context) {
+  @override
+  Widget build(BuildContext context) {
     return MaterialApp(
       title: 'ProMould',
       debugShowCheckedModeBanner: false,

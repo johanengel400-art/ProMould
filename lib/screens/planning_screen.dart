@@ -47,22 +47,30 @@ class _PlanningScreenState extends State<PlanningScreen> {
     final mouldsBox = Hive.box('mouldsBox');
 
     final floors = floorsBox.values.cast<Map>().toList();
-    final floorId =
-        selectedFloorId ?? (floors.isNotEmpty ? floors.first['id'] as String : null);
+    final floorId = selectedFloorId ??
+        (floors.isNotEmpty ? floors.first['id'] as String : null);
     final machines = machinesBox.values
         .cast<Map>()
         .where((m) => (m['floorId'] ?? '') == (floorId ?? ''))
         .toList();
 
     // Calculate statistics
-    final totalJobs = jobsBox.values.cast<Map>().where((j) => 
-        JobStatus.isActivelyRunning(j['status'] as String?) || j['status'] == JobStatus.queued).length;
-    final runningJobs = jobsBox.values.cast<Map>().where((j) => 
-        JobStatus.isActivelyRunning(j['status'] as String?)).length;
-    final queuedJobs = jobsBox.values.cast<Map>().where((j) => 
-        j['status'] == JobStatus.queued).length;
-    final activeMachines = machines.where((m) => 
-        m['status'] == 'Running').length;
+    final totalJobs = jobsBox.values
+        .cast<Map>()
+        .where((j) =>
+            JobStatus.isActivelyRunning(j['status'] as String?) ||
+            j['status'] == JobStatus.queued)
+        .length;
+    final runningJobs = jobsBox.values
+        .cast<Map>()
+        .where((j) => JobStatus.isActivelyRunning(j['status'] as String?))
+        .length;
+    final queuedJobs = jobsBox.values
+        .cast<Map>()
+        .where((j) => j['status'] == JobStatus.queued)
+        .length;
+    final activeMachines =
+        machines.where((m) => m['status'] == 'Running').length;
 
     return Scaffold(
       backgroundColor: const Color(0xFF0A0E1A),
@@ -116,25 +124,46 @@ class _PlanningScreenState extends State<PlanningScreen> {
                       children: [
                         Row(
                           children: [
-                            Expanded(child: _statCard('Total Jobs', totalJobs.toString(), Icons.work_outline, const Color(0xFF4CC9F0))),
+                            Expanded(
+                                child: _statCard(
+                                    'Total Jobs',
+                                    totalJobs.toString(),
+                                    Icons.work_outline,
+                                    const Color(0xFF4CC9F0))),
                             const SizedBox(width: 12),
-                            Expanded(child: _statCard('Running', runningJobs.toString(), Icons.play_circle_outline, const Color(0xFF00D26A))),
+                            Expanded(
+                                child: _statCard(
+                                    'Running',
+                                    runningJobs.toString(),
+                                    Icons.play_circle_outline,
+                                    const Color(0xFF00D26A))),
                           ],
                         ),
                         const SizedBox(height: 12),
                         Row(
                           children: [
-                            Expanded(child: _statCard('Queued', queuedJobs.toString(), Icons.schedule, const Color(0xFFFFD166))),
+                            Expanded(
+                                child: _statCard(
+                                    'Queued',
+                                    queuedJobs.toString(),
+                                    Icons.schedule,
+                                    const Color(0xFFFFD166))),
                             const SizedBox(width: 12),
-                            Expanded(child: _statCard('Active Machines', activeMachines.toString(), Icons.precision_manufacturing, const Color(0xFF9D4EDD))),
+                            Expanded(
+                                child: _statCard(
+                                    'Active Machines',
+                                    activeMachines.toString(),
+                                    Icons.precision_manufacturing,
+                                    const Color(0xFF9D4EDD))),
                           ],
                         ),
                         const SizedBox(height: 16),
                         DropdownButtonFormField<String>(
                           value: floorId,
                           items: floors
-                              .map((f) =>
-                                  DropdownMenuItem(value: f['id'] as String, child: Text('${f['name']}')))
+                              .map((f) => DropdownMenuItem(
+                                  value: f['id'] as String,
+                                  child: Text('${f['name']}')))
                               .toList(),
                           onChanged: (v) => setState(() => selectedFloorId = v),
                           decoration: InputDecoration(
@@ -161,9 +190,12 @@ class _PlanningScreenState extends State<PlanningScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.precision_manufacturing, size: 64, color: Colors.white.withOpacity(0.3)),
+                        Icon(Icons.precision_manufacturing,
+                            size: 64, color: Colors.white.withOpacity(0.3)),
                         const SizedBox(height: 16),
-                        Text('No machines on this floor', style: TextStyle(color: Colors.white.withOpacity(0.5))),
+                        Text('No machines on this floor',
+                            style: TextStyle(
+                                color: Colors.white.withOpacity(0.5))),
                       ],
                     ),
                   ),
@@ -174,11 +206,17 @@ class _PlanningScreenState extends State<PlanningScreen> {
                     delegate: SliverChildBuilderDelegate(
                       (_, i) {
                         final m = machines[i];
-                        final jobs = jobsBox.values.cast<Map>().where((j) =>
-                            j['machineId'] == m['id'] &&
-                            (JobStatus.isActivelyRunning(j['status'] as String?) || j['status'] == JobStatus.queued)).toList();
-                        jobs.sort((a, b) =>
-                            (a['startTime'] ?? '').toString().compareTo((b['startTime'] ?? '').toString()));
+                        final jobs = jobsBox.values
+                            .cast<Map>()
+                            .where((j) =>
+                                j['machineId'] == m['id'] &&
+                                (JobStatus.isActivelyRunning(
+                                        j['status'] as String?) ||
+                                    j['status'] == JobStatus.queued))
+                            .toList();
+                        jobs.sort((a, b) => (a['startTime'] ?? '')
+                            .toString()
+                            .compareTo((b['startTime'] ?? '').toString()));
                         return _machineCard(m, jobs, mouldsBox);
                       },
                       childCount: machines.length,
@@ -228,7 +266,7 @@ class _PlanningScreenState extends State<PlanningScreen> {
     final runningJob = jobs.isNotEmpty ? jobs.first : null;
     final queuedJobs = jobs.skip(1).toList();
     final statusColor = _getStatusColor(m['status'] as String? ?? 'Idle');
-    
+
     // Calculate scrap rate for this machine
     final machineId = m['id'] as String;
     final scrapData = ScrapRateService.calculateMachineScrapRate(machineId);
@@ -239,15 +277,16 @@ class _PlanningScreenState extends State<PlanningScreen> {
     DateTime cumulativeTime = DateTime.now();
     if (runningJob != null) {
       final mould = mouldsBox.values.cast<Map?>().firstWhere(
-        (m) => m != null && m['id'] == runningJob['mouldId'],
-        orElse: () => null,
-      );
+            (m) => m != null && m['id'] == runningJob['mouldId'],
+            orElse: () => null,
+          );
       final cycle = (mould?['cycleTime'] as num?)?.toDouble() ?? 30.0;
-      
+
       // Use live estimated shots for accurate remaining calculation
-      final currentShots = LiveProgressService.getEstimatedShots(runningJob, mouldsBox);
+      final currentShots =
+          LiveProgressService.getEstimatedShots(runningJob, mouldsBox);
       final remaining = (runningJob['targetShots'] as num? ?? 0) - currentShots;
-      
+
       final minutes = (remaining * cycle / 60).toDouble();
       cumulativeTime = cumulativeTime.add(Duration(minutes: minutes.round()));
     }
@@ -279,14 +318,18 @@ class _PlanningScreenState extends State<PlanningScreen> {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
                     color: statusColor.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     '${m['status']}',
-                    style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        color: statusColor,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -310,7 +353,10 @@ class _PlanningScreenState extends State<PlanningScreen> {
                 const SizedBox(width: 4),
                 Text(
                   'Scrap: ${scrapRate.toStringAsFixed(1)}%',
-                  style: TextStyle(fontSize: 11, color: scrapColor, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      fontSize: 11,
+                      color: scrapColor,
+                      fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -324,22 +370,28 @@ class _PlanningScreenState extends State<PlanningScreen> {
               decoration: BoxDecoration(
                 color: const Color(0xFF00D26A).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFF00D26A).withOpacity(0.3)),
+                border:
+                    Border.all(color: const Color(0xFF00D26A).withOpacity(0.3)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.play_circle, color: Color(0xFF00D26A), size: 20),
+                      const Icon(Icons.play_circle,
+                          color: Color(0xFF00D26A), size: 20),
                       const SizedBox(width: 8),
-                      const Text('RUNNING', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF00D26A))),
+                      const Text('RUNNING',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF00D26A))),
                     ],
                   ),
                   const SizedBox(height: 8),
                   Text(
                     runningJob['productName'] ?? 'Unknown Product',
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -349,22 +401,25 @@ class _PlanningScreenState extends State<PlanningScreen> {
                   const SizedBox(height: 4),
                   Builder(builder: (context) {
                     // Use live estimated shots for progress bar
-                    final currentShots = LiveProgressService.getEstimatedShots(runningJob, mouldsBox);
+                    final currentShots = LiveProgressService.getEstimatedShots(
+                        runningJob, mouldsBox);
                     final targetShots = runningJob['targetShots'] as num? ?? 1;
                     final progress = currentShots / targetShots;
-                    
+
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         LinearProgressIndicator(
                           value: progress.clamp(0.0, 1.0),
                           backgroundColor: Colors.white12,
-                          valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF00D26A)),
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                              Color(0xFF00D26A)),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           '$currentShots / $targetShots shots',
-                          style: const TextStyle(fontSize: 12, color: Colors.white60),
+                          style: const TextStyle(
+                              fontSize: 12, color: Colors.white60),
                         ),
                       ],
                     );
@@ -375,7 +430,8 @@ class _PlanningScreenState extends State<PlanningScreen> {
           if (queuedJobs.isEmpty && runningJob != null)
             const Padding(
               padding: EdgeInsets.all(16),
-              child: Text('No queued jobs', style: TextStyle(color: Colors.white54)),
+              child: Text('No queued jobs',
+                  style: TextStyle(color: Colors.white54)),
             )
           else if (queuedJobs.isNotEmpty) ...[
             const Padding(
@@ -384,7 +440,9 @@ class _PlanningScreenState extends State<PlanningScreen> {
                 children: [
                   Icon(Icons.queue, size: 18, color: Colors.white54),
                   SizedBox(width: 8),
-                  Text('QUEUE', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white54)),
+                  Text('QUEUE',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, color: Colors.white54)),
                 ],
               ),
             ),
@@ -392,25 +450,28 @@ class _PlanningScreenState extends State<PlanningScreen> {
               Builder(builder: (context) {
                 final etaInfo = _etaText(j, mouldsBox, cumulativeTime);
                 final queuePosition = queuedJobs.indexOf(j) + 1;
-                
+
                 // Update cumulative time for next job
                 final mould = mouldsBox.values.cast<Map?>().firstWhere(
-                  (m) => m != null && m['id'] == j['mouldId'],
-                  orElse: () => null,
-                );
+                      (m) => m != null && m['id'] == j['mouldId'],
+                      orElse: () => null,
+                    );
                 final cycle = (mould?['cycleTime'] as num?)?.toDouble() ?? 30.0;
-                final remaining = (j['targetShots'] as num? ?? 0) - 
-                                 (j['shotsCompleted'] as num? ?? 0);
+                final remaining = (j['targetShots'] as num? ?? 0) -
+                    (j['shotsCompleted'] as num? ?? 0);
                 final minutes = (remaining * cycle / 60).toDouble();
-                cumulativeTime = cumulativeTime.add(Duration(minutes: minutes.round()));
-                
+                cumulativeTime =
+                    cumulativeTime.add(Duration(minutes: minutes.round()));
+
                 return Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFFD166).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFFFFD166).withOpacity(0.3)),
+                    border: Border.all(
+                        color: const Color(0xFFFFD166).withOpacity(0.3)),
                   ),
                   child: Row(
                     children: [
@@ -438,12 +499,14 @@ class _PlanningScreenState extends State<PlanningScreen> {
                           children: [
                             Text(
                               j['productName'] ?? 'Unknown Product',
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 2),
                             Text(
                               etaInfo,
-                              style: const TextStyle(fontSize: 12, color: Colors.white60),
+                              style: const TextStyle(
+                                  fontSize: 12, color: Colors.white60),
                             ),
                           ],
                         ),
@@ -479,13 +542,13 @@ class _PlanningScreenState extends State<PlanningScreen> {
           orElse: () => null,
         );
     final cycle = (mould?['cycleTime'] as num?)?.toDouble() ?? 30.0;
-    
+
     // Use live estimated shots for accurate remaining calculation
     final currentShots = JobStatus.isActivelyRunning(job['status'] as String?)
         ? LiveProgressService.getEstimatedShots(job, mouldsBox)
         : (job['shotsCompleted'] as num? ?? 0);
     final remaining = (job['targetShots'] as num? ?? 0) - currentShots;
-    
+
     final minutes = (remaining * cycle / 60).toDouble();
     final eta = startTime.add(Duration(minutes: minutes.round()));
     final etaDate = DateFormat('MMM d').format(eta);
@@ -502,11 +565,16 @@ class _PlanningScreenState extends State<PlanningScreen> {
     final jobsBox = Hive.box('jobsBox');
 
     // Only show unassigned jobs (Pending status or empty machineId)
-    final availableJobs = jobsBox.values.cast<Map>().where((j) =>
-        (j['status'] == 'Pending' || j['machineId'] == '' || j['machineId'] == null)).toList();
+    final availableJobs = jobsBox.values
+        .cast<Map>()
+        .where((j) => (j['status'] == 'Pending' ||
+            j['machineId'] == '' ||
+            j['machineId'] == null))
+        .toList();
 
-    String? machineId =
-        machinesBox.values.cast<Map>().isNotEmpty ? machinesBox.values.cast<Map>().first['id'] as String : null;
+    String? machineId = machinesBox.values.cast<Map>().isNotEmpty
+        ? machinesBox.values.cast<Map>().first['id'] as String
+        : null;
     String? jobId =
         availableJobs.isNotEmpty ? availableJobs.first['id'] as String : null;
 
@@ -522,8 +590,8 @@ class _PlanningScreenState extends State<PlanningScreen> {
                 value: machineId,
                 items: machinesBox.values
                     .cast<Map>()
-                    .map((m) =>
-                        DropdownMenuItem(value: m['id'] as String, child: Text('${m['name']}')))
+                    .map((m) => DropdownMenuItem(
+                        value: m['id'] as String, child: Text('${m['name']}')))
                     .toList(),
                 onChanged: (v) => setDialogState(() => machineId = v),
                 decoration: const InputDecoration(labelText: 'Machine'),
@@ -533,37 +601,43 @@ class _PlanningScreenState extends State<PlanningScreen> {
                 value: jobId,
                 items: availableJobs
                     .map((j) => DropdownMenuItem(
-                        value: j['id'] as String, child: Text('${j['productName']}')))
+                        value: j['id'] as String,
+                        child: Text('${j['productName']}')))
                     .toList(),
                 onChanged: (v) => setDialogState(() => jobId = v),
-                decoration: const InputDecoration(labelText: 'Job (Unassigned)'),
+                decoration:
+                    const InputDecoration(labelText: 'Job (Unassigned)'),
               ),
             ],
           ),
           actions: [
             TextButton(
-                onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')),
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () async {
                 if (machineId == null || jobId == null) return;
-                
+
                 // Update the job with machineId and status
                 final job = jobsBox.get(jobId) as Map?;
                 if (job != null) {
                   final updatedJob = Map<String, dynamic>.from(job);
                   updatedJob['machineId'] = machineId;
                   final mouldId = job['mouldId'] as String?;
-                  
+
                   // Check if this is the first job for this machine
-                  final existingJobs = jobsBox.values.cast<Map>().where((j) =>
-                      j['machineId'] == machineId && 
-                      (j['status'] == 'Running' || j['status'] == 'Queued')).toList();
-                  
+                  final existingJobs = jobsBox.values
+                      .cast<Map>()
+                      .where((j) =>
+                          j['machineId'] == machineId &&
+                          (j['status'] == 'Running' || j['status'] == 'Queued'))
+                      .toList();
+
                   if (existingJobs.isEmpty) {
                     // First job - set to Running and update machine status
                     updatedJob['status'] = 'Running';
                     updatedJob['startTime'] = DateTime.now().toIso8601String();
-                    
+
                     // Update machine status to Running and assign mould
                     final machine = machinesBox.get(machineId!) as Map?;
                     if (machine != null) {
@@ -571,19 +645,20 @@ class _PlanningScreenState extends State<PlanningScreen> {
                       updatedMachine['status'] = 'Running';
                       updatedMachine['currentMouldId'] = mouldId ?? '';
                       await machinesBox.put(machineId!, updatedMachine);
-                      await SyncService.pushChange('machinesBox', machineId!, updatedMachine);
+                      await SyncService.pushChange(
+                          'machinesBox', machineId!, updatedMachine);
                     }
                   } else {
                     // Additional job - set to Queued
                     updatedJob['status'] = 'Queued';
                   }
-                  
+
                   await jobsBox.put(jobId!, updatedJob);
                   await SyncService.pushChange('jobsBox', jobId!, updatedJob);
                 }
-                
+
                 if (context.mounted) {
-                Navigator.pop(dialogContext);
+                  Navigator.pop(dialogContext);
                 }
               },
               child: const Text('Assign'),

@@ -4,26 +4,44 @@ import 'package:uuid/uuid.dart';
 import '../services/sync_service.dart';
 import '../services/live_progress_service.dart';
 
-class DailyInputScreen extends StatefulWidget{
-  final String username; final int level;
-  const DailyInputScreen({super.key, required this.username, required this.level});
-  @override State<DailyInputScreen> createState()=>_DailyInputScreenState();
+class DailyInputScreen extends StatefulWidget {
+  final String username;
+  final int level;
+  const DailyInputScreen(
+      {super.key, required this.username, required this.level});
+  @override
+  State<DailyInputScreen> createState() => _DailyInputScreenState();
 }
 
-class _DailyInputScreenState extends State<DailyInputScreen>{
-  final uuid=const Uuid(); String? machineId; Map? job;
-  final shotsCtrl=TextEditingController(); final scrapCtrl=TextEditingController();
-  String scrapReason='Other'; final reasons=['Short Shot','Flash','Burn','Contamination','Color Variation','Other'];
+class _DailyInputScreenState extends State<DailyInputScreen> {
+  final uuid = const Uuid();
+  String? machineId;
+  Map? job;
+  final shotsCtrl = TextEditingController();
+  final scrapCtrl = TextEditingController();
+  String scrapReason = 'Other';
+  final reasons = [
+    'Short Shot',
+    'Flash',
+    'Burn',
+    'Contamination',
+    'Color Variation',
+    'Other'
+  ];
   bool isAddMode = true; // true = Add to count, false = Set count
 
   void _save() async {
-    final shots=int.tryParse(shotsCtrl.text.trim())??0;
-    final scrap=int.tryParse(scrapCtrl.text.trim())??0;
-    if(machineId==null){ ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Select a machine'))); return; }
-    
+    final shots = int.tryParse(shotsCtrl.text.trim()) ?? 0;
+    final scrap = int.tryParse(scrapCtrl.text.trim()) ?? 0;
+    if (machineId == null) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Select a machine')));
+      return;
+    }
+
     final inputs = Hive.box('inputsBox');
     final id = uuid.v4();
-    
+
     // Calculate actual shots to record based on mode
     int shotsToRecord = shots;
     if (!isAddMode && job != null) {
@@ -31,7 +49,7 @@ class _DailyInputScreenState extends State<DailyInputScreen>{
       final currentShots = (job!['shotsCompleted'] ?? 0) as int;
       shotsToRecord = shots - currentShots;
     }
-    
+
     final data = {
       'id': id,
       'machineId': machineId!,
@@ -45,55 +63,61 @@ class _DailyInputScreenState extends State<DailyInputScreen>{
     await inputs.put(id, data);
     await SyncService.pushChange('inputsBox', id, data);
 
-    if(job!=null){
+    if (job != null) {
       final jobId = job!['id'] as String;
       final jobsBox = Hive.box('jobsBox');
-      final updated = Map<String,dynamic>.from(job!);
-      
+      final updated = Map<String, dynamic>.from(job!);
+
       // Update total based on mode
-      final newTotal = isAddMode 
-        ? (updated['shotsCompleted'] ?? 0) + shots
-        : shots; // Set mode: use the value directly
-      
+      final newTotal = isAddMode
+          ? (updated['shotsCompleted'] ?? 0) + shots
+          : shots; // Set mode: use the value directly
+
       updated['shotsCompleted'] = newTotal;
-      
+
       // Check if target shots reached and change status to Overrunning
       final targetShots = (updated['targetShots'] ?? 0) as int;
       final currentStatus = updated['status'] as String?;
-      
-      print('DEBUG: newTotal=$newTotal, targetShots=$targetShots, currentStatus=$currentStatus');
-      
+
+      print(
+          'DEBUG: newTotal=$newTotal, targetShots=$targetShots, currentStatus=$currentStatus');
+
       if (newTotal >= targetShots && currentStatus == 'Running') {
         updated['status'] = 'Overrunning';
         updated['overrunStartTime'] = DateTime.now().toIso8601String();
         print('DEBUG: Changed status to Overrunning!');
       }
-      
+
       // Save updated job
       await jobsBox.put(jobId, updated);
       await SyncService.pushChange('jobsBox', jobId, updated);
-      
+
       // Record manual input to reset the live progress baseline
       await LiveProgressService.recordManualInput(jobId, newTotal);
-      
+
       // NO AUTO-STOP: Job continues running even past target
       // User must manually stop the job
     }
 
-    shotsCtrl.clear(); scrapCtrl.clear();
+    shotsCtrl.clear();
+    scrapCtrl.clear();
     final modeText = isAddMode ? 'Added $shots shots' : 'Set to $shots shots';
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$modeText. Live progress reset to actual count.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('$modeText. Live progress reset to actual count.')));
     }
   }
 
-  @override Widget build(BuildContext context){
+  @override
+  Widget build(BuildContext context) {
     final machinesBox = Hive.box('machinesBox');
     final jobsBox = Hive.box('jobsBox');
 
     final machines = machinesBox.values.cast<Map>().toList();
-    final jobsForMachine = jobsBox.values.cast<Map>()
-      .where((j)=> j['machineId']==machineId).toList();
+    final jobsForMachine = jobsBox.values
+        .cast<Map>()
+        .where((j) => j['machineId'] == machineId)
+        .toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFF0A0E1A),
@@ -146,9 +170,12 @@ class _DailyInputScreenState extends State<DailyInputScreen>{
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
-                              color: isAddMode ? const Color(0xFF06D6A0) : const Color(0xFF4CC9F0),
+                              color: isAddMode
+                                  ? const Color(0xFF06D6A0)
+                                  : const Color(0xFF4CC9F0),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Row(
@@ -194,9 +221,12 @@ class _DailyInputScreenState extends State<DailyInputScreen>{
                           });
                         },
                         style: ButtonStyle(
-                          backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+                          backgroundColor:
+                              WidgetStateProperty.resolveWith<Color>((states) {
                             if (states.contains(WidgetState.selected)) {
-                              return isAddMode ? const Color(0xFF06D6A0) : const Color(0xFF4CC9F0);
+                              return isAddMode
+                                  ? const Color(0xFF06D6A0)
+                                  : const Color(0xFF4CC9F0);
                             }
                             return Colors.transparent;
                           }),
@@ -204,16 +234,20 @@ class _DailyInputScreenState extends State<DailyInputScreen>{
                       ),
                       const SizedBox(height: 20),
                       DropdownButtonFormField<String>(
-                        value: machineId ?? (machines.isNotEmpty? machines.first['id'] as String: null),
+                        value: machineId ??
+                            (machines.isNotEmpty
+                                ? machines.first['id'] as String
+                                : null),
                         dropdownColor: const Color(0xFF0F1419),
                         style: const TextStyle(color: Colors.white),
-                        items: machines.map((m)=>DropdownMenuItem<String>(
-                          value:m['id'] as String, 
-                          child: Text('${m['name']}')
-                        )).toList(),
-                        onChanged: (v)=>setState(()=>machineId=v),
+                        items: machines
+                            .map((m) => DropdownMenuItem<String>(
+                                value: m['id'] as String,
+                                child: Text('${m['name']}')))
+                            .toList(),
+                        onChanged: (v) => setState(() => machineId = v),
                         decoration: InputDecoration(
-                          labelText:'Machine',
+                          labelText: 'Machine',
                           labelStyle: const TextStyle(color: Colors.white70),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -221,7 +255,8 @@ class _DailyInputScreenState extends State<DailyInputScreen>{
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: Color(0xFF4CC9F0)),
+                            borderSide:
+                                const BorderSide(color: Color(0xFF4CC9F0)),
                           ),
                         ),
                       ),
@@ -230,13 +265,15 @@ class _DailyInputScreenState extends State<DailyInputScreen>{
                         value: job,
                         dropdownColor: const Color(0xFF0F1419),
                         style: const TextStyle(color: Colors.white),
-                        items: jobsForMachine.map((j)=>DropdownMenuItem(
-                          value:j, 
-                          child: Text('${j['productName']} • ${j['color']??''}')
-                        )).toList(),
-                        onChanged: (v)=>setState(()=>job=v),
+                        items: jobsForMachine
+                            .map((j) => DropdownMenuItem(
+                                value: j,
+                                child: Text(
+                                    '${j['productName']} • ${j['color'] ?? ''}')))
+                            .toList(),
+                        onChanged: (v) => setState(() => job = v),
                         decoration: InputDecoration(
-                          labelText:'Job (optional)',
+                          labelText: 'Job (optional)',
                           labelStyle: const TextStyle(color: Colors.white70),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -244,7 +281,8 @@ class _DailyInputScreenState extends State<DailyInputScreen>{
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: Color(0xFF4CC9F0)),
+                            borderSide:
+                                const BorderSide(color: Color(0xFF4CC9F0)),
                           ),
                         ),
                       ),
@@ -255,40 +293,48 @@ class _DailyInputScreenState extends State<DailyInputScreen>{
                           decoration: BoxDecoration(
                             color: Colors.blue.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                            border:
+                                Border.all(color: Colors.blue.withOpacity(0.3)),
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.info_outline, size: 16, color: Colors.blue[300]),
+                              Icon(Icons.info_outline,
+                                  size: 16, color: Colors.blue[300]),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                  isAddMode 
-                                    ? 'Current: ${job!['shotsCompleted'] ?? 0} • Enter shots to ADD'
-                                    : 'Current: ${job!['shotsCompleted'] ?? 0} • Enter new total to SET',
-                                  style: TextStyle(fontSize: 12, color: Colors.blue[300]),
+                                  isAddMode
+                                      ? 'Current: ${job!['shotsCompleted'] ?? 0} • Enter shots to ADD'
+                                      : 'Current: ${job!['shotsCompleted'] ?? 0} • Enter new total to SET',
+                                  style: TextStyle(
+                                      fontSize: 12, color: Colors.blue[300]),
                                 ),
                               ),
                             ],
                           ),
                         ),
                       if (job != null) const SizedBox(height: 16),
-                      Row(children:[
+                      Row(children: [
                         Expanded(
                           child: TextField(
-                            controller: shotsCtrl, 
+                            controller: shotsCtrl,
                             keyboardType: TextInputType.number,
                             style: const TextStyle(color: Colors.white),
                             decoration: InputDecoration(
-                              labelText: isAddMode ? 'Good Shots (Add)' : 'Good Shots (Set Total)',
-                              labelStyle: const TextStyle(color: Colors.white70),
+                              labelText: isAddMode
+                                  ? 'Good Shots (Add)'
+                                  : 'Good Shots (Set Total)',
+                              labelStyle:
+                                  const TextStyle(color: Colors.white70),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: Colors.white12),
+                                borderSide:
+                                    const BorderSide(color: Colors.white12),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: Color(0xFF06D6A0)),
+                                borderSide:
+                                    const BorderSide(color: Color(0xFF06D6A0)),
                               ),
                             ),
                           ),
@@ -296,19 +342,22 @@ class _DailyInputScreenState extends State<DailyInputScreen>{
                         const SizedBox(width: 12),
                         Expanded(
                           child: TextField(
-                            controller: scrapCtrl, 
+                            controller: scrapCtrl,
                             keyboardType: TextInputType.number,
                             style: const TextStyle(color: Colors.white),
                             decoration: InputDecoration(
-                              labelText:'Scrap',
-                              labelStyle: const TextStyle(color: Colors.white70),
+                              labelText: 'Scrap',
+                              labelStyle:
+                                  const TextStyle(color: Colors.white70),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: Colors.white12),
+                                borderSide:
+                                    const BorderSide(color: Colors.white12),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: Color(0xFFEF476F)),
+                                borderSide:
+                                    const BorderSide(color: Color(0xFFEF476F)),
                               ),
                             ),
                           ),
@@ -319,10 +368,14 @@ class _DailyInputScreenState extends State<DailyInputScreen>{
                         value: scrapReason,
                         dropdownColor: const Color(0xFF0F1419),
                         style: const TextStyle(color: Colors.white),
-                        items: reasons.map((s)=>DropdownMenuItem(value:s, child: Text(s))).toList(),
-                        onChanged: (v)=>setState(()=>scrapReason=v??'Other'),
+                        items: reasons
+                            .map((s) =>
+                                DropdownMenuItem(value: s, child: Text(s)))
+                            .toList(),
+                        onChanged: (v) =>
+                            setState(() => scrapReason = v ?? 'Other'),
                         decoration: InputDecoration(
-                          labelText:'Scrap Reason',
+                          labelText: 'Scrap Reason',
                           labelStyle: const TextStyle(color: Colors.white70),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -330,16 +383,17 @@ class _DailyInputScreenState extends State<DailyInputScreen>{
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: Color(0xFF4CC9F0)),
+                            borderSide:
+                                const BorderSide(color: Color(0xFF4CC9F0)),
                           ),
                         ),
                       ),
                       const SizedBox(height: 24),
                       SizedBox(
-                        width: double.infinity, 
+                        width: double.infinity,
                         height: 50,
                         child: ElevatedButton(
-                          onPressed:_save,
+                          onPressed: _save,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF4CC9F0),
                             shape: RoundedRectangleBorder(
@@ -348,7 +402,8 @@ class _DailyInputScreenState extends State<DailyInputScreen>{
                           ),
                           child: const Text(
                             'Save Entry',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                         ),
                       ),

@@ -51,7 +51,8 @@ class AccessControlWrapper extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32),
               child: Text(
-                deniedMessage ?? 'You do not have permission to access this page.',
+                deniedMessage ??
+                    'You do not have permission to access this page.',
                 style: const TextStyle(
                   color: Colors.white70,
                   fontSize: 16,
@@ -66,7 +67,8 @@ class AccessControlWrapper extends StatelessWidget {
               label: const Text('Go Back'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF4CC9F0),
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
               ),
             ),
           ],

@@ -105,7 +105,8 @@ class _ScheduledReportsScreenState extends State<ScheduledReportsScreen> {
                 Switch(
                   value: isActive,
                   onChanged: (value) {
-                    ScheduledReportsService.toggleSchedule(schedule['id'], value);
+                    ScheduledReportsService.toggleSchedule(
+                        schedule['id'], value);
                   },
                   activeColor: Colors.blue,
                 ),
@@ -123,7 +124,8 @@ class _ScheduledReportsScreenState extends State<ScheduledReportsScreen> {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.access_time, size: 16, color: Colors.grey),
+                      const Icon(Icons.access_time,
+                          size: 16, color: Colors.grey),
                       const SizedBox(width: 8),
                       Text(
                         'Time: ${schedule['time']}',
@@ -144,7 +146,8 @@ class _ScheduledReportsScreenState extends State<ScheduledReportsScreen> {
                       ),
                     ],
                   ),
-                  if (schedule['recipients'] != null && (schedule['recipients'] as List).isNotEmpty) ...[
+                  if (schedule['recipients'] != null &&
+                      (schedule['recipients'] as List).isNotEmpty) ...[
                     const SizedBox(height: 8),
                     Row(
                       children: [
@@ -223,7 +226,8 @@ class _ScheduledReportsScreenState extends State<ScheduledReportsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1E1E1E),
-        title: const Text('Delete Schedule', style: TextStyle(color: Colors.white)),
+        title: const Text('Delete Schedule',
+            style: TextStyle(color: Colors.white)),
         content: const Text(
           'Are you sure you want to delete this scheduled report?',
           style: TextStyle(color: Colors.grey),
@@ -274,10 +278,12 @@ class _ScheduleDialogState extends State<_ScheduleDialog> {
       _reportType = widget.schedule!['reportType'];
       _frequency = widget.schedule!['frequency'];
       final timeParts = (widget.schedule!['time'] as String).split(':');
-      _time = TimeOfDay(hour: int.parse(timeParts[0]), minute: int.parse(timeParts[1]));
+      _time = TimeOfDay(
+          hour: int.parse(timeParts[0]), minute: int.parse(timeParts[1]));
       _dayOfWeek = widget.schedule!['dayOfWeek'];
       _dayOfMonth = widget.schedule!['dayOfMonth'];
-      _recipientsController.text = (widget.schedule!['recipients'] as List).join(', ');
+      _recipientsController.text =
+          (widget.schedule!['recipients'] as List).join(', ');
       _includeCharts = widget.schedule!['includeCharts'] ?? true;
       _includeSummary = widget.schedule!['includeSummary'] ?? true;
       _includeDetails = widget.schedule!['includeDetails'] ?? true;
@@ -310,11 +316,14 @@ class _ScheduleDialogState extends State<_ScheduleDialog> {
               dropdownColor: const Color(0xFF2D2D2D),
               style: const TextStyle(color: Colors.white),
               items: const [
-                DropdownMenuItem(value: 'production', child: Text('Production')),
+                DropdownMenuItem(
+                    value: 'production', child: Text('Production')),
                 DropdownMenuItem(value: 'quality', child: Text('Quality')),
                 DropdownMenuItem(value: 'downtime', child: Text('Downtime')),
-                DropdownMenuItem(value: 'machine', child: Text('Machine Performance')),
-                DropdownMenuItem(value: 'operator', child: Text('Operator Performance')),
+                DropdownMenuItem(
+                    value: 'machine', child: Text('Machine Performance')),
+                DropdownMenuItem(
+                    value: 'operator', child: Text('Operator Performance')),
               ],
               onChanged: (value) => setState(() => _reportType = value!),
             ),
@@ -347,7 +356,8 @@ class _ScheduleDialogState extends State<_ScheduleDialog> {
                 items: const [
                   DropdownMenuItem(value: 'Monday', child: Text('Monday')),
                   DropdownMenuItem(value: 'Tuesday', child: Text('Tuesday')),
-                  DropdownMenuItem(value: 'Wednesday', child: Text('Wednesday')),
+                  DropdownMenuItem(
+                      value: 'Wednesday', child: Text('Wednesday')),
                   DropdownMenuItem(value: 'Thursday', child: Text('Thursday')),
                   DropdownMenuItem(value: 'Friday', child: Text('Friday')),
                   DropdownMenuItem(value: 'Saturday', child: Text('Saturday')),
@@ -365,7 +375,8 @@ class _ScheduleDialogState extends State<_ScheduleDialog> {
                 dropdownColor: const Color(0xFF2D2D2D),
                 style: const TextStyle(color: Colors.white),
                 items: List.generate(31, (i) => i + 1)
-                    .map((day) => DropdownMenuItem(value: day, child: Text(day.toString())))
+                    .map((day) => DropdownMenuItem(
+                        value: day, child: Text(day.toString())))
                     .toList(),
                 onChanged: (value) => setState(() => _dayOfMonth = value),
               ),
@@ -400,21 +411,27 @@ class _ScheduleDialogState extends State<_ScheduleDialog> {
             ),
             const SizedBox(height: 16),
             CheckboxListTile(
-              title: const Text('Include Summary', style: TextStyle(color: Colors.white)),
+              title: const Text('Include Summary',
+                  style: TextStyle(color: Colors.white)),
               value: _includeSummary,
-              onChanged: (value) => setState(() => _includeSummary = value ?? true),
+              onChanged: (value) =>
+                  setState(() => _includeSummary = value ?? true),
               activeColor: Colors.blue,
             ),
             CheckboxListTile(
-              title: const Text('Include Charts', style: TextStyle(color: Colors.white)),
+              title: const Text('Include Charts',
+                  style: TextStyle(color: Colors.white)),
               value: _includeCharts,
-              onChanged: (value) => setState(() => _includeCharts = value ?? true),
+              onChanged: (value) =>
+                  setState(() => _includeCharts = value ?? true),
               activeColor: Colors.blue,
             ),
             CheckboxListTile(
-              title: const Text('Include Details', style: TextStyle(color: Colors.white)),
+              title: const Text('Include Details',
+                  style: TextStyle(color: Colors.white)),
               value: _includeDetails,
-              onChanged: (value) => setState(() => _includeDetails = value ?? true),
+              onChanged: (value) =>
+                  setState(() => _includeDetails = value ?? true),
               activeColor: Colors.blue,
             ),
           ],
@@ -445,7 +462,8 @@ class _ScheduleDialogState extends State<_ScheduleDialog> {
       await ScheduledReportsService.createSchedule(
         reportType: _reportType,
         frequency: _frequency,
-        time: '${_time.hour.toString().padLeft(2, '0')}:${_time.minute.toString().padLeft(2, '0')}',
+        time:
+            '${_time.hour.toString().padLeft(2, '0')}:${_time.minute.toString().padLeft(2, '0')}',
         dayOfWeek: _dayOfWeek,
         dayOfMonth: _dayOfMonth,
         recipients: recipients,
@@ -457,7 +475,8 @@ class _ScheduleDialogState extends State<_ScheduleDialog> {
       await ScheduledReportsService.updateSchedule(widget.schedule!['id'], {
         'reportType': _reportType,
         'frequency': _frequency,
-        'time': '${_time.hour.toString().padLeft(2, '0')}:${_time.minute.toString().padLeft(2, '0')}',
+        'time':
+            '${_time.hour.toString().padLeft(2, '0')}:${_time.minute.toString().padLeft(2, '0')}',
         'dayOfWeek': _dayOfWeek,
         'dayOfMonth': _dayOfMonth,
         'recipients': recipients,

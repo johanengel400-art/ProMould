@@ -10,7 +10,8 @@ class ProductionTimelineScreen extends StatefulWidget {
   const ProductionTimelineScreen({super.key});
 
   @override
-  State<ProductionTimelineScreen> createState() => _ProductionTimelineScreenState();
+  State<ProductionTimelineScreen> createState() =>
+      _ProductionTimelineScreenState();
 }
 
 class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
@@ -25,13 +26,16 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
     final mouldChangesBox = Hive.box('mouldChangesBox');
 
     final machines = machinesBox.values.cast<Map>().toList();
-    final allJobs = jobsBox.values.cast<Map>()
+    final allJobs = jobsBox.values
+        .cast<Map>()
         .where((j) => j['status'] == 'Running' || j['status'] == 'Queued')
         .toList();
 
     // Get scheduled and in-progress mould changes
-    final mouldChanges = mouldChangesBox.values.cast<Map>()
-        .where((mc) => mc['status'] == 'Scheduled' || mc['status'] == 'In Progress')
+    final mouldChanges = mouldChangesBox.values
+        .cast<Map>()
+        .where((mc) =>
+            mc['status'] == 'Scheduled' || mc['status'] == 'In Progress')
         .toList();
 
     // Filter jobs by machine
@@ -42,11 +46,14 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
     // Filter mould changes by machine
     final filteredMouldChanges = _filterMachine == 'All'
         ? mouldChanges
-        : mouldChanges.where((mc) => mc['machineId'] == _filterMachine).toList();
+        : mouldChanges
+            .where((mc) => mc['machineId'] == _filterMachine)
+            .toList();
 
     // Calculate timeline data
     final timelineData = _calculateTimeline(filteredJobs, mouldsBox);
-    final mouldChangeData = _calculateMouldChangeTimeline(filteredMouldChanges, machinesBox, mouldsBox);
+    final mouldChangeData = _calculateMouldChangeTimeline(
+        filteredMouldChanges, machinesBox, mouldsBox);
 
     return Scaffold(
       backgroundColor: const Color(0xFF0A0E1A),
@@ -74,17 +81,19 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
             ),
             actions: [
               IconButton(
-                icon: Icon(_viewMode == 'timeline' ? Icons.list : Icons.timeline),
+                icon:
+                    Icon(_viewMode == 'timeline' ? Icons.list : Icons.timeline),
                 onPressed: () {
                   setState(() {
                     _viewMode = _viewMode == 'timeline' ? 'list' : 'timeline';
                   });
                 },
-                tooltip: _viewMode == 'timeline' ? 'List View' : 'Timeline View',
+                tooltip:
+                    _viewMode == 'timeline' ? 'List View' : 'Timeline View',
               ),
             ],
           ),
-          
+
           // Filters
           SliverToBoxAdapter(
             child: Container(
@@ -99,24 +108,28 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
                       decoration: InputDecoration(
                         labelText: 'Filter by Machine',
                         labelStyle: const TextStyle(color: Colors.white70),
-                        prefixIcon: const Icon(Icons.filter_list, color: Colors.white70),
+                        prefixIcon: const Icon(Icons.filter_list,
+                            color: Colors.white70),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(color: Colors.white12),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFF7209B7)),
+                          borderSide:
+                              const BorderSide(color: Color(0xFF7209B7)),
                         ),
                       ),
                       items: [
-                        const DropdownMenuItem(value: 'All', child: Text('All Machines')),
+                        const DropdownMenuItem(
+                            value: 'All', child: Text('All Machines')),
                         ...machines.map((m) => DropdownMenuItem(
-                          value: m['id'] as String,
-                          child: Text(m['name'] as String),
-                        )),
+                              value: m['id'] as String,
+                              child: Text(m['name'] as String),
+                            )),
                       ],
-                      onChanged: (v) => setState(() => _filterMachine = v ?? 'All'),
+                      onChanged: (v) =>
+                          setState(() => _filterMachine = v ?? 'All'),
                     ),
                   ),
                 ],
@@ -153,7 +166,8 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
-                  (context, index) => _buildMouldChangeCard(mouldChangeData[index]),
+                  (context, index) =>
+                      _buildMouldChangeCard(mouldChangeData[index]),
                   childCount: mouldChangeData.length,
                 ),
               ),
@@ -189,7 +203,8 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
               padding: const EdgeInsets.all(16),
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
-                  (context, index) => _buildJobCard(timelineData[index], machinesBox, mouldsBox),
+                  (context, index) => _buildJobCard(
+                      timelineData[index], machinesBox, mouldsBox),
                   childCount: timelineData.length,
                 ),
               ),
@@ -200,7 +215,7 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
   }
 
   List<Map<String, dynamic>> _calculateMouldChangeTimeline(
-    List<Map> mouldChanges, Box machinesBox, Box mouldsBox) {
+      List<Map> mouldChanges, Box machinesBox, Box mouldsBox) {
     final timeline = <Map<String, dynamic>>[];
 
     for (final change in mouldChanges) {
@@ -208,7 +223,8 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
       final fromMould = mouldsBox.get(change['fromMouldId']) as Map?;
       final toMould = mouldsBox.get(change['toMouldId']) as Map?;
       final scheduledDate = DateTime.tryParse(change['scheduledDate'] ?? '');
-      final estimatedDuration = (change['estimatedDuration'] as num? ?? 30).toInt();
+      final estimatedDuration =
+          (change['estimatedDuration'] as num? ?? 30).toInt();
 
       timeline.add({
         'type': 'mouldChange',
@@ -217,7 +233,8 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
         'fromMould': fromMould,
         'toMould': toMould,
         'scheduledDate': scheduledDate,
-        'estimatedEnd': scheduledDate?.add(Duration(minutes: estimatedDuration)),
+        'estimatedEnd':
+            scheduledDate?.add(Duration(minutes: estimatedDuration)),
         'duration': estimatedDuration,
         'status': change['status'],
       });
@@ -232,9 +249,9 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
 
     for (final job in jobs) {
       final mould = mouldsBox.values.cast<Map?>().firstWhere(
-        (m) => m != null && m['id'] == job['mouldId'],
-        orElse: () => null,
-      );
+            (m) => m != null && m['id'] == job['mouldId'],
+            orElse: () => null,
+          );
 
       final cycleTime = (mould?['cycleTime'] as num?)?.toDouble() ?? 30.0;
       final currentShots = job['status'] == 'Running'
@@ -261,7 +278,7 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
       }
 
       // Check if mould change is needed
-      final mouldChangeNeeded = mould != null && 
+      final mouldChangeNeeded = mould != null &&
           (mould['shotsRemaining'] as num? ?? 999999) < remaining;
 
       timeline.add({
@@ -276,22 +293,26 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
         'timeRemaining': timeRemaining,
         'mouldChangeNeeded': mouldChangeNeeded,
         'isOverrun': currentShots > targetShots,
-        'progress': targetShots > 0 ? (currentShots / targetShots).clamp(0.0, 1.0) : 0.0,
+        'progress': targetShots > 0
+            ? (currentShots / targetShots).clamp(0.0, 1.0)
+            : 0.0,
       });
     }
 
     // Sort by estimated end time (running jobs first, then queued)
     timeline.sort((a, b) {
-      if (a['job']['status'] == 'Running' && b['job']['status'] != 'Running') return -1;
-      if (a['job']['status'] != 'Running' && b['job']['status'] == 'Running') return 1;
-      
+      if (a['job']['status'] == 'Running' && b['job']['status'] != 'Running')
+        return -1;
+      if (a['job']['status'] != 'Running' && b['job']['status'] == 'Running')
+        return 1;
+
       final aEnd = a['estimatedEnd'] as DateTime?;
       final bEnd = b['estimatedEnd'] as DateTime?;
-      
+
       if (aEnd == null && bEnd == null) return 0;
       if (aEnd == null) return 1;
       if (bEnd == null) return -1;
-      
+
       return aEnd.compareTo(bEnd);
     });
 
@@ -299,25 +320,40 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
   }
 
   Widget _buildSummaryStats(List<Map<String, dynamic>> timeline) {
-    final runningJobs = timeline.where((t) => t['job']['status'] == 'Running').length;
-    final queuedJobs = timeline.where((t) => t['job']['status'] == 'Queued').length;
-    final mouldChangesNeeded = timeline.where((t) => t['mouldChangeNeeded'] == true).length;
+    final runningJobs =
+        timeline.where((t) => t['job']['status'] == 'Running').length;
+    final queuedJobs =
+        timeline.where((t) => t['job']['status'] == 'Queued').length;
+    final mouldChangesNeeded =
+        timeline.where((t) => t['mouldChangeNeeded'] == true).length;
     final overrunJobs = timeline.where((t) => t['isOverrun'] == true).length;
 
     return Row(
       children: [
-        Expanded(child: _buildStatCard('Running', runningJobs.toString(), const Color(0xFF06D6A0), Icons.play_circle)),
+        Expanded(
+            child: _buildStatCard('Running', runningJobs.toString(),
+                const Color(0xFF06D6A0), Icons.play_circle)),
         const SizedBox(width: 12),
-        Expanded(child: _buildStatCard('Queued', queuedJobs.toString(), const Color(0xFF4CC9F0), Icons.schedule)),
+        Expanded(
+            child: _buildStatCard('Queued', queuedJobs.toString(),
+                const Color(0xFF4CC9F0), Icons.schedule)),
         const SizedBox(width: 12),
-        Expanded(child: _buildStatCard('Mould Changes', mouldChangesNeeded.toString(), const Color(0xFFFFD166), Icons.build)),
+        Expanded(
+            child: _buildStatCard(
+                'Mould Changes',
+                mouldChangesNeeded.toString(),
+                const Color(0xFFFFD166),
+                Icons.build)),
         const SizedBox(width: 12),
-        Expanded(child: _buildStatCard('Overrun', overrunJobs.toString(), const Color(0xFFFF6B6B), Icons.warning)),
+        Expanded(
+            child: _buildStatCard('Overrun', overrunJobs.toString(),
+                const Color(0xFFFF6B6B), Icons.warning)),
       ],
     );
   }
 
-  Widget _buildStatCard(String label, String value, Color color, IconData icon) {
+  Widget _buildStatCard(
+      String label, String value, Color color, IconData icon) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -351,7 +387,8 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
     );
   }
 
-  Widget _buildTimelineView(List<Map<String, dynamic>> timeline, Box machinesBox, Box mouldsBox) {
+  Widget _buildTimelineView(
+      List<Map<String, dynamic>> timeline, Box machinesBox, Box mouldsBox) {
     if (timeline.isEmpty) {
       return const Center(
         child: Padding(
@@ -368,13 +405,13 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
     final maxEndTime = timeline
         .where((t) => t['estimatedEnd'] != null)
         .fold<DateTime?>(null, (max, t) {
-          final end = t['estimatedEnd'] as DateTime?;
-          if (end == null) return max;
-          if (max == null) return end;
-          return end.isAfter(max) ? end : max;
-        });
+      final end = t['estimatedEnd'] as DateTime?;
+      if (end == null) return max;
+      if (max == null) return end;
+      return end.isAfter(max) ? end : max;
+    });
 
-    final timelineSpan = maxEndTime != null 
+    final timelineSpan = maxEndTime != null
         ? maxEndTime.difference(now).inHours.toDouble()
         : 24.0;
 
@@ -390,7 +427,7 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        
+
         // Time axis
         Container(
           height: 40,
@@ -412,12 +449,14 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
         ),
 
         // Timeline bars
-        ...timeline.map((data) => _buildTimelineBar(data, now, timelineSpan, machinesBox)),
+        ...timeline.map(
+            (data) => _buildTimelineBar(data, now, timelineSpan, machinesBox)),
       ],
     );
   }
 
-  Widget _buildTimelineBar(Map<String, dynamic> data, DateTime now, double timelineSpan, Box machinesBox) {
+  Widget _buildTimelineBar(Map<String, dynamic> data, DateTime now,
+      double timelineSpan, Box machinesBox) {
     final job = data['job'] as Map;
     final machine = machinesBox.get(job['machineId']) as Map?;
     final estimatedEnd = data['estimatedEnd'] as DateTime?;
@@ -425,7 +464,8 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
     final mouldChangeNeeded = data['mouldChangeNeeded'] as bool;
     final isOverrun = data['isOverrun'] as bool;
 
-    Color barColor = isRunning ? const Color(0xFF06D6A0) : const Color(0xFF4CC9F0);
+    Color barColor =
+        isRunning ? const Color(0xFF06D6A0) : const Color(0xFF4CC9F0);
     if (isOverrun) barColor = const Color(0xFFFF6B6B);
     if (mouldChangeNeeded) barColor = const Color(0xFFFFD166);
 
@@ -506,7 +546,8 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
                         right: 8,
                         top: 4,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
                             color: const Color(0xFFFFD166),
                             borderRadius: BorderRadius.circular(8),
@@ -553,7 +594,8 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
     );
   }
 
-  Widget _buildJobCard(Map<String, dynamic> data, Box machinesBox, Box mouldsBox) {
+  Widget _buildJobCard(
+      Map<String, dynamic> data, Box machinesBox, Box mouldsBox) {
     final job = data['job'] as Map;
     final machine = machinesBox.get(job['machineId']) as Map?;
     final mould = data['mould'] as Map?;
@@ -563,7 +605,8 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
     final estimatedEnd = data['estimatedEnd'] as DateTime?;
     final timeRemaining = data['timeRemaining'] as Duration?;
 
-    Color statusColor = isRunning ? const Color(0xFF06D6A0) : const Color(0xFF4CC9F0);
+    Color statusColor =
+        isRunning ? const Color(0xFF06D6A0) : const Color(0xFF4CC9F0);
     if (isOverrun) statusColor = const Color(0xFFFF6B6B);
 
     return Card(
@@ -572,7 +615,7 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: mouldChangeNeeded 
+          color: mouldChangeNeeded
               ? const Color(0xFFFFD166)
               : statusColor.withOpacity(0.3),
           width: 2,
@@ -621,7 +664,8 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: statusColor.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(8),
@@ -637,9 +681,9 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Progress bar
             if (isRunning) ...[
               Row(
@@ -665,7 +709,9 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
-                                color: isOverrun ? const Color(0xFFFF6B6B) : Colors.white,
+                                color: isOverrun
+                                    ? const Color(0xFFFF6B6B)
+                                    : Colors.white,
                               ),
                             ),
                           ],
@@ -676,7 +722,8 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
                           child: LinearProgressIndicator(
                             value: data['progress'] as double,
                             backgroundColor: Colors.white12,
-                            valueColor: AlwaysStoppedAnimation<Color>(statusColor),
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(statusColor),
                             minHeight: 8,
                           ),
                         ),
@@ -687,7 +734,7 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
               ),
               const SizedBox(height: 16),
             ],
-            
+
             // Details grid
             Row(
               children: [
@@ -711,9 +758,9 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 12),
-            
+
             Row(
               children: [
                 Expanded(
@@ -732,7 +779,7 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
                 ),
               ],
             ),
-            
+
             // Mould change warning
             if (mouldChangeNeeded) ...[
               const SizedBox(height: 16),
@@ -741,11 +788,13 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
                 decoration: BoxDecoration(
                   color: const Color(0xFFFFD166).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFFFFD166).withOpacity(0.3)),
+                  border: Border.all(
+                      color: const Color(0xFFFFD166).withOpacity(0.3)),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.warning, color: Color(0xFFFFD166), size: 20),
+                    const Icon(Icons.warning,
+                        color: Color(0xFFFFD166), size: 20),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -887,7 +936,8 @@ class _ProductionTimelineScreenState extends State<ProductionTimelineScreen> {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: statusColor.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(12),

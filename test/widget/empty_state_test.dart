@@ -40,7 +40,8 @@ void main() {
       expect(find.text('Try adding some items'), findsOneWidget);
     });
 
-    testWidgets('displays action button when provided', (WidgetTester tester) async {
+    testWidgets('displays action button when provided',
+        (WidgetTester tester) async {
       bool actionCalled = false;
 
       await tester.pumpWidget(
@@ -57,14 +58,15 @@ void main() {
       );
 
       expect(find.text('Add Item'), findsOneWidget);
-      
+
       await tester.tap(find.text('Add Item'));
       await tester.pump();
 
       expect(actionCalled, isTrue);
     });
 
-    testWidgets('does not display action button when not provided', (WidgetTester tester) async {
+    testWidgets('does not display action button when not provided',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -91,7 +93,8 @@ void main() {
       );
 
       expect(find.text('No Machines Found'), findsOneWidget);
-      expect(find.text('Add your first machine to get started'), findsOneWidget);
+      expect(
+          find.text('Add your first machine to get started'), findsOneWidget);
     });
   });
 

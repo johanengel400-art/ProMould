@@ -16,7 +16,8 @@ class PushNotificationService {
       StreamController<RemoteMessage>.broadcast();
 
   /// Stream of received messages
-  static Stream<RemoteMessage> get messageStream => _messageStreamController.stream;
+  static Stream<RemoteMessage> get messageStream =>
+      _messageStreamController.stream;
 
   /// Get FCM token
   static String? get fcmToken => _fcmToken;
@@ -58,7 +59,8 @@ class PushNotificationService {
       _initialized = true;
       LogService.info('Push notifications initialized successfully');
     } catch (e, stackTrace) {
-      LogService.error('Failed to initialize push notifications', e, stackTrace);
+      LogService.error(
+          'Failed to initialize push notifications', e, stackTrace);
     }
   }
 
@@ -84,7 +86,7 @@ class PushNotificationService {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       LogService.info('Foreground message received: ${message.messageId}');
       _messageStreamController.add(message);
-      
+
       // Note: System will show notification automatically on Android/iOS
       // No local notification needed
     });

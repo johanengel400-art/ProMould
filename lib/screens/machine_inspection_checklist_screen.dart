@@ -33,15 +33,35 @@ class _MachineInspectionChecklistScreenState
     {'name': 'Check Cycle Time', 'category': 'Process', 'critical': false},
     {'name': 'Check Material Level', 'category': 'Material', 'critical': true},
     {'name': 'Check Job Card', 'category': 'Documentation', 'critical': false},
-    {'name': 'Check Nozzle Condition', 'category': 'Mechanical', 'critical': true},
-    {'name': 'Check Barrel Temperature', 'category': 'Process', 'critical': true},
+    {
+      'name': 'Check Nozzle Condition',
+      'category': 'Mechanical',
+      'critical': true
+    },
+    {
+      'name': 'Check Barrel Temperature',
+      'category': 'Process',
+      'critical': true
+    },
     {'name': 'Check Hopper Loader', 'category': 'Material', 'critical': false},
-    {'name': 'Check Machine Oil Level', 'category': 'Mechanical', 'critical': true},
-    {'name': 'Check Hydraulic Pressure', 'category': 'Mechanical', 'critical': true},
+    {
+      'name': 'Check Machine Oil Level',
+      'category': 'Mechanical',
+      'critical': true
+    },
+    {
+      'name': 'Check Hydraulic Pressure',
+      'category': 'Mechanical',
+      'critical': true
+    },
     {'name': 'Check Safety Guards', 'category': 'Safety', 'critical': true},
     {'name': 'Check Emergency Stop', 'category': 'Safety', 'critical': true},
     {'name': 'Check Cooling System', 'category': 'Process', 'critical': false},
-    {'name': 'Verify Production Count', 'category': 'Production', 'critical': false},
+    {
+      'name': 'Verify Production Count',
+      'category': 'Production',
+      'critical': false
+    },
   ];
 
   @override
@@ -83,7 +103,8 @@ class _MachineInspectionChecklistScreenState
       ),
       actions: [
         IconButton(
-          icon: Icon(_viewMode == 'checklist' ? Icons.history : Icons.checklist),
+          icon:
+              Icon(_viewMode == 'checklist' ? Icons.history : Icons.checklist),
           onPressed: () {
             setState(() {
               _viewMode = _viewMode == 'checklist' ? 'history' : 'checklist';
@@ -138,9 +159,7 @@ class _MachineInspectionChecklistScreenState
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
             side: BorderSide(
-              color: isComplete
-                  ? const Color(0xFF06D6A0)
-                  : Colors.white12,
+              color: isComplete ? const Color(0xFF06D6A0) : Colors.white12,
               width: isComplete ? 2 : 1,
             ),
           ),

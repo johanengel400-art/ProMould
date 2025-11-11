@@ -12,10 +12,12 @@ class MouldChangeSchedulerScreen extends StatefulWidget {
   const MouldChangeSchedulerScreen({super.key, required this.level});
 
   @override
-  State<MouldChangeSchedulerScreen> createState() => _MouldChangeSchedulerScreenState();
+  State<MouldChangeSchedulerScreen> createState() =>
+      _MouldChangeSchedulerScreenState();
 }
 
-class _MouldChangeSchedulerScreenState extends State<MouldChangeSchedulerScreen> {
+class _MouldChangeSchedulerScreenState
+    extends State<MouldChangeSchedulerScreen> {
   final uuid = const Uuid();
   String selectedFilter = 'All';
 
@@ -47,13 +49,16 @@ class _MouldChangeSchedulerScreenState extends State<MouldChangeSchedulerScreen>
 
         // Filter
         if (selectedFilter != 'All') {
-          changes = changes.where((c) => c['status'] == selectedFilter).toList();
+          changes =
+              changes.where((c) => c['status'] == selectedFilter).toList();
         }
 
         // Sort by scheduled date
         changes.sort((a, b) {
-          final aDate = DateTime.tryParse(a['scheduledDate'] ?? '') ?? DateTime.now();
-          final bDate = DateTime.tryParse(b['scheduledDate'] ?? '') ?? DateTime.now();
+          final aDate =
+              DateTime.tryParse(a['scheduledDate'] ?? '') ?? DateTime.now();
+          final bDate =
+              DateTime.tryParse(b['scheduledDate'] ?? '') ?? DateTime.now();
           return aDate.compareTo(bDate);
         });
 
@@ -81,11 +86,23 @@ class _MouldChangeSchedulerScreenState extends State<MouldChangeSchedulerScreen>
                     children: [
                       _buildFilterChip('All', changes.length),
                       const SizedBox(width: 8),
-                      _buildFilterChip('Scheduled', changes.where((c) => c['status'] == 'Scheduled').length),
+                      _buildFilterChip(
+                          'Scheduled',
+                          changes
+                              .where((c) => c['status'] == 'Scheduled')
+                              .length),
                       const SizedBox(width: 8),
-                      _buildFilterChip('In Progress', changes.where((c) => c['status'] == 'In Progress').length),
+                      _buildFilterChip(
+                          'In Progress',
+                          changes
+                              .where((c) => c['status'] == 'In Progress')
+                              .length),
                       const SizedBox(width: 8),
-                      _buildFilterChip('Completed', changes.where((c) => c['status'] == 'Completed').length),
+                      _buildFilterChip(
+                          'Completed',
+                          changes
+                              .where((c) => c['status'] == 'Completed')
+                              .length),
                     ],
                   ),
                 ),
@@ -98,11 +115,13 @@ class _MouldChangeSchedulerScreenState extends State<MouldChangeSchedulerScreen>
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.swap_horiz, size: 64, color: Colors.white.withOpacity(0.3)),
+                            Icon(Icons.swap_horiz,
+                                size: 64, color: Colors.white.withOpacity(0.3)),
                             const SizedBox(height: 16),
                             Text(
                               'No mould changes ${selectedFilter != 'All' ? 'with status: $selectedFilter' : 'scheduled'}',
-                              style: TextStyle(color: Colors.white.withOpacity(0.5)),
+                              style: TextStyle(
+                                  color: Colors.white.withOpacity(0.5)),
                             ),
                           ],
                         ),
@@ -151,12 +170,14 @@ class _MouldChangeSchedulerScreenState extends State<MouldChangeSchedulerScreen>
     final fromMould = mouldsBox.get(change['fromMouldId']) as Map?;
     final toMould = mouldsBox.get(change['toMouldId']) as Map?;
     final setter = usersBox.values.cast<Map>().firstWhere(
-      (u) => u['username'] == change['assignedTo'],
-      orElse: () => {'username': 'Unassigned'},
-    );
+          (u) => u['username'] == change['assignedTo'],
+          orElse: () => {'username': 'Unassigned'},
+        );
 
-    final scheduledDate = DateTime.tryParse(change['scheduledDate'] ?? '') ?? DateTime.now();
-    final isOverdue = status == 'Scheduled' && scheduledDate.isBefore(DateTime.now());
+    final scheduledDate =
+        DateTime.tryParse(change['scheduledDate'] ?? '') ?? DateTime.now();
+    final isOverdue =
+        status == 'Scheduled' && scheduledDate.isBefore(DateTime.now());
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -171,7 +192,9 @@ class _MouldChangeSchedulerScreenState extends State<MouldChangeSchedulerScreen>
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isOverdue ? const Color(0xFFFF6B6B) : statusColor.withOpacity(0.3),
+          color: isOverdue
+              ? const Color(0xFFFF6B6B)
+              : statusColor.withOpacity(0.3),
           width: 2,
         ),
       ),
@@ -213,11 +236,13 @@ class _MouldChangeSchedulerScreenState extends State<MouldChangeSchedulerScreen>
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
                               color: statusColor.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(4),
-                              border: Border.all(color: statusColor.withOpacity(0.5)),
+                              border: Border.all(
+                                  color: statusColor.withOpacity(0.5)),
                             ),
                             child: Text(
                               status,
@@ -231,11 +256,13 @@ class _MouldChangeSchedulerScreenState extends State<MouldChangeSchedulerScreen>
                           if (isOverdue) ...[
                             const SizedBox(width: 8),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFFF6B6B).withOpacity(0.2),
                                 borderRadius: BorderRadius.circular(4),
-                                border: Border.all(color: const Color(0xFFFF6B6B)),
+                                border:
+                                    Border.all(color: const Color(0xFFFF6B6B)),
                               ),
                               child: const Text(
                                 'OVERDUE',
@@ -270,7 +297,8 @@ class _MouldChangeSchedulerScreenState extends State<MouldChangeSchedulerScreen>
                         children: [
                           const Text(
                             'FROM',
-                            style: TextStyle(color: Colors.white54, fontSize: 11),
+                            style:
+                                TextStyle(color: Colors.white54, fontSize: 11),
                           ),
                           const SizedBox(height: 4),
                           Text(
@@ -282,7 +310,8 @@ class _MouldChangeSchedulerScreenState extends State<MouldChangeSchedulerScreen>
                           ),
                           Text(
                             fromMould?['name'] ?? '',
-                            style: const TextStyle(color: Colors.white60, fontSize: 12),
+                            style: const TextStyle(
+                                color: Colors.white60, fontSize: 12),
                           ),
                         ],
                       ),
@@ -295,7 +324,8 @@ class _MouldChangeSchedulerScreenState extends State<MouldChangeSchedulerScreen>
                         children: [
                           const Text(
                             'TO',
-                            style: TextStyle(color: Colors.white54, fontSize: 11),
+                            style:
+                                TextStyle(color: Colors.white54, fontSize: 11),
                           ),
                           const SizedBox(height: 4),
                           Text(
@@ -308,7 +338,8 @@ class _MouldChangeSchedulerScreenState extends State<MouldChangeSchedulerScreen>
                           ),
                           Text(
                             toMould?['name'] ?? '',
-                            style: const TextStyle(color: Colors.white60, fontSize: 12),
+                            style: const TextStyle(
+                                color: Colors.white60, fontSize: 12),
                           ),
                         ],
                       ),
@@ -327,16 +358,24 @@ class _MouldChangeSchedulerScreenState extends State<MouldChangeSchedulerScreen>
                   ),
                   child: Column(
                     children: [
-                      _buildInfoRow(Icons.person_outline, 'Assigned To', setter['username'] as String),
+                      _buildInfoRow(Icons.person_outline, 'Assigned To',
+                          setter['username'] as String),
                       const Divider(height: 16, color: Colors.white12),
-                      _buildInfoRow(Icons.calendar_today, 'Scheduled', DateFormat('MMM d, yyyy HH:mm').format(scheduledDate)),
+                      _buildInfoRow(
+                          Icons.calendar_today,
+                          'Scheduled',
+                          DateFormat('MMM d, yyyy HH:mm')
+                              .format(scheduledDate)),
                       if (change['estimatedDuration'] != null) ...[
                         const Divider(height: 16, color: Colors.white12),
-                        _buildInfoRow(Icons.timer_outlined, 'Est. Duration', '${change['estimatedDuration']} min'),
+                        _buildInfoRow(Icons.timer_outlined, 'Est. Duration',
+                            '${change['estimatedDuration']} min'),
                       ],
-                      if (change['notes'] != null && (change['notes'] as String).isNotEmpty) ...[
+                      if (change['notes'] != null &&
+                          (change['notes'] as String).isNotEmpty) ...[
                         const Divider(height: 16, color: Colors.white12),
-                        _buildInfoRow(Icons.notes, 'Notes', change['notes'] as String),
+                        _buildInfoRow(
+                            Icons.notes, 'Notes', change['notes'] as String),
                       ],
                     ],
                   ),
@@ -414,7 +453,8 @@ class _MouldChangeSchedulerScreenState extends State<MouldChangeSchedulerScreen>
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
+            style: const TextStyle(
+                color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
             textAlign: TextAlign.right,
           ),
         ),
@@ -429,18 +469,24 @@ class _MouldChangeSchedulerScreenState extends State<MouldChangeSchedulerScreen>
 
     final machines = machinesBox.values.cast<Map>().toList();
     final moulds = mouldsBox.values.cast<Map>().toList();
-    final setters = usersBox.values.cast<Map>().where((u) => (u['level'] as int? ?? 0) == 3).toList();
+    final setters = usersBox.values
+        .cast<Map>()
+        .where((u) => (u['level'] as int? ?? 0) == 3)
+        .toList();
 
     if (machines.isEmpty || moulds.isEmpty || setters.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Need machines, moulds, and setters to schedule')),
+        const SnackBar(
+            content: Text('Need machines, moulds, and setters to schedule')),
       );
       return;
     }
 
     String? machineId = machines.first['id'] as String;
     String? fromMouldId = moulds.first['id'] as String;
-    String? toMouldId = moulds.length > 1 ? moulds[1]['id'] as String : moulds.first['id'] as String;
+    String? toMouldId = moulds.length > 1
+        ? moulds[1]['id'] as String
+        : moulds.first['id'] as String;
     String? assignedTo = setters.first['username'] as String;
     DateTime scheduledDate = DateTime.now().add(const Duration(hours: 1));
     final durationCtrl = TextEditingController(text: '30');
@@ -460,7 +506,8 @@ class _MouldChangeSchedulerScreenState extends State<MouldChangeSchedulerScreen>
                   decoration: const InputDecoration(labelText: 'Machine'),
                   items: machines
                       .map((m) => DropdownMenuItem(
-                          value: m['id'] as String, child: Text(m['name'] as String)))
+                          value: m['id'] as String,
+                          child: Text(m['name'] as String)))
                       .toList(),
                   onChanged: (v) => setDialogState(() => machineId = v),
                 ),
@@ -500,7 +547,8 @@ class _MouldChangeSchedulerScreenState extends State<MouldChangeSchedulerScreen>
                 const SizedBox(height: 12),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: Text('Date: ${DateFormat('MMM d, yyyy HH:mm').format(scheduledDate)}'),
+                  title: Text(
+                      'Date: ${DateFormat('MMM d, yyyy HH:mm').format(scheduledDate)}'),
                   trailing: const Icon(Icons.calendar_today),
                   onTap: () async {
                     final date = await showDatePicker(
@@ -531,13 +579,15 @@ class _MouldChangeSchedulerScreenState extends State<MouldChangeSchedulerScreen>
                 const SizedBox(height: 12),
                 TextField(
                   controller: durationCtrl,
-                  decoration: const InputDecoration(labelText: 'Est. Duration (minutes)'),
+                  decoration: const InputDecoration(
+                      labelText: 'Est. Duration (minutes)'),
                   keyboardType: TextInputType.number,
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: notesCtrl,
-                  decoration: const InputDecoration(labelText: 'Notes (optional)'),
+                  decoration:
+                      const InputDecoration(labelText: 'Notes (optional)'),
                   maxLines: 3,
                 ),
               ],
@@ -567,7 +617,7 @@ class _MouldChangeSchedulerScreenState extends State<MouldChangeSchedulerScreen>
                 await mouldChangesBox.put(id, data);
                 await SyncService.push('mouldChangesBox', id, data);
                 if (context.mounted) {
-                Navigator.pop(dialogContext);
+                  Navigator.pop(dialogContext);
                 }
                 setState(() {});
               },
@@ -591,14 +641,14 @@ class _MouldChangeSchedulerScreenState extends State<MouldChangeSchedulerScreen>
     final id = change['id'] as String;
     final machineId = change['machineId'] as String?;
     final toMouldId = change['toMouldId'] as String?;
-    
+
     final updated = Map<String, dynamic>.from(change);
     updated['status'] = newStatus;
-    
+
     if (newStatus == 'In Progress' && machineId != null) {
       // Setter starts mould change - stop the machine
       updated['startedAt'] = DateTime.now().toIso8601String();
-      
+
       // Update machine status to "Mould Change"
       final machine = machinesBox.get(machineId) as Map?;
       if (machine != null) {
@@ -608,11 +658,13 @@ class _MouldChangeSchedulerScreenState extends State<MouldChangeSchedulerScreen>
         await machinesBox.put(machineId, updatedMachine);
         await SyncService.pushChange('machinesBox', machineId, updatedMachine);
       }
-      
+
       // Pause any running jobs on this machine
-      final runningJobs = jobsBox.values.cast<Map>().where((j) =>
-          j['machineId'] == machineId && j['status'] == 'Running').toList();
-      
+      final runningJobs = jobsBox.values
+          .cast<Map>()
+          .where((j) => j['machineId'] == machineId && j['status'] == 'Running')
+          .toList();
+
       for (final job in runningJobs) {
         final jobId = job['id'] as String;
         final updatedJob = Map<String, dynamic>.from(job);
@@ -622,10 +674,12 @@ class _MouldChangeSchedulerScreenState extends State<MouldChangeSchedulerScreen>
         await jobsBox.put(jobId, updatedJob);
         await SyncService.pushChange('jobsBox', jobId, updatedJob);
       }
-    } else if (newStatus == 'Completed' && machineId != null && toMouldId != null) {
+    } else if (newStatus == 'Completed' &&
+        machineId != null &&
+        toMouldId != null) {
       // Setter completes mould change
       updated['completedAt'] = DateTime.now().toIso8601String();
-      
+
       // Update machine with new mould and set to Running
       final machine = machinesBox.get(machineId) as Map?;
       if (machine != null) {
@@ -636,12 +690,17 @@ class _MouldChangeSchedulerScreenState extends State<MouldChangeSchedulerScreen>
         await machinesBox.put(machineId, updatedMachine);
         await SyncService.pushChange('machinesBox', machineId, updatedMachine);
       }
-      
+
       // Find all pending jobs with the same mould and assign them to this machine
-      final pendingJobsWithMould = jobsBox.values.cast<Map>().where((j) =>
-          j['mouldId'] == toMouldId && 
-          (j['status'] == 'Pending' || j['machineId'] == null || j['machineId'] == '')).toList();
-      
+      final pendingJobsWithMould = jobsBox.values
+          .cast<Map>()
+          .where((j) =>
+              j['mouldId'] == toMouldId &&
+              (j['status'] == 'Pending' ||
+                  j['machineId'] == null ||
+                  j['machineId'] == ''))
+          .toList();
+
       // Start the first job with this mould
       if (pendingJobsWithMould.isNotEmpty) {
         final firstJob = pendingJobsWithMould.first;
@@ -652,7 +711,7 @@ class _MouldChangeSchedulerScreenState extends State<MouldChangeSchedulerScreen>
         updatedJob['startTime'] = DateTime.now().toIso8601String();
         await jobsBox.put(jobId, updatedJob);
         await SyncService.pushChange('jobsBox', jobId, updatedJob);
-        
+
         // Queue remaining jobs with same mould
         for (var i = 1; i < pendingJobsWithMould.length; i++) {
           final job = pendingJobsWithMould[i];
@@ -665,7 +724,7 @@ class _MouldChangeSchedulerScreenState extends State<MouldChangeSchedulerScreen>
         }
       }
     }
-    
+
     await mouldChangesBox.put(id, updated);
     await SyncService.push('mouldChangesBox', id, updated);
     setState(() {});
@@ -676,7 +735,8 @@ class _MouldChangeSchedulerScreenState extends State<MouldChangeSchedulerScreen>
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Mould Change'),
-        content: const Text('Are you sure you want to delete this scheduled mould change?'),
+        content: const Text(
+            'Are you sure you want to delete this scheduled mould change?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),

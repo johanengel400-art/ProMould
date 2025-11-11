@@ -55,11 +55,13 @@ class CacheService {
 
   /// Invalidate all keys matching pattern
   static void invalidatePattern(String pattern) {
-    final keysToRemove = _cache.keys.where((key) => key.contains(pattern)).toList();
+    final keysToRemove =
+        _cache.keys.where((key) => key.contains(pattern)).toList();
     for (final key in keysToRemove) {
       _cache.remove(key);
     }
-    LogService.debug('Cache invalidated pattern: $pattern (${keysToRemove.length} keys)');
+    LogService.debug(
+        'Cache invalidated pattern: $pattern (${keysToRemove.length} keys)');
   }
 
   /// Clear all cache
@@ -104,7 +106,7 @@ class CachedData {
   CachedData(this.data, this.expiresAt);
 
   bool get isExpired => DateTime.now().isAfter(expiresAt);
-  
+
   Duration get timeToLive {
     final ttl = expiresAt.difference(DateTime.now());
     return ttl.isNegative ? Duration.zero : ttl;
@@ -117,22 +119,24 @@ class CacheKeys {
   static const String machines = 'machines_list';
   static String machineById(String id) => 'machine_$id';
   static String machinesByFloor(String floorId) => 'machines_floor_$floorId';
-  
+
   // Jobs
   static const String jobs = 'jobs_list';
   static String jobById(String id) => 'job_$id';
   static String jobsByMachine(String machineId) => 'jobs_machine_$machineId';
   static String runningJobs = 'jobs_running';
-  
+
   // Moulds
   static const String moulds = 'moulds_list';
   static String mouldById(String id) => 'mould_$id';
-  
+
   // Analytics
   static String oee(String machineId, String date) => 'oee_${machineId}_$date';
-  static String scrapRate(String machineId, String date) => 'scrap_${machineId}_$date';
-  static String downtime(String machineId, String date) => 'downtime_${machineId}_$date';
-  
+  static String scrapRate(String machineId, String date) =>
+      'scrap_${machineId}_$date';
+  static String downtime(String machineId, String date) =>
+      'downtime_${machineId}_$date';
+
   // Dashboard
   static const String dashboardStats = 'dashboard_stats';
   static const String productionSummary = 'production_summary';

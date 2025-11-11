@@ -16,11 +16,11 @@ class JobAnalyticsScreen extends StatefulWidget {
 
 class _JobAnalyticsScreenState extends State<JobAnalyticsScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  
+
   DateTime _startDate = DateTime.now().subtract(const Duration(days: 7));
   DateTime _endDate = DateTime.now();
   bool _isLoading = false;
-  
+
   Map<String, dynamic> _analytics = {};
 
   @override
@@ -31,18 +31,18 @@ class _JobAnalyticsScreenState extends State<JobAnalyticsScreen> {
 
   Future<void> _loadAnalytics() async {
     setState(() => _isLoading = true);
-    
+
     try {
       final allJobs = <Map<String, dynamic>>[];
-      
+
       // Load finished jobs from date range
-      for (var date = _startDate; 
-           date.isBefore(_endDate.add(const Duration(days: 1))); 
-           date = date.add(const Duration(days: 1))) {
+      for (var date = _startDate;
+          date.isBefore(_endDate.add(const Duration(days: 1)));
+          date = date.add(const Duration(days: 1))) {
         final year = date.year.toString();
         final month = date.month.toString().padLeft(2, '0');
         final day = date.day.toString().padLeft(2, '0');
-        
+
         try {
           final snapshot = await _firestore
               .collection('finishedJobs')
@@ -51,7 +51,7 @@ class _JobAnalyticsScreenState extends State<JobAnalyticsScreen> {
               .doc(day)
               .collection('jobs')
               .get();
-          
+
           allJobs.addAll(snapshot.docs.map((doc) {
             final data = doc.data();
             data['id'] = doc.id;
@@ -61,16 +61,16 @@ class _JobAnalyticsScreenState extends State<JobAnalyticsScreen> {
           // Day might not exist, continue
         }
       }
-      
+
       // Also include active jobs
       final jobsBox = Hive.box('jobsBox');
       final activeJobs = jobsBox.values.cast<Map>().where((j) {
         final status = j['status'] as String?;
         return JobStatus.isActive(status);
       }).toList();
-      
+
       allJobs.addAll(activeJobs.map((j) => Map<String, dynamic>.from(j)));
-      
+
       // Calculate analytics
       _analytics = _calculateAnalytics(allJobs);
     } catch (e) {
@@ -100,42 +100,44 @@ class _JobAnalyticsScreenState extends State<JobAnalyticsScreen> {
         'worstOffenders': <Map<String, dynamic>>[],
       };
     }
-    
+
     final totalJobs = jobs.length;
     var overrunJobs = 0;
     var totalShots = 0;
     var totalTarget = 0;
     var totalOverrun = 0;
     var totalOverrunPercentage = 0.0;
-    
+
     final machineOverruns = <String, int>{};
     final productOverruns = <String, int>{};
     final dailyTrend = <String, Map<String, int>>{};
     final overrunDetails = <Map<String, dynamic>>[];
-    
+
     for (final job in jobs) {
       final shotsCompleted = job['shotsCompleted'] as int? ?? 0;
       final targetShots = job['targetShots'] as int? ?? 0;
-      final overrunShots = JobStatus.getOverrunShots(shotsCompleted, targetShots);
-      
+      final overrunShots =
+          JobStatus.getOverrunShots(shotsCompleted, targetShots);
+
       totalShots += shotsCompleted;
       totalTarget += targetShots;
-      
+
       if (overrunShots > 0) {
         overrunJobs++;
         totalOverrun += overrunShots;
-        
-        final percentage = JobStatus.getOverrunPercentage(shotsCompleted, targetShots);
+
+        final percentage =
+            JobStatus.getOverrunPercentage(shotsCompleted, targetShots);
         totalOverrunPercentage += percentage;
-        
+
         // Track by machine
         final machineId = job['machineId'] as String? ?? 'Unknown';
         machineOverruns[machineId] = (machineOverruns[machineId] ?? 0) + 1;
-        
+
         // Track by product
         final productName = job['productName'] as String? ?? 'Unknown';
         productOverruns[productName] = (productOverruns[productName] ?? 0) + 1;
-        
+
         // Store details for worst offenders
         overrunDetails.add({
           'job': job,
@@ -143,26 +145,29 @@ class _JobAnalyticsScreenState extends State<JobAnalyticsScreen> {
           'overrunPercentage': percentage,
         });
       }
-      
+
       // Daily trend
-      final dateStr = job['finishedDate'] as String? ?? job['startTime'] as String?;
+      final dateStr =
+          job['finishedDate'] as String? ?? job['startTime'] as String?;
       if (dateStr != null) {
         final date = DateTime.tryParse(dateStr);
         if (date != null) {
           final dayKey = DateFormat('yyyy-MM-dd').format(date);
           dailyTrend[dayKey] = dailyTrend[dayKey] ?? {'total': 0, 'overrun': 0};
-          dailyTrend[dayKey]!['total'] = (dailyTrend[dayKey]!['total'] ?? 0) + 1;
+          dailyTrend[dayKey]!['total'] =
+              (dailyTrend[dayKey]!['total'] ?? 0) + 1;
           if (overrunShots > 0) {
-            dailyTrend[dayKey]!['overrun'] = (dailyTrend[dayKey]!['overrun'] ?? 0) + 1;
+            dailyTrend[dayKey]!['overrun'] =
+                (dailyTrend[dayKey]!['overrun'] ?? 0) + 1;
           }
         }
       }
     }
-    
+
     // Sort worst offenders
-    overrunDetails.sort((a, b) => 
-      (b['overrunPercentage'] as double).compareTo(a['overrunPercentage'] as double));
-    
+    overrunDetails.sort((a, b) => (b['overrunPercentage'] as double)
+        .compareTo(a['overrunPercentage'] as double));
+
     return {
       'totalJobs': totalJobs,
       'overrunJobs': overrunJobs,
@@ -170,7 +175,8 @@ class _JobAnalyticsScreenState extends State<JobAnalyticsScreen> {
       'totalShots': totalShots,
       'totalTarget': totalTarget,
       'totalOverrun': totalOverrun,
-      'avgOverrunPercentage': overrunJobs > 0 ? (totalOverrunPercentage / overrunJobs) : 0.0,
+      'avgOverrunPercentage':
+          overrunJobs > 0 ? (totalOverrunPercentage / overrunJobs) : 0.0,
       'machineOverruns': machineOverruns,
       'productOverruns': productOverruns,
       'dailyTrend': dailyTrend,
@@ -196,7 +202,7 @@ class _JobAnalyticsScreenState extends State<JobAnalyticsScreen> {
         );
       },
     );
-    
+
     if (picked != null) {
       setState(() {
         _startDate = picked.start;
@@ -225,7 +231,8 @@ class _JobAnalyticsScreenState extends State<JobAnalyticsScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF4CC9F0)))
+          ? const Center(
+              child: CircularProgressIndicator(color: Color(0xFF4CC9F0)))
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -237,41 +244,44 @@ class _JobAnalyticsScreenState extends State<JobAnalyticsScreen> {
                     decoration: BoxDecoration(
                       color: const Color(0xFF1A1F2E),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color(0xFF4CC9F0).withOpacity(0.3)),
+                      border: Border.all(
+                          color: const Color(0xFF4CC9F0).withOpacity(0.3)),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.calendar_today, color: Color(0xFF4CC9F0), size: 16),
+                        const Icon(Icons.calendar_today,
+                            color: Color(0xFF4CC9F0), size: 16),
                         const SizedBox(width: 8),
                         Text(
                           '${DateFormat('MMM d').format(_startDate)} - ${DateFormat('MMM d, yyyy').format(_endDate)}',
-                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                          style: const TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.w500),
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 20),
-                  
+
                   // Overview Cards
                   _buildOverviewSection(),
                   const SizedBox(height: 20),
-                  
+
                   // Overrun Rate Card
                   _buildOverrunRateCard(),
                   const SizedBox(height: 20),
-                  
+
                   // Machine Breakdown
                   _buildMachineBreakdown(),
                   const SizedBox(height: 20),
-                  
+
                   // Product Breakdown
                   _buildProductBreakdown(),
                   const SizedBox(height: 20),
-                  
+
                   // Daily Trend
                   _buildDailyTrend(),
                   const SizedBox(height: 20),
-                  
+
                   // Worst Offenders
                   _buildWorstOffenders(),
                 ],
@@ -285,7 +295,7 @@ class _JobAnalyticsScreenState extends State<JobAnalyticsScreen> {
     final overrunJobs = _analytics['overrunJobs'] as int? ?? 0;
     final totalShots = _analytics['totalShots'] as int? ?? 0;
     final totalOverrun = _analytics['totalOverrun'] as int? ?? 0;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -341,7 +351,8 @@ class _JobAnalyticsScreenState extends State<JobAnalyticsScreen> {
     );
   }
 
-  Widget _buildStatCard(String label, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+      String label, String value, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -383,14 +394,15 @@ class _JobAnalyticsScreenState extends State<JobAnalyticsScreen> {
 
   Widget _buildOverrunRateCard() {
     final overrunRate = _analytics['overrunRate'] as double? ?? 0.0;
-    final avgOverrunPercentage = _analytics['avgOverrunPercentage'] as double? ?? 0.0;
-    
-    final rateColor = overrunRate > 30 
+    final avgOverrunPercentage =
+        _analytics['avgOverrunPercentage'] as double? ?? 0.0;
+
+    final rateColor = overrunRate > 30
         ? const Color(0xFFFF6B6B)
         : overrunRate > 15
             ? const Color(0xFFFFD166)
             : const Color(0xFF06D6A0);
-    
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -469,13 +481,18 @@ class _JobAnalyticsScreenState extends State<JobAnalyticsScreen> {
                 ],
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: rateColor.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  overrunRate > 30 ? 'HIGH' : overrunRate > 15 ? 'MODERATE' : 'LOW',
+                  overrunRate > 30
+                      ? 'HIGH'
+                      : overrunRate > 15
+                          ? 'MODERATE'
+                          : 'LOW',
                   style: TextStyle(
                     color: rateColor,
                     fontSize: 12,
@@ -491,12 +508,13 @@ class _JobAnalyticsScreenState extends State<JobAnalyticsScreen> {
   }
 
   Widget _buildMachineBreakdown() {
-    final machineOverruns = _analytics['machineOverruns'] as Map<String, int>? ?? {};
+    final machineOverruns =
+        _analytics['machineOverruns'] as Map<String, int>? ?? {};
     if (machineOverruns.isEmpty) return const SizedBox.shrink();
-    
+
     final sortedMachines = machineOverruns.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -506,22 +524,23 @@ class _JobAnalyticsScreenState extends State<JobAnalyticsScreen> {
         ),
         const SizedBox(height: 12),
         ...sortedMachines.take(5).map((entry) => _buildBarItem(
-          entry.key,
-          entry.value,
-          sortedMachines.first.value,
-          const Color(0xFF4CC9F0),
-        )),
+              entry.key,
+              entry.value,
+              sortedMachines.first.value,
+              const Color(0xFF4CC9F0),
+            )),
       ],
     );
   }
 
   Widget _buildProductBreakdown() {
-    final productOverruns = _analytics['productOverruns'] as Map<String, int>? ?? {};
+    final productOverruns =
+        _analytics['productOverruns'] as Map<String, int>? ?? {};
     if (productOverruns.isEmpty) return const SizedBox.shrink();
-    
+
     final sortedProducts = productOverruns.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -531,18 +550,18 @@ class _JobAnalyticsScreenState extends State<JobAnalyticsScreen> {
         ),
         const SizedBox(height: 12),
         ...sortedProducts.take(5).map((entry) => _buildBarItem(
-          entry.key,
-          entry.value,
-          sortedProducts.first.value,
-          const Color(0xFFFFD166),
-        )),
+              entry.key,
+              entry.value,
+              sortedProducts.first.value,
+              const Color(0xFFFFD166),
+            )),
       ],
     );
   }
 
   Widget _buildBarItem(String label, int value, int maxValue, Color color) {
     final percentage = maxValue > 0 ? value / maxValue : 0.0;
-    
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(
@@ -554,7 +573,8 @@ class _JobAnalyticsScreenState extends State<JobAnalyticsScreen> {
               Expanded(
                 child: Text(
                   label,
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                  style: const TextStyle(
+                      fontSize: 13, fontWeight: FontWeight.w500),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -596,12 +616,13 @@ class _JobAnalyticsScreenState extends State<JobAnalyticsScreen> {
   }
 
   Widget _buildDailyTrend() {
-    final dailyTrend = _analytics['dailyTrend'] as Map<String, Map<String, int>>? ?? {};
+    final dailyTrend =
+        _analytics['dailyTrend'] as Map<String, Map<String, int>>? ?? {};
     if (dailyTrend.isEmpty) return const SizedBox.shrink();
-    
+
     final sortedDays = dailyTrend.entries.toList()
       ..sort((a, b) => a.key.compareTo(b.key));
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -623,7 +644,7 @@ class _JobAnalyticsScreenState extends State<JobAnalyticsScreen> {
               final total = entry.value['total'] ?? 0;
               final overrun = entry.value['overrun'] ?? 0;
               final rate = total > 0 ? (overrun / total * 100) : 0.0;
-              
+
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Row(
@@ -632,7 +653,8 @@ class _JobAnalyticsScreenState extends State<JobAnalyticsScreen> {
                       width: 80,
                       child: Text(
                         DateFormat('MMM d').format(date),
-                        style: const TextStyle(fontSize: 12, color: Colors.white70),
+                        style: const TextStyle(
+                            fontSize: 12, color: Colors.white70),
                       ),
                     ),
                     Expanded(
@@ -642,14 +664,16 @@ class _JobAnalyticsScreenState extends State<JobAnalyticsScreen> {
                             flex: 2,
                             child: Text(
                               '$total jobs',
-                              style: const TextStyle(fontSize: 12, color: Colors.white54),
+                              style: const TextStyle(
+                                  fontSize: 12, color: Colors.white54),
                             ),
                           ),
                           Expanded(
                             flex: 2,
                             child: Text(
                               '$overrun overrun',
-                              style: const TextStyle(fontSize: 12, color: Color(0xFFFF6B6B)),
+                              style: const TextStyle(
+                                  fontSize: 12, color: Color(0xFFFF6B6B)),
                             ),
                           ),
                           Expanded(
@@ -659,7 +683,9 @@ class _JobAnalyticsScreenState extends State<JobAnalyticsScreen> {
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
-                                color: rate > 30 ? const Color(0xFFFF6B6B) : const Color(0xFF06D6A0),
+                                color: rate > 30
+                                    ? const Color(0xFFFF6B6B)
+                                    : const Color(0xFF06D6A0),
                               ),
                               textAlign: TextAlign.right,
                             ),
@@ -680,7 +706,7 @@ class _JobAnalyticsScreenState extends State<JobAnalyticsScreen> {
   Widget _buildWorstOffenders() {
     final worstOffenders = _analytics['worstOffenders'] as List? ?? [];
     if (worstOffenders.isEmpty) return const SizedBox.shrink();
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -693,7 +719,7 @@ class _JobAnalyticsScreenState extends State<JobAnalyticsScreen> {
           final job = offender['job'] as Map<String, dynamic>;
           final overrunShots = offender['overrunShots'] as int;
           final overrunPercentage = offender['overrunPercentage'] as double;
-          
+
           return Container(
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(16),
@@ -705,7 +731,8 @@ class _JobAnalyticsScreenState extends State<JobAnalyticsScreen> {
                 ],
               ),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFFF6B6B).withOpacity(0.3)),
+              border:
+                  Border.all(color: const Color(0xFFFF6B6B).withOpacity(0.3)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -722,7 +749,8 @@ class _JobAnalyticsScreenState extends State<JobAnalyticsScreen> {
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: const Color(0xFFFF6B6B).withOpacity(0.2),
                         borderRadius: BorderRadius.circular(4),
@@ -741,18 +769,22 @@ class _JobAnalyticsScreenState extends State<JobAnalyticsScreen> {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    Icon(Icons.precision_manufacturing, size: 14, color: Colors.white54),
+                    Icon(Icons.precision_manufacturing,
+                        size: 14, color: Colors.white54),
                     const SizedBox(width: 4),
                     Text(
                       job['machineId'] as String? ?? 'Unknown',
-                      style: const TextStyle(fontSize: 12, color: Colors.white54),
+                      style:
+                          const TextStyle(fontSize: 12, color: Colors.white54),
                     ),
                     const SizedBox(width: 16),
-                    Icon(Icons.add_circle_outline, size: 14, color: const Color(0xFFFF6B6B)),
+                    Icon(Icons.add_circle_outline,
+                        size: 14, color: const Color(0xFFFF6B6B)),
                     const SizedBox(width: 4),
                     Text(
                       '+$overrunShots shots',
-                      style: const TextStyle(fontSize: 12, color: Color(0xFFFF6B6B)),
+                      style: const TextStyle(
+                          fontSize: 12, color: Color(0xFFFF6B6B)),
                     ),
                   ],
                 ),

@@ -5,7 +5,8 @@ import '../services/sync_service.dart';
 
 class SyncTestScreen extends StatefulWidget {
   const SyncTestScreen({super.key});
-  @override State<SyncTestScreen> createState() => _SyncTestScreenState();
+  @override
+  State<SyncTestScreen> createState() => _SyncTestScreenState();
 }
 
 class _SyncTestScreenState extends State<SyncTestScreen> {
@@ -20,8 +21,11 @@ class _SyncTestScreenState extends State<SyncTestScreen> {
         'message': 'Test from device',
         'timestamp': DateTime.now().toIso8601String(),
       };
-      
-      await _fire.collection('test').doc(testData['id'] as String).set(testData);
+
+      await _fire
+          .collection('test')
+          .doc(testData['id'] as String)
+          .set(testData);
       setState(() => _status = '✅ Write successful! Check other device.');
     } catch (e) {
       setState(() => _status = '❌ Write failed: $e');
@@ -49,10 +53,10 @@ class _SyncTestScreenState extends State<SyncTestScreen> {
         'status': 'Idle',
         'tonnage': '100',
       };
-      
+
       await box.put(testId, data);
       await SyncService.pushChange('machinesBox', testId, data);
-      
+
       setState(() => _status = '✅ Machine synced! Check Firestore console.');
     } catch (e) {
       setState(() => _status = '❌ Machine sync failed: $e');

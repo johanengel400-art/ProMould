@@ -10,7 +10,8 @@ class ChecklistExportService {
     try {
       final csv = _generateCSV(checklist);
       final directory = await getApplicationDocumentsDirectory();
-      final fileName = 'checklist_${checklist['title']}_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.csv';
+      final fileName =
+          'checklist_${checklist['title']}_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.csv';
       final file = File('${directory.path}/$fileName');
       await file.writeAsString(csv);
 
@@ -27,7 +28,8 @@ class ChecklistExportService {
     try {
       final pdf = await _generatePDF(checklist);
       final directory = await getApplicationDocumentsDirectory();
-      final fileName = 'checklist_${checklist['title']}_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.pdf';
+      final fileName =
+          'checklist_${checklist['title']}_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.pdf';
       final file = File('${directory.path}/$fileName');
       await file.writeAsBytes(await pdf.save());
 
@@ -40,11 +42,13 @@ class ChecklistExportService {
     }
   }
 
-  static Future<void> exportMultipleToCSV(List<Map<String, dynamic>> checklists) async {
+  static Future<void> exportMultipleToCSV(
+      List<Map<String, dynamic>> checklists) async {
     try {
       final csv = _generateMultipleCSV(checklists);
       final directory = await getApplicationDocumentsDirectory();
-      final fileName = 'checklists_export_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.csv';
+      final fileName =
+          'checklists_export_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.csv';
       final file = File('${directory.path}/$fileName');
       await file.writeAsString(csv);
 
@@ -59,12 +63,13 @@ class ChecklistExportService {
 
   static String _generateCSV(Map<String, dynamic> checklist) {
     final buffer = StringBuffer();
-    
+
     // Header
     buffer.writeln('Checklist Export');
     buffer.writeln('Title,${checklist['title']}');
     buffer.writeln('Category,${checklist['category'] ?? 'N/A'}');
-    buffer.writeln('Created,${DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(checklist['createdAt']))}');
+    buffer.writeln(
+        'Created,${DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(checklist['createdAt']))}');
     buffer.writeln('');
 
     // Items
@@ -82,34 +87,41 @@ class ChecklistExportService {
 
   static String _generateMultipleCSV(List<Map<String, dynamic>> checklists) {
     final buffer = StringBuffer();
-    
+
     buffer.writeln('Checklists Export');
-    buffer.writeln('Generated,${DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now())}');
+    buffer.writeln(
+        'Generated,${DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now())}');
     buffer.writeln('');
     buffer.writeln('Checklist,Category,Item,Status,Notes');
 
     for (final checklist in checklists) {
-      final checklistTitle = (checklist['title'] as String).replaceAll(',', ';');
-      final category = ((checklist['category'] as String?) ?? 'N/A').replaceAll(',', ';');
+      final checklistTitle =
+          (checklist['title'] as String).replaceAll(',', ';');
+      final category =
+          ((checklist['category'] as String?) ?? 'N/A').replaceAll(',', ';');
       final items = checklist['items'] as List? ?? [];
-      
+
       for (final item in items) {
         final itemTitle = (item['title'] as String).replaceAll(',', ';');
         final isCompleted = item['isCompleted'] ?? false;
         final notes = ((item['notes'] as String?) ?? '').replaceAll(',', ';');
-        buffer.writeln('$checklistTitle,$category,$itemTitle,${isCompleted ? "Completed" : "Pending"},$notes');
+        buffer.writeln(
+            '$checklistTitle,$category,$itemTitle,${isCompleted ? "Completed" : "Pending"},$notes');
       }
     }
 
     return buffer.toString();
   }
 
-  static Future<pw.Document> _generatePDF(Map<String, dynamic> checklist) async {
+  static Future<pw.Document> _generatePDF(
+      Map<String, dynamic> checklist) async {
     final pdf = pw.Document();
     final items = checklist['items'] as List? ?? [];
     final completedCount = items.where((i) => i['isCompleted'] == true).length;
     final totalCount = items.length;
-    final completionRate = totalCount > 0 ? (completedCount / totalCount * 100).toStringAsFixed(1) : '0';
+    final completionRate = totalCount > 0
+        ? (completedCount / totalCount * 100).toStringAsFixed(1)
+        : '0';
 
     pdf.addPage(
       pw.MultiPage(
@@ -124,16 +136,19 @@ class ChecklistExportService {
               children: [
                 pw.Text(
                   checklist['title'],
-                  style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
+                  style: pw.TextStyle(
+                      fontSize: 24, fontWeight: pw.FontWeight.bold),
                 ),
                 pw.SizedBox(height: 8),
                 pw.Text(
                   'Category: ${checklist['category'] ?? 'N/A'}',
-                  style: const pw.TextStyle(fontSize: 12, color: PdfColors.grey700),
+                  style: const pw.TextStyle(
+                      fontSize: 12, color: PdfColors.grey700),
                 ),
                 pw.Text(
                   'Created: ${DateFormat('MMM dd, yyyy HH:mm').format(DateTime.parse(checklist['createdAt']))}',
-                  style: const pw.TextStyle(fontSize: 12, color: PdfColors.grey700),
+                  style: const pw.TextStyle(
+                      fontSize: 12, color: PdfColors.grey700),
                 ),
                 pw.SizedBox(height: 16),
                 pw.Container(
@@ -146,7 +161,8 @@ class ChecklistExportService {
                     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                     children: [
                       pw.Text('Progress: $completedCount / $totalCount items'),
-                      pw.Text('$completionRate% Complete', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                      pw.Text('$completionRate% Complete',
+                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                     ],
                   ),
                 ),
@@ -178,7 +194,10 @@ class ChecklistExportService {
                         width: 20,
                         height: 20,
                         decoration: pw.BoxDecoration(
-                          border: pw.Border.all(color: isCompleted ? PdfColors.green : PdfColors.grey),
+                          border: pw.Border.all(
+                              color: isCompleted
+                                  ? PdfColors.green
+                                  : PdfColors.grey),
                           borderRadius: pw.BorderRadius.circular(4),
                           color: isCompleted ? PdfColors.green : null,
                         ),
@@ -186,7 +205,8 @@ class ChecklistExportService {
                             ? pw.Center(
                                 child: pw.Text(
                                   '✓',
-                                  style: const pw.TextStyle(color: PdfColors.white, fontSize: 14),
+                                  style: const pw.TextStyle(
+                                      color: PdfColors.white, fontSize: 14),
                                 ),
                               )
                             : null,
@@ -198,7 +218,9 @@ class ChecklistExportService {
                           style: pw.TextStyle(
                             fontSize: 14,
                             fontWeight: pw.FontWeight.bold,
-                            decoration: isCompleted ? pw.TextDecoration.lineThrough : null,
+                            decoration: isCompleted
+                                ? pw.TextDecoration.lineThrough
+                                : null,
                           ),
                         ),
                       ),
@@ -214,7 +236,8 @@ class ChecklistExportService {
                       ),
                       child: pw.Text(
                         'Notes: $notes',
-                        style: const pw.TextStyle(fontSize: 12, color: PdfColors.grey800),
+                        style: const pw.TextStyle(
+                            fontSize: 12, color: PdfColors.grey800),
                       ),
                     ),
                   ],
@@ -245,7 +268,8 @@ class ChecklistExportService {
     try {
       final csv = _generateHistoryCSV(checklistId, completions);
       final directory = await getApplicationDocumentsDirectory();
-      final fileName = 'checklist_history_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.csv';
+      final fileName =
+          'checklist_history_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.csv';
       final file = File('${directory.path}/$fileName');
       await file.writeAsString(csv);
 
@@ -263,10 +287,11 @@ class ChecklistExportService {
     List<Map<String, dynamic>> completions,
   ) {
     final buffer = StringBuffer();
-    
+
     buffer.writeln('Checklist Completion History');
     buffer.writeln('Checklist ID,$checklistId');
-    buffer.writeln('Generated,${DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now())}');
+    buffer.writeln(
+        'Generated,${DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now())}');
     buffer.writeln('');
     buffer.writeln('Date,Completed By,Completion Rate,Duration (min),Notes');
 
@@ -275,8 +300,9 @@ class ChecklistExportService {
       final completedBy = completion['completedBy'] ?? 'Unknown';
       final completionRate = completion['completionRate'] ?? 0;
       final duration = completion['duration'] ?? 0;
-      final notes = ((completion['notes'] as String?) ?? '').replaceAll(',', ';');
-      
+      final notes =
+          ((completion['notes'] as String?) ?? '').replaceAll(',', ';');
+
       buffer.writeln(
         '${DateFormat('yyyy-MM-dd HH:mm').format(date)},$completedBy,$completionRate%,$duration,$notes',
       );
@@ -293,7 +319,8 @@ class ChecklistExportService {
     try {
       final pdf = await _generateSummaryPDF(startDate, endDate, checklists);
       final directory = await getApplicationDocumentsDirectory();
-      final fileName = 'checklist_summary_${DateFormat('yyyyMMdd').format(startDate)}_to_${DateFormat('yyyyMMdd').format(endDate)}.pdf';
+      final fileName =
+          'checklist_summary_${DateFormat('yyyyMMdd').format(startDate)}_to_${DateFormat('yyyyMMdd').format(endDate)}.pdf';
       final file = File('${directory.path}/$fileName');
       await file.writeAsBytes(await pdf.save());
 
@@ -312,7 +339,7 @@ class ChecklistExportService {
     List<Map<String, dynamic>> checklists,
   ) async {
     final pdf = pw.Document();
-    
+
     final totalChecklists = checklists.length;
     var totalItems = 0;
     var completedItems = 0;
@@ -323,7 +350,7 @@ class ChecklistExportService {
       completedItems += items.where((i) => i['isCompleted'] == true).length;
     }
 
-    final overallCompletion = totalItems > 0 
+    final overallCompletion = totalItems > 0
         ? (completedItems / totalItems * 100).toStringAsFixed(1)
         : '0';
 
@@ -339,12 +366,14 @@ class ChecklistExportService {
               children: [
                 pw.Text(
                   'Checklist Summary Report',
-                  style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
+                  style: pw.TextStyle(
+                      fontSize: 24, fontWeight: pw.FontWeight.bold),
                 ),
                 pw.SizedBox(height: 8),
                 pw.Text(
                   'Period: ${DateFormat('MMM dd, yyyy').format(startDate)} - ${DateFormat('MMM dd, yyyy').format(endDate)}',
-                  style: const pw.TextStyle(fontSize: 14, color: PdfColors.grey700),
+                  style: const pw.TextStyle(
+                      fontSize: 14, color: PdfColors.grey700),
                 ),
                 pw.SizedBox(height: 24),
               ],
@@ -363,7 +392,8 @@ class ChecklistExportService {
                 pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
                   children: [
-                    _buildStatItem('Total Checklists', totalChecklists.toString()),
+                    _buildStatItem(
+                        'Total Checklists', totalChecklists.toString()),
                     _buildStatItem('Total Items', totalItems.toString()),
                     _buildStatItem('Completed', completedItems.toString()),
                     _buildStatItem('Completion Rate', '$overallCompletion%'),
@@ -396,11 +426,12 @@ class ChecklistExportService {
               ),
               ...checklists.map((checklist) {
                 final items = checklist['items'] as List? ?? [];
-                final completed = items.where((i) => i['isCompleted'] == true).length;
-                final rate = items.isNotEmpty 
+                final completed =
+                    items.where((i) => i['isCompleted'] == true).length;
+                final rate = items.isNotEmpty
                     ? (completed / items.length * 100).toStringAsFixed(0)
                     : '0';
-                
+
                 return pw.TableRow(
                   children: [
                     _buildTableCell(checklist['title']),
@@ -433,7 +464,10 @@ class ChecklistExportService {
       children: [
         pw.Text(
           value,
-          style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold, color: PdfColors.blue800),
+          style: pw.TextStyle(
+              fontSize: 24,
+              fontWeight: pw.FontWeight.bold,
+              color: PdfColors.blue800),
         ),
         pw.SizedBox(height: 4),
         pw.Text(

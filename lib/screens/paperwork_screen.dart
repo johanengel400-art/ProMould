@@ -10,7 +10,8 @@ import '../services/sync_service.dart';
 class PaperworkScreen extends StatefulWidget {
   final int level;
   final String username;
-  const PaperworkScreen({super.key, required this.level, required this.username});
+  const PaperworkScreen(
+      {super.key, required this.level, required this.username});
 
   @override
   State<PaperworkScreen> createState() => _PaperworkScreenState();
@@ -94,7 +95,8 @@ class _PaperworkScreenState extends State<PaperworkScreen> {
                     children: [
                       Text(
                         'Date: ${DateFormat('EEEE, MMM d, yyyy').format(selectedDate)}',
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 16),
                       SegmentedButton<String>(
@@ -114,16 +116,20 @@ class _PaperworkScreenState extends State<PaperworkScreen> {
                         onSelectionChanged: (Set<String> newSelection) {
                           setState(() {
                             selectedCategory = newSelection.first;
-                            if (selectedCategory == 'By Setter' && setters.isNotEmpty) {
-                              selectedSetter ??= setters.first['username'] as String;
+                            if (selectedCategory == 'By Setter' &&
+                                setters.isNotEmpty) {
+                              selectedSetter ??=
+                                  setters.first['username'] as String;
                             }
                           });
                         },
                       ),
-                      if (selectedCategory == 'By Setter' && setters.isNotEmpty) ...[
+                      if (selectedCategory == 'By Setter' &&
+                          setters.isNotEmpty) ...[
                         const SizedBox(height: 16),
                         DropdownButtonFormField<String>(
-                          value: selectedSetter ?? setters.first['username'] as String,
+                          value: selectedSetter ??
+                              setters.first['username'] as String,
                           items: setters
                               .map((s) => DropdownMenuItem(
                                   value: s['username'] as String,
@@ -167,7 +173,8 @@ class _PaperworkScreenState extends State<PaperworkScreen> {
       future: _ensureBoxOpen(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const SliverFillRemaining(child: Center(child: CircularProgressIndicator()));
+          return const SliverFillRemaining(
+              child: Center(child: CircularProgressIndicator()));
         }
 
         final checklistsBox = Hive.box('checklistsBox');
@@ -185,7 +192,8 @@ class _PaperworkScreenState extends State<PaperworkScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.checklist, size: 64, color: Colors.white.withOpacity(0.3)),
+                  Icon(Icons.checklist,
+                      size: 64, color: Colors.white.withOpacity(0.3)),
                   const SizedBox(height: 16),
                   Text(
                     'No checklist items for today',
@@ -194,7 +202,8 @@ class _PaperworkScreenState extends State<PaperworkScreen> {
                   const SizedBox(height: 8),
                   Text(
                     'Tap + to add items',
-                    style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.3)),
+                    style: TextStyle(
+                        fontSize: 12, color: Colors.white.withOpacity(0.3)),
                   ),
                 ],
               ),
@@ -217,14 +226,16 @@ class _PaperworkScreenState extends State<PaperworkScreen> {
 
   Widget _buildSetterChecklists() {
     if (selectedSetter == null) {
-      return const SliverFillRemaining(child: Center(child: Text('No setters available')));
+      return const SliverFillRemaining(
+          child: Center(child: Text('No setters available')));
     }
 
     return FutureBuilder(
       future: _ensureBoxOpen(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const SliverFillRemaining(child: Center(child: CircularProgressIndicator()));
+          return const SliverFillRemaining(
+              child: Center(child: CircularProgressIndicator()));
         }
 
         final checklistsBox = Hive.box('checklistsBox');
@@ -241,7 +252,8 @@ class _PaperworkScreenState extends State<PaperworkScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.person_outline, size: 64, color: Colors.white.withOpacity(0.3)),
+                  Icon(Icons.person_outline,
+                      size: 64, color: Colors.white.withOpacity(0.3)),
                   const SizedBox(height: 16),
                   Text(
                     'No items for $selectedSetter today',
@@ -250,7 +262,8 @@ class _PaperworkScreenState extends State<PaperworkScreen> {
                   const SizedBox(height: 8),
                   Text(
                     'Tap + to add items',
-                    style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.3)),
+                    style: TextStyle(
+                        fontSize: 12, color: Colors.white.withOpacity(0.3)),
                   ),
                 ],
               ),
@@ -309,7 +322,8 @@ class _PaperworkScreenState extends State<PaperworkScreen> {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
                     color: priorityColor.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(4),
@@ -325,11 +339,13 @@ class _PaperworkScreenState extends State<PaperworkScreen> {
                 ),
                 if (item['setter'] != null && item['setter'] != '') ...[
                   const SizedBox(width: 8),
-                  Icon(Icons.person, size: 14, color: Colors.white.withOpacity(0.5)),
+                  Icon(Icons.person,
+                      size: 14, color: Colors.white.withOpacity(0.5)),
                   const SizedBox(width: 4),
                   Text(
                     item['setter'] as String,
-                    style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.5)),
+                    style: TextStyle(
+                        fontSize: 11, color: Colors.white.withOpacity(0.5)),
                   ),
                 ],
               ],
@@ -364,7 +380,8 @@ class _PaperworkScreenState extends State<PaperworkScreen> {
     final id = item['id'] as String;
     final updatedItem = Map<String, dynamic>.from(item);
     updatedItem['completed'] = completed;
-    updatedItem['completedAt'] = completed ? DateTime.now().toIso8601String() : null;
+    updatedItem['completedAt'] =
+        completed ? DateTime.now().toIso8601String() : null;
     updatedItem['completedBy'] = completed ? widget.username : null;
     await checklistsBox.put(id, updatedItem);
     await SyncService.push('checklistsBox', id, updatedItem);
@@ -394,7 +411,8 @@ class _PaperworkScreenState extends State<PaperworkScreen> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: descCtrl,
-                  decoration: const InputDecoration(labelText: 'Description (optional)'),
+                  decoration: const InputDecoration(
+                      labelText: 'Description (optional)'),
                   maxLines: 3,
                 ),
                 const SizedBox(height: 8),
@@ -404,15 +422,18 @@ class _PaperworkScreenState extends State<PaperworkScreen> {
                   items: ['Low', 'Normal', 'High', 'Urgent']
                       .map((p) => DropdownMenuItem(value: p, child: Text(p)))
                       .toList(),
-                  onChanged: (v) => setDialogState(() => priority = v ?? 'Normal'),
+                  onChanged: (v) =>
+                      setDialogState(() => priority = v ?? 'Normal'),
                 ),
                 if (selectedCategory == 'Daily Checklists') ...[
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String?>(
                     value: setter,
-                    decoration: const InputDecoration(labelText: 'Assign to Setter (optional)'),
+                    decoration: const InputDecoration(
+                        labelText: 'Assign to Setter (optional)'),
                     items: [
-                      const DropdownMenuItem(value: null, child: Text('None (General)')),
+                      const DropdownMenuItem(
+                          value: null, child: Text('None (General)')),
                       ...Hive.box('usersBox')
                           .values
                           .cast<Map>()
@@ -453,7 +474,7 @@ class _PaperworkScreenState extends State<PaperworkScreen> {
                 await checklistsBox.put(id, data);
                 await SyncService.push('checklistsBox', id, data);
                 if (context.mounted) {
-                Navigator.pop(dialogContext);
+                  Navigator.pop(dialogContext);
                 }
                 setState(() {});
               },
@@ -487,7 +508,8 @@ class _PaperworkScreenState extends State<PaperworkScreen> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: descCtrl,
-                  decoration: const InputDecoration(labelText: 'Description (optional)'),
+                  decoration: const InputDecoration(
+                      labelText: 'Description (optional)'),
                   maxLines: 3,
                 ),
                 const SizedBox(height: 8),
@@ -497,14 +519,17 @@ class _PaperworkScreenState extends State<PaperworkScreen> {
                   items: ['Low', 'Normal', 'High', 'Urgent']
                       .map((p) => DropdownMenuItem(value: p, child: Text(p)))
                       .toList(),
-                  onChanged: (v) => setDialogState(() => priority = v ?? 'Normal'),
+                  onChanged: (v) =>
+                      setDialogState(() => priority = v ?? 'Normal'),
                 ),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String?>(
                   value: setter == '' ? null : setter,
-                  decoration: const InputDecoration(labelText: 'Assign to Setter (optional)'),
+                  decoration: const InputDecoration(
+                      labelText: 'Assign to Setter (optional)'),
                   items: [
-                    const DropdownMenuItem(value: null, child: Text('None (General)')),
+                    const DropdownMenuItem(
+                        value: null, child: Text('None (General)')),
                     ...Hive.box('usersBox')
                         .values
                         .cast<Map>()
@@ -537,7 +562,7 @@ class _PaperworkScreenState extends State<PaperworkScreen> {
                 await checklistsBox.put(id, updatedItem);
                 await SyncService.push('checklistsBox', id, updatedItem);
                 if (context.mounted) {
-                Navigator.pop(dialogContext);
+                  Navigator.pop(dialogContext);
                 }
                 setState(() {});
               },
@@ -554,7 +579,8 @@ class _PaperworkScreenState extends State<PaperworkScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Item'),
-        content: const Text('Are you sure you want to delete this checklist item?'),
+        content:
+            const Text('Are you sure you want to delete this checklist item?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),

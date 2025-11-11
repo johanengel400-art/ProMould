@@ -24,12 +24,16 @@ class _MouldChangesScreenState extends State<MouldChangesScreen> {
     final machines = machinesBox.values.cast<Map>().toList();
     final moulds = mouldsBox.values.cast<Map>().toList();
     final jobs = jobsBox.values.cast<Map>().toList();
-    final setters = usersBox.values.cast<Map>().where((u) => u['level'] == 3).toList();
+    final setters =
+        usersBox.values.cast<Map>().where((u) => u['level'] == 3).toList();
 
-    String? selectedMachine = machines.isNotEmpty ? machines.first['id'] as String : null;
-    String? selectedMould = moulds.isNotEmpty ? moulds.first['id'] as String : null;
+    String? selectedMachine =
+        machines.isNotEmpty ? machines.first['id'] as String : null;
+    String? selectedMould =
+        moulds.isNotEmpty ? moulds.first['id'] as String : null;
     String? selectedJob = jobs.isNotEmpty ? jobs.first['id'] as String : null;
-    String? selectedSetter = setters.isNotEmpty ? setters.first['username'] as String : null;
+    String? selectedSetter =
+        setters.isNotEmpty ? setters.first['username'] as String : null;
     DateTime scheduledDate = DateTime.now();
     final notesCtrl = TextEditingController();
 
@@ -44,47 +48,57 @@ class _MouldChangesScreenState extends State<MouldChangesScreen> {
               children: [
                 DropdownButtonFormField<String>(
                   value: selectedMachine,
-                  items: machines.map((m) => DropdownMenuItem(
-                    value: m['id'] as String,
-                    child: Text('${m['name']}'),
-                  )).toList(),
+                  items: machines
+                      .map((m) => DropdownMenuItem(
+                            value: m['id'] as String,
+                            child: Text('${m['name']}'),
+                          ))
+                      .toList(),
                   onChanged: (v) => setDialogState(() => selectedMachine = v),
                   decoration: const InputDecoration(labelText: 'Machine'),
                 ),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
                   value: selectedMould,
-                  items: moulds.map((m) => DropdownMenuItem(
-                    value: m['id'] as String,
-                    child: Text('${m['name']}'),
-                  )).toList(),
+                  items: moulds
+                      .map((m) => DropdownMenuItem(
+                            value: m['id'] as String,
+                            child: Text('${m['name']}'),
+                          ))
+                      .toList(),
                   onChanged: (v) => setDialogState(() => selectedMould = v),
                   decoration: const InputDecoration(labelText: 'New Mould'),
                 ),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
                   value: selectedJob,
-                  items: jobs.map((j) => DropdownMenuItem(
-                    value: j['id'] as String,
-                    child: Text('${j['productName']}'),
-                  )).toList(),
+                  items: jobs
+                      .map((j) => DropdownMenuItem(
+                            value: j['id'] as String,
+                            child: Text('${j['productName']}'),
+                          ))
+                      .toList(),
                   onChanged: (v) => setDialogState(() => selectedJob = v),
                   decoration: const InputDecoration(labelText: 'Job'),
                 ),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
                   value: selectedSetter,
-                  items: setters.map((s) => DropdownMenuItem(
-                    value: s['username'] as String,
-                    child: Text('${s['username']}'),
-                  )).toList(),
+                  items: setters
+                      .map((s) => DropdownMenuItem(
+                            value: s['username'] as String,
+                            child: Text('${s['username']}'),
+                          ))
+                      .toList(),
                   onChanged: (v) => setDialogState(() => selectedSetter = v),
-                  decoration: const InputDecoration(labelText: 'Assign to Setter'),
+                  decoration:
+                      const InputDecoration(labelText: 'Assign to Setter'),
                 ),
                 const SizedBox(height: 8),
                 ListTile(
                   title: const Text('Scheduled Date'),
-                  subtitle: Text(DateFormat('MMM d, yyyy HH:mm').format(scheduledDate)),
+                  subtitle: Text(
+                      DateFormat('MMM d, yyyy HH:mm').format(scheduledDate)),
                   trailing: const Icon(Icons.calendar_today),
                   onTap: () async {
                     final date = await showDatePicker(
@@ -101,8 +115,11 @@ class _MouldChangesScreenState extends State<MouldChangesScreen> {
                       if (time != null) {
                         setDialogState(() {
                           scheduledDate = DateTime(
-                            date.year, date.month, date.day,
-                            time.hour, time.minute,
+                            date.year,
+                            date.month,
+                            date.day,
+                            time.hour,
+                            time.minute,
                           );
                         });
                       }
@@ -141,7 +158,7 @@ class _MouldChangesScreenState extends State<MouldChangesScreen> {
                 await box.put(id, data);
                 await SyncService.pushChange('mouldChangesBox', id, data);
                 if (context.mounted) {
-                Navigator.pop(context);
+                  Navigator.pop(context);
                 }
               },
               child: const Text('Save'),
@@ -178,9 +195,15 @@ class _MouldChangesScreenState extends State<MouldChangesScreen> {
     final mouldsBox = Hive.box('mouldsBox');
     final jobsBox = Hive.box('jobsBox');
 
-    final machines = {for (var m in machinesBox.values.cast<Map>()) m['id']: m['name']};
-    final moulds = {for (var m in mouldsBox.values.cast<Map>()) m['id']: m['name']};
-    final jobs = {for (var j in jobsBox.values.cast<Map>()) j['id']: j['productName']};
+    final machines = {
+      for (var m in machinesBox.values.cast<Map>()) m['id']: m['name']
+    };
+    final moulds = {
+      for (var m in mouldsBox.values.cast<Map>()) m['id']: m['name']
+    };
+    final jobs = {
+      for (var j in jobsBox.values.cast<Map>()) j['id']: j['productName']
+    };
 
     return Scaffold(
       appBar: AppBar(title: const Text('Mould Changes')),
@@ -193,7 +216,9 @@ class _MouldChangesScreenState extends State<MouldChangesScreen> {
         valueListenable: box.listenable(),
         builder: (_, __, ___) {
           final items = box.values.cast<Map>().toList();
-          items.sort((a, b) => (b['scheduledDate'] ?? '').toString().compareTo((a['scheduledDate'] ?? '').toString()));
+          items.sort((a, b) => (b['scheduledDate'] ?? '')
+              .toString()
+              .compareTo((a['scheduledDate'] ?? '').toString()));
 
           if (items.isEmpty) {
             return const Center(
@@ -206,28 +231,32 @@ class _MouldChangesScreenState extends State<MouldChangesScreen> {
             itemCount: items.length,
             itemBuilder: (_, i) {
               final item = items[i];
-              final scheduledDate = DateTime.tryParse(item['scheduledDate'] ?? '');
-              
+              final scheduledDate =
+                  DateTime.tryParse(item['scheduledDate'] ?? '');
+
               return Card(
                 child: ListTile(
                   leading: CircleAvatar(
                     backgroundColor: _statusColor(item['status'] ?? 'Pending'),
                     child: const Icon(Icons.build, color: Colors.white),
                   ),
-                  title: Text('${machines[item['machineId']]} → ${moulds[item['mouldId']]}'),
+                  title: Text(
+                      '${machines[item['machineId']]} → ${moulds[item['mouldId']]}'),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Job: ${jobs[item['jobId']]}'),
                       Text('Setter: ${item['assignedTo']}'),
                       if (scheduledDate != null)
-                        Text('Scheduled: ${DateFormat('MMM d, yyyy HH:mm').format(scheduledDate)}'),
+                        Text(
+                            'Scheduled: ${DateFormat('MMM d, yyyy HH:mm').format(scheduledDate)}'),
                     ],
                   ),
                   trailing: PopupMenuButton(
                     itemBuilder: (context) => [
                       const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                      const PopupMenuItem(value: 'delete', child: Text('Delete')),
+                      const PopupMenuItem(
+                          value: 'delete', child: Text('Delete')),
                     ],
                     onSelected: (value) {
                       if (value == 'delete') {

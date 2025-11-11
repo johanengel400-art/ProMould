@@ -67,11 +67,13 @@ class _TimelineScreenV2State extends State<TimelineScreenV2> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.timeline, size: 64, color: Colors.white.withOpacity(0.3)),
+                  Icon(Icons.timeline,
+                      size: 64, color: Colors.white.withOpacity(0.3)),
                   const SizedBox(height: 16),
                   Text(
                     'No active or queued jobs',
-                    style: TextStyle(fontSize: 16, color: Colors.white.withOpacity(0.5)),
+                    style: TextStyle(
+                        fontSize: 16, color: Colors.white.withOpacity(0.5)),
                   ),
                 ],
               ),
@@ -87,8 +89,10 @@ class _TimelineScreenV2State extends State<TimelineScreenV2> {
 
               // Sort: Running first, then Queued
               machineJobs.sort((a, b) {
-                if (a['status'] == 'Running' && b['status'] != 'Running') return -1;
-                if (a['status'] != 'Running' && b['status'] == 'Running') return 1;
+                if (a['status'] == 'Running' && b['status'] != 'Running')
+                  return -1;
+                if (a['status'] != 'Running' && b['status'] == 'Running')
+                  return 1;
                 return 0;
               });
 
@@ -144,7 +148,8 @@ class _TimelineScreenV2State extends State<TimelineScreenV2> {
                     color: statusColor.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(Icons.precision_manufacturing, color: statusColor, size: 24),
+                  child: Icon(Icons.precision_manufacturing,
+                      color: statusColor, size: 24),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -162,11 +167,13 @@ class _TimelineScreenV2State extends State<TimelineScreenV2> {
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
                               color: statusColor.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(4),
-                              border: Border.all(color: statusColor.withOpacity(0.5)),
+                              border: Border.all(
+                                  color: statusColor.withOpacity(0.5)),
                             ),
                             child: Text(
                               machineStatus,
@@ -180,7 +187,8 @@ class _TimelineScreenV2State extends State<TimelineScreenV2> {
                           const SizedBox(width: 8),
                           Text(
                             '${jobs.length} job${jobs.length != 1 ? 's' : ''}',
-                            style: const TextStyle(color: Colors.white60, fontSize: 12),
+                            style: const TextStyle(
+                                color: Colors.white60, fontSize: 12),
                           ),
                         ],
                       ),
@@ -200,20 +208,24 @@ class _TimelineScreenV2State extends State<TimelineScreenV2> {
                 final job = entry.value;
                 final isLast = index == jobs.length - 1;
 
-                final widget = _buildJobCard(job, mouldsBox, cumulativeTime, index);
+                final widget =
+                    _buildJobCard(job, mouldsBox, cumulativeTime, index);
 
                 // Update cumulative time for next job
                 final mould = mouldsBox.values.cast<Map?>().firstWhere(
-                  (m) => m != null && m['id'] == job['mouldId'],
-                  orElse: () => null,
-                );
-                final cycleTime = (mould?['cycleTime'] as num?)?.toDouble() ?? 30.0;
+                      (m) => m != null && m['id'] == job['mouldId'],
+                      orElse: () => null,
+                    );
+                final cycleTime =
+                    (mould?['cycleTime'] as num?)?.toDouble() ?? 30.0;
                 final currentShots = job['status'] == 'Running'
                     ? LiveProgressService.getEstimatedShots(job, mouldsBox)
                     : (job['shotsCompleted'] as num? ?? 0);
-                final remaining = (job['targetShots'] as num? ?? 0) - currentShots;
+                final remaining =
+                    (job['targetShots'] as num? ?? 0) - currentShots;
                 final durationMinutes = (remaining * cycleTime / 60).toDouble();
-                cumulativeTime = cumulativeTime.add(Duration(minutes: durationMinutes.round()));
+                cumulativeTime = cumulativeTime
+                    .add(Duration(minutes: durationMinutes.round()));
 
                 return Column(
                   children: [
@@ -230,7 +242,8 @@ class _TimelineScreenV2State extends State<TimelineScreenV2> {
                               color: Colors.white24,
                             ),
                             const SizedBox(width: 12),
-                            const Icon(Icons.arrow_downward, size: 16, color: Colors.white24),
+                            const Icon(Icons.arrow_downward,
+                                size: 16, color: Colors.white24),
                           ],
                         ),
                       ),
@@ -244,15 +257,16 @@ class _TimelineScreenV2State extends State<TimelineScreenV2> {
     );
   }
 
-  Widget _buildJobCard(Map job, Box mouldsBox, DateTime startTime, int position) {
+  Widget _buildJobCard(
+      Map job, Box mouldsBox, DateTime startTime, int position) {
     final isRunning = job['status'] == 'Running';
     final productName = job['productName'] as String? ?? 'Unknown Product';
     final color = job['color'] as String? ?? '';
 
     final mould = mouldsBox.values.cast<Map?>().firstWhere(
-      (m) => m != null && m['id'] == job['mouldId'],
-      orElse: () => null,
-    );
+          (m) => m != null && m['id'] == job['mouldId'],
+          orElse: () => null,
+        );
 
     final cycleTime = (mould?['cycleTime'] as num?)?.toDouble() ?? 30.0;
     final currentShots = isRunning
@@ -260,12 +274,14 @@ class _TimelineScreenV2State extends State<TimelineScreenV2> {
         : (job['shotsCompleted'] as num? ?? 0);
     final targetShots = job['targetShots'] as num? ?? 0;
     final remaining = targetShots - currentShots;
-    final progress = targetShots > 0 ? (currentShots / targetShots).clamp(0.0, 1.0) : 0.0;
+    final progress =
+        targetShots > 0 ? (currentShots / targetShots).clamp(0.0, 1.0) : 0.0;
 
     final durationMinutes = (remaining * cycleTime / 60).toDouble();
     final endTime = startTime.add(Duration(minutes: durationMinutes.round()));
 
-    final statusColor = isRunning ? const Color(0xFF00D26A) : const Color(0xFFFFD166);
+    final statusColor =
+        isRunning ? const Color(0xFF00D26A) : const Color(0xFFFFD166);
     final statusIcon = isRunning ? Icons.play_circle : Icons.schedule;
     final statusText = isRunning ? 'RUNNING' : 'QUEUED';
 
@@ -381,9 +397,11 @@ class _TimelineScreenV2State extends State<TimelineScreenV2> {
           // Stats Row
           Row(
             children: [
-              _buildStat(Icons.check_circle_outline, '$currentShots / $targetShots shots', Colors.white70),
+              _buildStat(Icons.check_circle_outline,
+                  '$currentShots / $targetShots shots', Colors.white70),
               const SizedBox(width: 16),
-              _buildStat(Icons.speed, '${cycleTime.toStringAsFixed(0)}s cycle', Colors.white70),
+              _buildStat(Icons.speed, '${cycleTime.toStringAsFixed(0)}s cycle',
+                  Colors.white70),
             ],
           ),
 
@@ -400,16 +418,21 @@ class _TimelineScreenV2State extends State<TimelineScreenV2> {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.access_time, size: 16, color: Colors.white54),
+                    const Icon(Icons.access_time,
+                        size: 16, color: Colors.white54),
                     const SizedBox(width: 8),
                     Text(
                       isRunning ? 'Started' : 'Will Start',
-                      style: const TextStyle(color: Colors.white54, fontSize: 11),
+                      style:
+                          const TextStyle(color: Colors.white54, fontSize: 11),
                     ),
                     const Spacer(),
                     Text(
                       DateFormat('MMM d, HH:mm').format(startTime),
-                      style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -425,14 +448,18 @@ class _TimelineScreenV2State extends State<TimelineScreenV2> {
                     const Spacer(),
                     Text(
                       DateFormat('MMM d, HH:mm').format(endTime),
-                      style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          color: statusColor,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    const Icon(Icons.timer_outlined, size: 16, color: Colors.white54),
+                    const Icon(Icons.timer_outlined,
+                        size: 16, color: Colors.white54),
                     const SizedBox(width: 8),
                     const Text(
                       'Duration',
@@ -441,7 +468,10 @@ class _TimelineScreenV2State extends State<TimelineScreenV2> {
                     const Spacer(),
                     Text(
                       _formatDuration(durationMinutes),
-                      style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),

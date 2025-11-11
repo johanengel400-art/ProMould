@@ -7,10 +7,12 @@ class DailyInspectionTrackingScreen extends StatefulWidget {
   const DailyInspectionTrackingScreen({super.key});
 
   @override
-  State<DailyInspectionTrackingScreen> createState() => _DailyInspectionTrackingScreenState();
+  State<DailyInspectionTrackingScreen> createState() =>
+      _DailyInspectionTrackingScreenState();
 }
 
-class _DailyInspectionTrackingScreenState extends State<DailyInspectionTrackingScreen> {
+class _DailyInspectionTrackingScreenState
+    extends State<DailyInspectionTrackingScreen> {
   DateTime selectedDate = DateTime.now();
   String? selectedSetter;
 
@@ -51,13 +53,17 @@ class _DailyInspectionTrackingScreenState extends State<DailyInspectionTrackingS
         children: [
           IconButton(
             icon: const Icon(Icons.chevron_left, color: Colors.white),
-            onPressed: () => setState(() => selectedDate = selectedDate.subtract(const Duration(days: 1))),
+            onPressed: () => setState(() =>
+                selectedDate = selectedDate.subtract(const Duration(days: 1))),
           ),
           Expanded(
             child: Center(
               child: Text(
                 DateFormat('EEEE, MMM dd, yyyy').format(selectedDate),
-                style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold),
               ),
             ),
           ),
@@ -65,7 +71,8 @@ class _DailyInspectionTrackingScreenState extends State<DailyInspectionTrackingS
             icon: const Icon(Icons.chevron_right, color: Colors.white),
             onPressed: () {
               final tomorrow = selectedDate.add(const Duration(days: 1));
-              if (tomorrow.isBefore(DateTime.now().add(const Duration(days: 1)))) {
+              if (tomorrow
+                  .isBefore(DateTime.now().add(const Duration(days: 1)))) {
                 setState(() => selectedDate = tomorrow);
               }
             },
@@ -98,11 +105,16 @@ class _DailyInspectionTrackingScreenState extends State<DailyInspectionTrackingS
           final machinesBox = Hive.box('machinesBox');
 
           // Filter for Setters only (Level 3)
-          final setters = usersBox.values.cast<Map>().where((u) => (u['level'] as int? ?? 0) == 3).toList();
+          final setters = usersBox.values
+              .cast<Map>()
+              .where((u) => (u['level'] as int? ?? 0) == 3)
+              .toList();
           final dateKey = DateFormat('yyyy-MM-dd').format(selectedDate);
 
           if (setters.isEmpty) {
-            return const Center(child: Text('No setters found', style: TextStyle(color: Colors.white70)));
+            return const Center(
+                child: Text('No setters found',
+                    style: TextStyle(color: Colors.white70)));
           }
 
           return ListView.builder(
@@ -111,15 +123,22 @@ class _DailyInspectionTrackingScreenState extends State<DailyInspectionTrackingS
             itemBuilder: (context, index) {
               final setter = setters[index];
               final username = setter['username'] as String;
-              
-              final inspections = inspectionsBox.values.cast<Map>().where((i) =>
-                  i['inspectorUsername'] == username && i['date'] == dateKey).toList();
+
+              final inspections = inspectionsBox.values
+                  .cast<Map>()
+                  .where((i) =>
+                      i['inspectorUsername'] == username &&
+                      i['date'] == dateKey)
+                  .toList();
 
               final machines = machinesBox.values.cast<Map>().toList();
-              final missedMachines = machines.where((m) =>
-                  !inspections.any((i) => i['machineId'] == m['id'])).toList();
+              final missedMachines = machines
+                  .where(
+                      (m) => !inspections.any((i) => i['machineId'] == m['id']))
+                  .toList();
 
-              return _buildSetterCard(username, inspections, missedMachines, machines.length);
+              return _buildSetterCard(
+                  username, inspections, missedMachines, machines.length);
             },
           );
         },
@@ -127,8 +146,11 @@ class _DailyInspectionTrackingScreenState extends State<DailyInspectionTrackingS
     );
   }
 
-  Widget _buildSetterCard(String username, List inspections, List missedMachines, int totalMachines) {
-    final completionRate = totalMachines > 0 ? (inspections.length / totalMachines * 100).round() : 0;
+  Widget _buildSetterCard(String username, List inspections,
+      List missedMachines, int totalMachines) {
+    final completionRate = totalMachines > 0
+        ? (inspections.length / totalMachines * 100).round()
+        : 0;
     final hasMissed = missedMachines.isNotEmpty;
 
     return Card(
@@ -137,9 +159,12 @@ class _DailyInspectionTrackingScreenState extends State<DailyInspectionTrackingS
       child: ExpansionTile(
         leading: CircleAvatar(
           backgroundColor: hasMissed ? Colors.orange : Colors.green,
-          child: Text(username[0].toUpperCase(), style: const TextStyle(color: Colors.white)),
+          child: Text(username[0].toUpperCase(),
+              style: const TextStyle(color: Colors.white)),
         ),
-        title: Text(username, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: Text(username,
+            style: const TextStyle(
+                color: Colors.white, fontWeight: FontWeight.bold)),
         subtitle: Text(
           '${inspections.length}/$totalMachines machines inspected ($completionRate%)',
           style: TextStyle(color: hasMissed ? Colors.orange : Colors.green),
@@ -148,26 +173,36 @@ class _DailyInspectionTrackingScreenState extends State<DailyInspectionTrackingS
           if (inspections.isNotEmpty) ...[
             const Padding(
               padding: EdgeInsets.all(16),
-              child: Text('Completed Inspections', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              child: Text('Completed Inspections',
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold)),
             ),
             ...inspections.map((i) => ListTile(
-              leading: const Icon(Icons.check_circle, color: Colors.green),
-              title: Text(i['machineName'] ?? 'Unknown', style: const TextStyle(color: Colors.white)),
-              subtitle: Text('${i['completionRate']}% complete', style: const TextStyle(color: Colors.white70)),
-              trailing: Text(DateFormat('HH:mm').format(DateTime.parse(i['timestamp'])), 
-                style: const TextStyle(color: Colors.white54)),
-            )),
+                  leading: const Icon(Icons.check_circle, color: Colors.green),
+                  title: Text(i['machineName'] ?? 'Unknown',
+                      style: const TextStyle(color: Colors.white)),
+                  subtitle: Text('${i['completionRate']}% complete',
+                      style: const TextStyle(color: Colors.white70)),
+                  trailing: Text(
+                      DateFormat('HH:mm')
+                          .format(DateTime.parse(i['timestamp'])),
+                      style: const TextStyle(color: Colors.white54)),
+                )),
           ],
           if (missedMachines.isNotEmpty) ...[
             const Padding(
               padding: EdgeInsets.all(16),
-              child: Text('Missed Inspections', style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold)),
+              child: Text('Missed Inspections',
+                  style: TextStyle(
+                      color: Colors.orange, fontWeight: FontWeight.bold)),
             ),
             ...missedMachines.map((m) => ListTile(
-              leading: const Icon(Icons.warning, color: Colors.orange),
-              title: Text(m['name'] ?? 'Unknown', style: const TextStyle(color: Colors.white)),
-              subtitle: const Text('Not inspected today', style: TextStyle(color: Colors.orange)),
-            )),
+                  leading: const Icon(Icons.warning, color: Colors.orange),
+                  title: Text(m['name'] ?? 'Unknown',
+                      style: const TextStyle(color: Colors.white)),
+                  subtitle: const Text('Not inspected today',
+                      style: TextStyle(color: Colors.orange)),
+                )),
           ],
         ],
       ),

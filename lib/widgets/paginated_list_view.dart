@@ -242,8 +242,7 @@ class _PaginatedGridViewState<T> extends State<PaginatedGridView<T>> {
   @override
   Widget build(BuildContext context) {
     if (_items.isEmpty && !_isLoading) {
-      return widget.emptyState ??
-          const Center(child: Text('No items found'));
+      return widget.emptyState ?? const Center(child: Text('No items found'));
     }
 
     if (_items.isEmpty && _isLoading) {

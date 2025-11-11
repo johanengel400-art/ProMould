@@ -9,7 +9,7 @@ import 'log_service.dart';
 /// Centralized error handling service.
 /// Provides user-friendly error messages and logs errors for debugging.
 class ErrorHandler {
-  static final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = 
+  static final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
       GlobalKey<ScaffoldMessengerState>();
 
   /// Handle any error with context and optional user message

@@ -8,7 +8,8 @@ import '../services/sync_service.dart';
 class IssuesScreenV2 extends StatefulWidget {
   final String username;
   final int level;
-  const IssuesScreenV2({super.key, required this.username, required this.level});
+  const IssuesScreenV2(
+      {super.key, required this.username, required this.level});
   @override
   State<IssuesScreenV2> createState() => _IssuesScreenV2State();
 }
@@ -22,7 +23,7 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
   @override
   Widget build(BuildContext context) {
     final issuesBox = Hive.box('issuesBox');
-    
+
     return Scaffold(
       backgroundColor: const Color(0xFF0A0E1A),
       body: CustomScrollView(
@@ -49,7 +50,7 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
               ),
             ),
           ),
-          
+
           // Stats Cards
           SliverToBoxAdapter(
             child: Padding(
@@ -57,7 +58,7 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
               child: _buildStatsCards(issuesBox),
             ),
           ),
-          
+
           // Filters
           SliverToBoxAdapter(
             child: Padding(
@@ -65,7 +66,7 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
               child: _buildFilters(),
             ),
           ),
-          
+
           // Issues List
           SliverPadding(
             padding: const EdgeInsets.all(16),
@@ -73,42 +74,57 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
               valueListenable: issuesBox.listenable(),
               builder: (context, box, _) {
                 var items = issuesBox.values.cast<Map>().toList();
-                
+
                 // Apply filters
                 if (_filterStatus != 'All') {
-                  items = items.where((i) => i['status'] == _filterStatus).toList();
+                  items =
+                      items.where((i) => i['status'] == _filterStatus).toList();
                 }
                 if (_filterPriority != 'All') {
-                  items = items.where((i) => i['priority'] == _filterPriority).toList();
+                  items = items
+                      .where((i) => i['priority'] == _filterPriority)
+                      .toList();
                 }
                 if (_searchQuery.isNotEmpty) {
-                  items = items.where((i) => 
-                    (i['title']?.toString().toLowerCase().contains(_searchQuery.toLowerCase()) ?? false) ||
-                    (i['description']?.toString().toLowerCase().contains(_searchQuery.toLowerCase()) ?? false)
-                  ).toList();
+                  items = items
+                      .where((i) =>
+                          (i['title']
+                                  ?.toString()
+                                  .toLowerCase()
+                                  .contains(_searchQuery.toLowerCase()) ??
+                              false) ||
+                          (i['description']
+                                  ?.toString()
+                                  .toLowerCase()
+                                  .contains(_searchQuery.toLowerCase()) ??
+                              false))
+                      .toList();
                 }
-                
+
                 // Sort by timestamp (newest first)
-                items.sort((a, b) => (b['timestamp'] ?? '').compareTo(a['timestamp'] ?? ''));
-                
+                items.sort((a, b) =>
+                    (b['timestamp'] ?? '').compareTo(a['timestamp'] ?? ''));
+
                 if (items.isEmpty) {
                   return SliverFillRemaining(
                     child: Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.check_circle_outline, size: 64, color: Colors.white24),
+                          Icon(Icons.check_circle_outline,
+                              size: 64, color: Colors.white24),
                           const SizedBox(height: 16),
                           Text(
                             'No issues found',
-                            style: TextStyle(color: Colors.white70, fontSize: 16),
+                            style:
+                                TextStyle(color: Colors.white70, fontSize: 16),
                           ),
                         ],
                       ),
                     ),
                   );
                 }
-                
+
                 return SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) => _buildIssueCard(items[index]),
@@ -135,21 +151,30 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
     final inProgress = items.where((i) => i['status'] == 'In Progress').length;
     final resolved = items.where((i) => i['status'] == 'Resolved').length;
     final critical = items.where((i) => i['priority'] == 'Critical').length;
-    
+
     return Row(
       children: [
-        Expanded(child: _buildStatCard('Open', open.toString(), const Color(0xFFFFD166), Icons.error_outline)),
+        Expanded(
+            child: _buildStatCard('Open', open.toString(),
+                const Color(0xFFFFD166), Icons.error_outline)),
         const SizedBox(width: 12),
-        Expanded(child: _buildStatCard('In Progress', inProgress.toString(), const Color(0xFF4CC9F0), Icons.pending_outlined)),
+        Expanded(
+            child: _buildStatCard('In Progress', inProgress.toString(),
+                const Color(0xFF4CC9F0), Icons.pending_outlined)),
         const SizedBox(width: 12),
-        Expanded(child: _buildStatCard('Resolved', resolved.toString(), const Color(0xFF06D6A0), Icons.check_circle_outline)),
+        Expanded(
+            child: _buildStatCard('Resolved', resolved.toString(),
+                const Color(0xFF06D6A0), Icons.check_circle_outline)),
         const SizedBox(width: 12),
-        Expanded(child: _buildStatCard('Critical', critical.toString(), const Color(0xFFEF476F), Icons.warning_outlined)),
+        Expanded(
+            child: _buildStatCard('Critical', critical.toString(),
+                const Color(0xFFEF476F), Icons.warning_outlined)),
       ],
     );
   }
 
-  Widget _buildStatCard(String label, String value, Color color, IconData icon) {
+  Widget _buildStatCard(
+      String label, String value, Color color, IconData icon) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -167,7 +192,8 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
           const SizedBox(height: 4),
           Text(
             value,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+            style: const TextStyle(
+                fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
           ),
           Text(
             label,
@@ -229,7 +255,8 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
     );
   }
 
-  Widget _buildFilterChip(String label, String value, List<String> options, Function(String) onChanged) {
+  Widget _buildFilterChip(String label, String value, List<String> options,
+      Function(String) onChanged) {
     return PopupMenuButton<String>(
       onSelected: onChanged,
       child: Container(
@@ -242,7 +269,8 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('$label: $value', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+            Text('$label: $value',
+                style: const TextStyle(color: Colors.white70, fontSize: 12)),
             const Icon(Icons.arrow_drop_down, color: Colors.white38, size: 20),
           ],
         ),
@@ -258,7 +286,7 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
     final priority = issue['priority'] ?? 'Medium';
     final statusColor = _getStatusColor(status);
     final priorityColor = _getPriorityColor(priority);
-    
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       color: const Color(0xFF0F1419),
@@ -278,7 +306,8 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: priorityColor.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(6),
@@ -286,12 +315,16 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
                     ),
                     child: Text(
                       priority,
-                      style: TextStyle(color: priorityColor, fontSize: 11, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          color: priorityColor,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: statusColor.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(6),
@@ -299,7 +332,10 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
                     ),
                     child: Text(
                       status,
-                      style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          color: statusColor,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold),
                     ),
                   ),
                   const Spacer(),
@@ -344,22 +380,25 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
                     _formatTimestamp(issue['timestamp']),
                     style: const TextStyle(color: Colors.white38, fontSize: 12),
                   ),
-                  if (issue['photoUrl'] != null && (issue['photoUrl'] as String).isNotEmpty) ...[
+                  if (issue['photoUrl'] != null &&
+                      (issue['photoUrl'] as String).isNotEmpty) ...[
                     const Spacer(),
                     Icon(Icons.image, size: 16, color: Colors.white38),
                   ],
-                  if (issue['assignedTo'] != null && (issue['assignedTo'] as String).isNotEmpty) ...[
+                  if (issue['assignedTo'] != null &&
+                      (issue['assignedTo'] as String).isNotEmpty) ...[
                     const SizedBox(width: 16),
                     Icon(Icons.assignment_ind, size: 14, color: Colors.white38),
                     const SizedBox(width: 4),
                     Text(
                       issue['assignedTo'],
-                      style: const TextStyle(color: Colors.white38, fontSize: 12),
+                      style:
+                          const TextStyle(color: Colors.white38, fontSize: 12),
                     ),
                   ],
                 ],
               ),
-              
+
               // Resolution Info or Button
               if (status == 'Resolved' || status == 'Closed') ...[
                 const SizedBox(height: 12),
@@ -368,14 +407,16 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
                   decoration: BoxDecoration(
                     color: const Color(0xFF06D6A0).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFF06D6A0).withOpacity(0.3)),
+                    border: Border.all(
+                        color: const Color(0xFF06D6A0).withOpacity(0.3)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.check_circle, color: Color(0xFF06D6A0), size: 16),
+                          const Icon(Icons.check_circle,
+                              color: Color(0xFF06D6A0), size: 16),
                           const SizedBox(width: 6),
                           Text(
                             'Resolved by ${issue['resolvedBy'] ?? 'Unknown'}',
@@ -389,24 +430,30 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
                           if (issue['resolvedAt'] != null)
                             Text(
                               _formatTimestamp(issue['resolvedAt']),
-                              style: const TextStyle(color: Colors.white38, fontSize: 11),
+                              style: const TextStyle(
+                                  color: Colors.white38, fontSize: 11),
                             ),
                         ],
                       ),
-                      if (issue['resolutionAction'] != null && (issue['resolutionAction'] as String).isNotEmpty) ...[
+                      if (issue['resolutionAction'] != null &&
+                          (issue['resolutionAction'] as String).isNotEmpty) ...[
                         const SizedBox(height: 6),
                         Text(
                           'Action: ${issue['resolutionAction']}',
-                          style: const TextStyle(color: Colors.white70, fontSize: 11),
+                          style: const TextStyle(
+                              color: Colors.white70, fontSize: 11),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],
-                      if (issue['resolutionNextSteps'] != null && (issue['resolutionNextSteps'] as String).isNotEmpty) ...[
+                      if (issue['resolutionNextSteps'] != null &&
+                          (issue['resolutionNextSteps'] as String)
+                              .isNotEmpty) ...[
                         const SizedBox(height: 4),
                         Text(
                           'Next: ${issue['resolutionNextSteps']}',
-                          style: const TextStyle(color: Colors.white54, fontSize: 11),
+                          style: const TextStyle(
+                              color: Colors.white54, fontSize: 11),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -440,21 +487,31 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
 
   Color _getStatusColor(String status) {
     switch (status) {
-      case 'Open': return const Color(0xFFFFD166);
-      case 'In Progress': return const Color(0xFF4CC9F0);
-      case 'Resolved': return const Color(0xFF06D6A0);
-      case 'Closed': return Colors.white38;
-      default: return Colors.white70;
+      case 'Open':
+        return const Color(0xFFFFD166);
+      case 'In Progress':
+        return const Color(0xFF4CC9F0);
+      case 'Resolved':
+        return const Color(0xFF06D6A0);
+      case 'Closed':
+        return Colors.white38;
+      default:
+        return Colors.white70;
     }
   }
 
   Color _getPriorityColor(String priority) {
     switch (priority) {
-      case 'Low': return const Color(0xFF06D6A0);
-      case 'Medium': return const Color(0xFFFFD166);
-      case 'High': return const Color(0xFFFF8C42);
-      case 'Critical': return const Color(0xFFEF476F);
-      default: return Colors.white70;
+      case 'Low':
+        return const Color(0xFF06D6A0);
+      case 'Medium':
+        return const Color(0xFFFFD166);
+      case 'High':
+        return const Color(0xFFFF8C42);
+      case 'Critical':
+        return const Color(0xFFEF476F);
+      default:
+        return Colors.white70;
     }
   }
 
@@ -464,7 +521,7 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
       final dt = DateTime.parse(timestamp.toString());
       final now = DateTime.now();
       final diff = now.difference(dt);
-      
+
       if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
       if (diff.inHours < 24) return '${diff.inHours}h ago';
       if (diff.inDays < 7) return '${diff.inDays}d ago';
@@ -482,7 +539,7 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
     String status = issue?['status'] ?? 'Open';
     String assignedTo = issue?['assignedTo'] ?? '';
     String? photoUrl = issue?['photoUrl'];
-    
+
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -499,7 +556,8 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
                   decoration: const InputDecoration(
                     labelText: 'Title',
                     labelStyle: TextStyle(color: Colors.white70),
-                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                    enabledBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: Colors.white24)),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -510,7 +568,8 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
                   decoration: const InputDecoration(
                     labelText: 'Description',
                     labelStyle: TextStyle(color: Colors.white70),
-                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                    enabledBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: Colors.white24)),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -549,7 +608,8 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
                   decoration: const InputDecoration(
                     labelText: 'Assigned To (optional)',
                     labelStyle: TextStyle(color: Colors.white70),
-                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                    enabledBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: Colors.white24)),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -578,7 +638,8 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
                 ),
                 if (photoUrl != null && photoUrl!.isNotEmpty) ...[
                   const SizedBox(height: 8),
-                  Text('Photo attached', style: TextStyle(color: Colors.green, fontSize: 12)),
+                  Text('Photo attached',
+                      style: TextStyle(color: Colors.green, fontSize: 12)),
                 ],
               ],
             ),
@@ -596,7 +657,7 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
                   );
                   return;
                 }
-                
+
                 final issuesBox = Hive.box('issuesBox');
                 final id = issue?['id'] ?? uuid.v4();
                 final data = {
@@ -608,17 +669,20 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
                   'assignedTo': assignedTo,
                   'photoUrl': photoUrl ?? '',
                   'reportedBy': issue?['reportedBy'] ?? widget.username,
-                  'timestamp': issue?['timestamp'] ?? DateTime.now().toIso8601String(),
+                  'timestamp':
+                      issue?['timestamp'] ?? DateTime.now().toIso8601String(),
                   'updatedAt': DateTime.now().toIso8601String(),
                 };
-                
+
                 await issuesBox.put(id, data);
                 await SyncService.pushChange('issuesBox', id, data);
-                
+
                 if (context.mounted) {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(isEdit ? 'Issue updated' : 'Issue created')),
+                    SnackBar(
+                        content:
+                            Text(isEdit ? 'Issue updated' : 'Issue created')),
                   );
                 }
               },
@@ -649,31 +713,41 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildDetailRow('Status', issue['status'] ?? 'Open', _getStatusColor(issue['status'] ?? 'Open')),
-              _buildDetailRow('Priority', issue['priority'] ?? 'Medium', _getPriorityColor(issue['priority'] ?? 'Medium')),
-              _buildDetailRow('Reported By', issue['reportedBy'] ?? 'Unknown', Colors.white70),
-              if (issue['assignedTo'] != null && (issue['assignedTo'] as String).isNotEmpty)
-                _buildDetailRow('Assigned To', issue['assignedTo'], Colors.white70),
-              _buildDetailRow('Created', _formatTimestamp(issue['timestamp']), Colors.white70),
+              _buildDetailRow('Status', issue['status'] ?? 'Open',
+                  _getStatusColor(issue['status'] ?? 'Open')),
+              _buildDetailRow('Priority', issue['priority'] ?? 'Medium',
+                  _getPriorityColor(issue['priority'] ?? 'Medium')),
+              _buildDetailRow('Reported By', issue['reportedBy'] ?? 'Unknown',
+                  Colors.white70),
+              if (issue['assignedTo'] != null &&
+                  (issue['assignedTo'] as String).isNotEmpty)
+                _buildDetailRow(
+                    'Assigned To', issue['assignedTo'], Colors.white70),
+              _buildDetailRow('Created', _formatTimestamp(issue['timestamp']),
+                  Colors.white70),
               if (issue['updatedAt'] != null)
-                _buildDetailRow('Updated', _formatTimestamp(issue['updatedAt']), Colors.white70),
-              
+                _buildDetailRow('Updated', _formatTimestamp(issue['updatedAt']),
+                    Colors.white70),
+
               // Resolution Details
-              if (issue['status'] == 'Resolved' || issue['status'] == 'Closed') ...[
+              if (issue['status'] == 'Resolved' ||
+                  issue['status'] == 'Closed') ...[
                 const Divider(color: Colors.white12, height: 24),
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: const Color(0xFF06D6A0).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFF06D6A0).withOpacity(0.3)),
+                    border: Border.all(
+                        color: const Color(0xFF06D6A0).withOpacity(0.3)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.check_circle, color: Color(0xFF06D6A0), size: 20),
+                          const Icon(Icons.check_circle,
+                              color: Color(0xFF06D6A0), size: 20),
                           const SizedBox(width: 8),
                           const Text(
                             'Resolution Details',
@@ -686,25 +760,40 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      _buildDetailRow('Resolved By', issue['resolvedBy'] ?? 'Unknown', const Color(0xFF06D6A0)),
-                      _buildDetailRow('Resolved At', _formatTimestamp(issue['resolvedAt']), Colors.white70),
+                      _buildDetailRow(
+                          'Resolved By',
+                          issue['resolvedBy'] ?? 'Unknown',
+                          const Color(0xFF06D6A0)),
+                      _buildDetailRow(
+                          'Resolved At',
+                          _formatTimestamp(issue['resolvedAt']),
+                          Colors.white70),
                       if (issue['resolutionType'] != null)
-                        _buildDetailRow('Type', issue['resolutionType'], Colors.white70),
+                        _buildDetailRow(
+                            'Type', issue['resolutionType'], Colors.white70),
                       const SizedBox(height: 8),
                       const Text(
                         'Action Taken:',
-                        style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 12),
+                        style: TextStyle(
+                            color: Colors.white70,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         issue['resolutionAction'] ?? 'No details provided',
                         style: const TextStyle(color: Colors.white),
                       ),
-                      if (issue['resolutionNextSteps'] != null && (issue['resolutionNextSteps'] as String).isNotEmpty) ...[
+                      if (issue['resolutionNextSteps'] != null &&
+                          (issue['resolutionNextSteps'] as String)
+                              .isNotEmpty) ...[
                         const SizedBox(height: 8),
                         const Text(
                           'Next Steps:',
-                          style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 12),
+                          style: TextStyle(
+                              color: Colors.white70,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12),
                         ),
                         const SizedBox(height: 4),
                         Text(
@@ -716,12 +805,16 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
                   ),
                 ),
               ],
-              
+
               const Divider(color: Colors.white12, height: 24),
-              const Text('Description:', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
+              const Text('Description:',
+                  style: TextStyle(
+                      color: Colors.white70, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
-              Text(issue['description'] ?? 'No description', style: const TextStyle(color: Colors.white)),
-              if (issue['photoUrl'] != null && (issue['photoUrl'] as String).isNotEmpty) ...[
+              Text(issue['description'] ?? 'No description',
+                  style: const TextStyle(color: Colors.white)),
+              if (issue['photoUrl'] != null &&
+                  (issue['photoUrl'] as String).isNotEmpty) ...[
                 const SizedBox(height: 16),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
@@ -764,10 +857,13 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
         children: [
           SizedBox(
             width: 100,
-            child: Text('$label:', style: const TextStyle(color: Colors.white38, fontSize: 14)),
+            child: Text('$label:',
+                style: const TextStyle(color: Colors.white38, fontSize: 14)),
           ),
           Expanded(
-            child: Text(value, style: TextStyle(color: color, fontSize: 14, fontWeight: FontWeight.w500)),
+            child: Text(value,
+                style: TextStyle(
+                    color: color, fontSize: 14, fontWeight: FontWeight.w500)),
           ),
         ],
       ),
@@ -825,7 +921,7 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Resolution Type
                 const Text(
                   'Resolution Type',
@@ -862,7 +958,7 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
                   },
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Action Taken
                 TextField(
                   controller: actionCtrl,
@@ -879,7 +975,7 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
                   autofocus: true,
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Next Steps
                 TextField(
                   controller: nextStepsCtrl,
@@ -895,7 +991,7 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
                   maxLines: 2,
                 ),
                 const SizedBox(height: 8),
-                
+
                 // Info box
                 Container(
                   padding: const EdgeInsets.all(8),
@@ -906,7 +1002,8 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.info_outline, size: 16, color: Colors.blue),
+                      const Icon(Icons.info_outline,
+                          size: 16, color: Colors.blue),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -932,7 +1029,8 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
               onPressed: () async {
                 if (actionCtrl.text.trim().isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Please describe the action taken')),
+                    const SnackBar(
+                        content: Text('Please describe the action taken')),
                   );
                   return;
                 }
@@ -940,14 +1038,14 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
                 final issuesBox = Hive.box('issuesBox');
                 final issueId = issue['id'] as String;
                 final updated = Map<String, dynamic>.from(issue);
-                
+
                 updated['status'] = 'Resolved';
                 updated['resolvedBy'] = widget.username;
                 updated['resolvedAt'] = DateTime.now().toIso8601String();
                 updated['resolutionType'] = resolutionType;
                 updated['resolutionAction'] = actionCtrl.text.trim();
                 updated['resolutionNextSteps'] = nextStepsCtrl.text.trim();
-                
+
                 await issuesBox.put(issueId, updated);
                 await SyncService.pushChange('issuesBox', issueId, updated);
 
@@ -1008,13 +1106,14 @@ class _IssuesScreenV2State extends State<IssuesScreenV2> {
                       ),
                       ElevatedButton(
                         onPressed: () => Navigator.pop(context, true),
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red),
                         child: const Text('Delete'),
                       ),
                     ],
                   ),
                 );
-                
+
                 if (confirm == true) {
                   final issuesBox = Hive.box('issuesBox');
                   await issuesBox.delete(issue['id']);

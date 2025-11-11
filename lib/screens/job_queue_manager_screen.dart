@@ -20,22 +20,25 @@ class _JobQueueManagerScreenState extends State<JobQueueManagerScreen> {
   Widget build(BuildContext context) {
     final machinesBox = Hive.box('machinesBox');
     final jobsBox = Hive.box('jobsBox');
-    
+
     final machines = machinesBox.values.cast<Map>().toList();
-    
+
     if (machines.isEmpty) {
       return Scaffold(
         appBar: AppBar(title: const Text('Job Queue Manager')),
         body: const Center(child: Text('No machines available')),
       );
     }
-    
+
     selectedMachineId ??= machines.first['id'] as String;
-    
-    final machineJobs = jobsBox.values.cast<Map>().where((j) =>
-        j['machineId'] == selectedMachineId &&
-        (j['status'] == 'Running' || j['status'] == 'Queued')).toList();
-    
+
+    final machineJobs = jobsBox.values
+        .cast<Map>()
+        .where((j) =>
+            j['machineId'] == selectedMachineId &&
+            (j['status'] == 'Running' || j['status'] == 'Queued'))
+        .toList();
+
     // Sort by status and order
     machineJobs.sort((a, b) {
       if (a['status'] == 'Running' && b['status'] != 'Running') return -1;
@@ -59,18 +62,21 @@ class _JobQueueManagerScreenState extends State<JobQueueManagerScreen> {
               decoration: InputDecoration(
                 labelText: 'Select Machine',
                 prefixIcon: const Icon(Icons.precision_manufacturing),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 filled: true,
                 fillColor: const Color(0xFF1A1F2E),
               ),
-              items: machines.map((m) => DropdownMenuItem(
-                value: m['id'] as String,
-                child: Text(m['name'] as String),
-              )).toList(),
+              items: machines
+                  .map((m) => DropdownMenuItem(
+                        value: m['id'] as String,
+                        child: Text(m['name'] as String),
+                      ))
+                  .toList(),
               onChanged: (v) => setState(() => selectedMachineId = v),
             ),
           ),
-          
+
           // Instructions
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -78,7 +84,8 @@ class _JobQueueManagerScreenState extends State<JobQueueManagerScreen> {
             decoration: BoxDecoration(
               color: const Color(0xFF4CC9F0).withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFF4CC9F0).withOpacity(0.3)),
+              border:
+                  Border.all(color: const Color(0xFF4CC9F0).withOpacity(0.3)),
             ),
             child: const Row(
               children: [
@@ -93,9 +100,9 @@ class _JobQueueManagerScreenState extends State<JobQueueManagerScreen> {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Job List with Reordering
           Expanded(
             child: machineJobs.isEmpty
@@ -111,7 +118,7 @@ class _JobQueueManagerScreenState extends State<JobQueueManagerScreen> {
                     onReorder: (oldIndex, newIndex) {
                       // Don't allow reordering running job
                       if (oldIndex == 0 || newIndex == 0) return;
-                      
+
                       setState(() {
                         if (newIndex > oldIndex) {
                           newIndex -= 1;
@@ -119,14 +126,14 @@ class _JobQueueManagerScreenState extends State<JobQueueManagerScreen> {
                         final item = machineJobs.removeAt(oldIndex);
                         machineJobs.insert(newIndex, item);
                       });
-                      
+
                       // Update order in database
                       _updateJobOrder(machineJobs);
                     },
                     itemBuilder: (context, index) {
                       final job = machineJobs[index];
                       final isRunning = job['status'] == 'Running';
-                      
+
                       return _buildJobCard(
                         key: ValueKey(job['id']),
                         job: job,
@@ -148,7 +155,7 @@ class _JobQueueManagerScreenState extends State<JobQueueManagerScreen> {
     required bool isRunning,
   }) {
     final color = isRunning ? const Color(0xFF00D26A) : const Color(0xFFFFD166);
-    
+
     return Container(
       key: key,
       margin: const EdgeInsets.only(bottom: 12),
@@ -210,7 +217,8 @@ class _JobQueueManagerScreenState extends State<JobQueueManagerScreen> {
         ),
         trailing: isRunning
             ? Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(8),
@@ -232,13 +240,13 @@ class _JobQueueManagerScreenState extends State<JobQueueManagerScreen> {
 
   Future<void> _updateJobOrder(List<Map> jobs) async {
     final jobsBox = Hive.box('jobsBox');
-    
+
     for (var i = 0; i < jobs.length; i++) {
       final job = jobs[i];
       final jobId = job['id'] as String;
       final updated = Map<String, dynamic>.from(job);
       updated['queuePosition'] = i;
-      
+
       await jobsBox.put(jobId, updated);
       await SyncService.pushChange('jobsBox', jobId, updated);
     }

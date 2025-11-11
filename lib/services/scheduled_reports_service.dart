@@ -48,17 +48,18 @@ class ScheduledReportsService {
     return id;
   }
 
-  static Future<void> updateSchedule(String id, Map<String, dynamic> updates) async {
+  static Future<void> updateSchedule(
+      String id, Map<String, dynamic> updates) async {
     final box = Hive.box('scheduledReportsBox');
     final schedule = box.get(id) as Map?;
     if (schedule == null) return;
 
     final updated = Map<String, dynamic>.from(schedule)..addAll(updates);
-    
+
     // Recalculate next run if timing changed
-    if (updates.containsKey('frequency') || 
-        updates.containsKey('time') || 
-        updates.containsKey('dayOfWeek') || 
+    if (updates.containsKey('frequency') ||
+        updates.containsKey('time') ||
+        updates.containsKey('dayOfWeek') ||
         updates.containsKey('dayOfMonth')) {
       updated['nextRun'] = _calculateNextRun(
         updated['frequency'],
@@ -82,7 +83,10 @@ class ScheduledReportsService {
 
   static List<Map<String, dynamic>> getAllSchedules() {
     final box = Hive.box('scheduledReportsBox');
-    return box.values.cast<Map>().map((s) => Map<String, dynamic>.from(s)).toList();
+    return box.values
+        .cast<Map>()
+        .map((s) => Map<String, dynamic>.from(s))
+        .toList();
   }
 
   static List<Map<String, dynamic>> getActiveSchedules() {
@@ -119,7 +123,7 @@ class ScheduledReportsService {
       case 'weekly':
         final targetDay = _dayOfWeekToInt(dayOfWeek ?? 'Monday');
         nextRun = DateTime(now.year, now.month, now.day, hour, minute);
-        
+
         while (nextRun.weekday != targetDay || nextRun.isBefore(now)) {
           nextRun = nextRun.add(const Duration(days: 1));
         }
@@ -128,13 +132,14 @@ class ScheduledReportsService {
       case 'monthly':
         final targetDay = dayOfMonth ?? 1;
         nextRun = DateTime(now.year, now.month, targetDay, hour, minute);
-        
+
         if (nextRun.isBefore(now)) {
           // Move to next month
           if (now.month == 12) {
             nextRun = DateTime(now.year + 1, 1, targetDay, hour, minute);
           } else {
-            nextRun = DateTime(now.year, now.month + 1, targetDay, hour, minute);
+            nextRun =
+                DateTime(now.year, now.month + 1, targetDay, hour, minute);
           }
         }
         break;
@@ -177,7 +182,7 @@ class ScheduledReportsService {
 
       if (now.isAfter(nextRun)) {
         await _runScheduledReport(schedule);
-        
+
         // Update last run and calculate next run
         await updateSchedule(schedule['id'], {
           'lastRun': now.toIso8601String(),
@@ -195,8 +200,9 @@ class ScheduledReportsService {
   static Future<void> _runScheduledReport(Map<String, dynamic> schedule) async {
     // This would integrate with the report builder to generate and send the report
     // For now, we'll just log that it ran
-    LogService.info('Running scheduled report: ${schedule['reportType']} at ${DateTime.now()}');
-    
+    LogService.info(
+        'Running scheduled report: ${schedule['reportType']} at ${DateTime.now()}');
+
     // In a real implementation, this would:
     // 1. Generate the report using ReportBuilderScreen logic
     // 2. Export to PDF/CSV
@@ -204,7 +210,8 @@ class ScheduledReportsService {
     // 4. Store in a reports history
   }
 
-  static String getFrequencyDisplay(String frequency, String? dayOfWeek, int? dayOfMonth) {
+  static String getFrequencyDisplay(
+      String frequency, String? dayOfWeek, int? dayOfMonth) {
     switch (frequency) {
       case 'daily':
         return 'Daily';
@@ -219,7 +226,7 @@ class ScheduledReportsService {
 
   static String getNextRunDisplay(String? nextRunStr) {
     if (nextRunStr == null) return 'Not scheduled';
-    
+
     final nextRun = DateTime.tryParse(nextRunStr);
     if (nextRun == null) return 'Invalid date';
 

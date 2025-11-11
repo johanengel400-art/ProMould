@@ -16,33 +16,33 @@ class QueryOptimizer {
     int Function(Map, Map)? sort,
   }) async {
     final startTime = DateTime.now();
-    
+
     // Get all items
     var items = box.values.cast<Map>().toList();
-    
+
     // Apply filter if provided
     if (filter != null) {
       items = items.where(filter).toList();
     }
-    
+
     // Apply sort if provided
     if (sort != null) {
       items.sort(sort);
     }
-    
+
     // Calculate pagination
     final start = page * pageSize;
     final end = start + pageSize;
-    
+
     // Get page slice
     final result = items.sublist(
       start.clamp(0, items.length),
       end.clamp(0, items.length),
     );
-    
+
     final duration = DateTime.now().difference(startTime);
     LogService.performance('Query paginated', duration);
-    
+
     return result;
   }
 
@@ -86,7 +86,7 @@ class QueryOptimizer {
   /// Batch get items
   static List<Map> batchGet(Box box, List<String> ids) {
     final startTime = DateTime.now();
-    
+
     final results = <Map>[];
     for (final id in ids) {
       final item = box.get(id);
@@ -94,19 +94,19 @@ class QueryOptimizer {
         results.add(item);
       }
     }
-    
+
     final duration = DateTime.now().difference(startTime);
     LogService.performance('Batch get ${ids.length} items', duration);
-    
+
     return results;
   }
 
   /// Batch put items
   static Future<void> batchPut(Box box, Map<String, Map> items) async {
     final startTime = DateTime.now();
-    
+
     await box.putAll(items);
-    
+
     final duration = DateTime.now().difference(startTime);
     LogService.performance('Batch put ${items.length} items', duration);
   }
@@ -136,41 +136,41 @@ class QueryOptimizer {
     String Function(Map) keySelector,
   ) {
     final groups = <String, List<Map>>{};
-    
+
     for (final item in box.values.cast<Map>()) {
       final key = keySelector(item);
       groups.putIfAbsent(key, () => []).add(item);
     }
-    
+
     return groups;
   }
 
   /// Get distinct values for a field
   static List<dynamic> distinct(Box box, String field) {
     final values = <dynamic>{};
-    
+
     for (final item in box.values.cast<Map>()) {
       if (item.containsKey(field)) {
         values.add(item[field]);
       }
     }
-    
+
     return values.toList();
   }
 
   /// Aggregate sum
   static num sum(Box box, num Function(Map) selector) {
     return box.values.cast<Map>().fold<num>(
-      0,
-      (sum, item) => sum + selector(item),
-    );
+          0,
+          (sum, item) => sum + selector(item),
+        );
   }
 
   /// Aggregate average
   static double average(Box box, num Function(Map) selector) {
     final items = box.values.cast<Map>().toList();
     if (items.isEmpty) return 0.0;
-    
+
     final total = items.fold<num>(0, (sum, item) => sum + selector(item));
     return total / items.length;
   }
@@ -179,7 +179,7 @@ class QueryOptimizer {
   static num? min(Box box, num Function(Map) selector) {
     final items = box.values.cast<Map>().toList();
     if (items.isEmpty) return null;
-    
+
     return items.map(selector).reduce((a, b) => a < b ? a : b);
   }
 
@@ -187,7 +187,7 @@ class QueryOptimizer {
   static num? max(Box box, num Function(Map) selector) {
     final items = box.values.cast<Map>().toList();
     if (items.isEmpty) return null;
-    
+
     return items.map(selector).reduce((a, b) => a > b ? a : b);
   }
 }
@@ -208,10 +208,10 @@ class QueryFilters {
     return (item) {
       final dateStr = item[dateField] as String?;
       if (dateStr == null) return false;
-      
+
       final date = DateTime.tryParse(dateStr);
       if (date == null) return false;
-      
+
       return date.isAfter(start) && date.isBefore(end);
     };
   }

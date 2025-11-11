@@ -28,8 +28,16 @@ class _MachineInspectionChecklistV2State
   final inspectionCategories = {
     'Safety': [
       {'id': 'safety_guards', 'name': 'Safety Guards Intact', 'critical': true},
-      {'id': 'emergency_stop', 'name': 'Emergency Stop Functional', 'critical': true},
-      {'id': 'warning_labels', 'name': 'Warning Labels Visible', 'critical': true},
+      {
+        'id': 'emergency_stop',
+        'name': 'Emergency Stop Functional',
+        'critical': true
+      },
+      {
+        'id': 'warning_labels',
+        'name': 'Warning Labels Visible',
+        'critical': true
+      },
     ],
     'Mechanical': [
       {'id': 'lubrication', 'name': 'Lubrication Levels', 'critical': true},
@@ -46,13 +54,25 @@ class _MachineInspectionChecklistV2State
       {'id': 'pressure', 'name': 'Injection Pressure', 'critical': false},
     ],
     'Material': [
-      {'id': 'material_level', 'name': 'Material Level Adequate', 'critical': true},
+      {
+        'id': 'material_level',
+        'name': 'Material Level Adequate',
+        'critical': true
+      },
       {'id': 'hopper', 'name': 'Hopper Loader Working', 'critical': false},
-      {'id': 'dryer', 'name': 'Material Dryer (if applicable)', 'critical': false},
+      {
+        'id': 'dryer',
+        'name': 'Material Dryer (if applicable)',
+        'critical': false
+      },
     ],
     'Documentation': [
       {'id': 'job_card', 'name': 'Job Card Present', 'critical': false},
-      {'id': 'production_count', 'name': 'Production Count Verified', 'critical': false},
+      {
+        'id': 'production_count',
+        'name': 'Production Count Verified',
+        'critical': false
+      },
       {'id': 'logbook', 'name': 'Logbook Updated', 'critical': false},
     ],
   };
@@ -88,12 +108,15 @@ class _MachineInspectionChecklistV2State
       }
       final inspectionsBox = Hive.box('dailyInspectionsBox');
       final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-      
-      final todayInspections = inspectionsBox.values.cast<Map>().where((i) =>
-          i['machineId'] == machineId &&
-          i['inspectorUsername'] == widget.username &&
-          i['date'] == today).toList();
-      
+
+      final todayInspections = inspectionsBox.values
+          .cast<Map>()
+          .where((i) =>
+              i['machineId'] == machineId &&
+              i['inspectorUsername'] == widget.username &&
+              i['date'] == today)
+          .toList();
+
       return todayInspections.isNotEmpty;
     } catch (e) {
       LogService.error('Error checking inspection status', e);
@@ -132,18 +155,22 @@ class _MachineInspectionChecklistV2State
                       padding: const EdgeInsets.all(16.0),
                       child: Row(
                         children: [
-                          const Icon(Icons.person, color: Colors.white70, size: 16),
+                          const Icon(Icons.person,
+                              color: Colors.white70, size: 16),
                           const SizedBox(width: 8),
                           Text(
                             'Inspector: ${widget.username}',
-                            style: const TextStyle(color: Colors.white70, fontSize: 14),
+                            style: const TextStyle(
+                                color: Colors.white70, fontSize: 14),
                           ),
                           const Spacer(),
-                          const Icon(Icons.calendar_today, color: Colors.white70, size: 16),
+                          const Icon(Icons.calendar_today,
+                              color: Colors.white70, size: 16),
                           const SizedBox(width: 8),
                           Text(
                             DateFormat('MMM dd, yyyy').format(DateTime.now()),
-                            style: const TextStyle(color: Colors.white70, fontSize: 14),
+                            style: const TextStyle(
+                                color: Colors.white70, fontSize: 14),
                           ),
                         ],
                       ),
@@ -168,8 +195,8 @@ class _MachineInspectionChecklistV2State
               padding: const EdgeInsets.symmetric(horizontal: 16),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-                  ...inspectionCategories.entries.map((entry) =>
-                      _buildCategorySection(entry.key, entry.value)),
+                  ...inspectionCategories.entries.map(
+                      (entry) => _buildCategorySection(entry.key, entry.value)),
                   const SizedBox(height: 16),
                   _buildNotesSection(),
                   const SizedBox(height: 16),
@@ -193,7 +220,7 @@ class _MachineInspectionChecklistV2State
 
         final machinesBox = Hive.box('machinesBox');
         final machines = machinesBox.values.cast<Map>().toList();
-        
+
         if (machines.isEmpty) {
           return Card(
             color: const Color(0xFF0F1419),
@@ -223,7 +250,8 @@ class _MachineInspectionChecklistV2State
               children: [
                 const Row(
                   children: [
-                    Icon(Icons.precision_manufacturing, color: Color(0xFF06D6A0)),
+                    Icon(Icons.precision_manufacturing,
+                        color: Color(0xFF06D6A0)),
                     SizedBox(width: 12),
                     Text(
                       'Select Machine to Inspect',
@@ -251,7 +279,8 @@ class _MachineInspectionChecklistV2State
                           child: InkWell(
                             onTap: isCompleted
                                 ? null
-                                : () => setState(() => selectedMachineId = machineId),
+                                : () => setState(
+                                    () => selectedMachineId = machineId),
                             borderRadius: BorderRadius.circular(12),
                             child: Container(
                               padding: const EdgeInsets.all(16),
@@ -276,25 +305,33 @@ class _MachineInspectionChecklistV2State
                                     decoration: BoxDecoration(
                                       color: isCompleted
                                           ? Colors.green.withOpacity(0.2)
-                                          : const Color(0xFF06D6A0).withOpacity(0.2),
+                                          : const Color(0xFF06D6A0)
+                                              .withOpacity(0.2),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Icon(
-                                      isCompleted ? Icons.check_circle : Icons.factory,
-                                      color: isCompleted ? Colors.green : const Color(0xFF06D6A0),
+                                      isCompleted
+                                          ? Icons.check_circle
+                                          : Icons.factory,
+                                      color: isCompleted
+                                          ? Colors.green
+                                          : const Color(0xFF06D6A0),
                                     ),
                                   ),
                                   const SizedBox(width: 16),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           machine['name'] as String,
                                           style: TextStyle(
                                             color: Colors.white,
                                             fontSize: 16,
-                                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                            fontWeight: isSelected
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
                                           ),
                                         ),
                                         if (isCompleted)
@@ -309,7 +346,8 @@ class _MachineInspectionChecklistV2State
                                     ),
                                   ),
                                   if (isCompleted)
-                                    const Icon(Icons.check_circle, color: Colors.green),
+                                    const Icon(Icons.check_circle,
+                                        color: Colors.green),
                                 ],
                               ),
                             ),
@@ -327,8 +365,10 @@ class _MachineInspectionChecklistV2State
     );
   }
 
-  Widget _buildCategorySection(String category, List<Map<String, dynamic>> items) {
-    final completedCount = items.where((item) => checklistStatus[item['id']] == true).length;
+  Widget _buildCategorySection(
+      String category, List<Map<String, dynamic>> items) {
+    final completedCount =
+        items.where((item) => checklistStatus[item['id']] == true).length;
     final totalCount = items.length;
     final progress = totalCount > 0 ? completedCount / totalCount : 0.0;
 
@@ -385,7 +425,8 @@ class _MachineInspectionChecklistV2State
               CircularProgressIndicator(
                 value: progress,
                 backgroundColor: Colors.white12,
-                valueColor: AlwaysStoppedAnimation<Color>(_getCategoryColor(category)),
+                valueColor:
+                    AlwaysStoppedAnimation<Color>(_getCategoryColor(category)),
                 strokeWidth: 3,
               ),
             ],
@@ -528,8 +569,10 @@ class _MachineInspectionChecklistV2State
 
   Widget _buildSubmitButton() {
     final totalItems = checklistStatus.length;
-    final completedItems = checklistStatus.values.where((v) => v == true).length;
-    final completionRate = totalItems > 0 ? (completedItems / totalItems * 100).round() : 0;
+    final completedItems =
+        checklistStatus.values.where((v) => v == true).length;
+    final completionRate =
+        totalItems > 0 ? (completedItems / totalItems * 100).round() : 0;
 
     // Check critical items
     final criticalItems = <String>[];
@@ -540,7 +583,8 @@ class _MachineInspectionChecklistV2State
         }
       }
     });
-    final criticalCompleted = criticalItems.where((id) => checklistStatus[id] == true).length;
+    final criticalCompleted =
+        criticalItems.where((id) => checklistStatus[id] == true).length;
     final allCriticalDone = criticalCompleted == criticalItems.length;
 
     return Column(
@@ -575,7 +619,8 @@ class _MachineInspectionChecklistV2State
               LinearProgressIndicator(
                 value: completionRate / 100,
                 backgroundColor: Colors.white12,
-                valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF06D6A0)),
+                valueColor:
+                    const AlwaysStoppedAnimation<Color>(Color(0xFF06D6A0)),
                 minHeight: 8,
                 borderRadius: BorderRadius.circular(4),
               ),
@@ -607,7 +652,8 @@ class _MachineInspectionChecklistV2State
           width: double.infinity,
           height: 56,
           child: ElevatedButton(
-            onPressed: _isSubmitting || !allCriticalDone ? null : _submitInspection,
+            onPressed:
+                _isSubmitting || !allCriticalDone ? null : _submitInspection,
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF06D6A0),
               disabledBackgroundColor: Colors.grey,
@@ -663,15 +709,17 @@ class _MachineInspectionChecklistV2State
         'timestamp': now.toIso8601String(),
         'checklist': Map<String, dynamic>.from(checklistStatus),
         'notes': Map<String, dynamic>.from(checklistNotes),
-        'completionRate': (checklistStatus.values.where((v) => v == true).length /
-                checklistStatus.length *
-                100)
-            .round(),
+        'completionRate':
+            (checklistStatus.values.where((v) => v == true).length /
+                    checklistStatus.length *
+                    100)
+                .round(),
         'status': 'completed',
       };
 
       await inspectionsBox.put(inspectionId, inspectionData);
-      await SyncService.push('dailyInspectionsBox', inspectionId, inspectionData);
+      await SyncService.push(
+          'dailyInspectionsBox', inspectionId, inspectionData);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -685,7 +733,8 @@ class _MachineInspectionChecklistV2State
             ),
             backgroundColor: const Color(0xFF06D6A0),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         );
 

@@ -9,7 +9,7 @@ import 'package:intl/intl.dart';
 class ScrapTrendChart extends StatelessWidget {
   final String? machineId;
   final int days;
-  
+
   const ScrapTrendChart({
     super.key,
     this.machineId,
@@ -20,7 +20,7 @@ class ScrapTrendChart extends StatelessWidget {
   Widget build(BuildContext context) {
     final inputsBox = Hive.box('inputsBox');
     final startDate = DateTime.now().subtract(Duration(days: days));
-    
+
     // Get inputs for the period
     var inputs = inputsBox.values.cast<Map>().where((input) {
       final date = DateTime.tryParse(input['date'] ?? '');
@@ -28,41 +28,44 @@ class ScrapTrendChart extends StatelessWidget {
       if (machineId != null && input['machineId'] != machineId) return false;
       return true;
     }).toList();
-    
+
     // Group by date
     final Map<String, Map<String, int>> dailyData = {};
-    
+
     for (final input in inputs) {
       final date = DateTime.tryParse(input['date'] ?? '');
       if (date == null) continue;
-      
+
       final dateKey = DateFormat('yyyy-MM-dd').format(date);
       if (!dailyData.containsKey(dateKey)) {
         dailyData[dateKey] = {'shots': 0, 'scrap': 0};
       }
-      
-      dailyData[dateKey]!['shots'] = (dailyData[dateKey]!['shots'] ?? 0) + (input['shots'] as int? ?? 0);
-      dailyData[dateKey]!['scrap'] = (dailyData[dateKey]!['scrap'] ?? 0) + (input['scrap'] as int? ?? 0);
+
+      dailyData[dateKey]!['shots'] =
+          (dailyData[dateKey]!['shots'] ?? 0) + (input['shots'] as int? ?? 0);
+      dailyData[dateKey]!['scrap'] =
+          (dailyData[dateKey]!['scrap'] ?? 0) + (input['scrap'] as int? ?? 0);
     }
-    
+
     // Convert to chart data
     final chartData = <_ScrapDataPoint>[];
     for (var i = 0; i < days; i++) {
       final date = DateTime.now().subtract(Duration(days: days - i - 1));
       final dateKey = DateFormat('yyyy-MM-dd').format(date);
-      
+
       final data = dailyData[dateKey];
       final shots = data?['shots'] ?? 0;
       final scrap = data?['scrap'] ?? 0;
       final total = shots + scrap;
       final scrapRate = total > 0 ? (scrap / total) * 100 : 0.0;
-      
+
       chartData.add(_ScrapDataPoint(date, scrapRate));
     }
-    
+
     if (chartData.isEmpty) {
       return const Center(
-        child: Text('No data available', style: TextStyle(color: Colors.white54)),
+        child:
+            Text('No data available', style: TextStyle(color: Colors.white54)),
       );
     }
 
@@ -143,6 +146,6 @@ class ScrapTrendChart extends StatelessWidget {
 class _ScrapDataPoint {
   final DateTime date;
   final double scrapRate;
-  
+
   _ScrapDataPoint(this.date, this.scrapRate);
 }

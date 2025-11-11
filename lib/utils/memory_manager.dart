@@ -12,7 +12,7 @@ class MemoryManager {
   /// Initialize memory management
   static void initialize() {
     if (_initialized) return;
-    
+
     limitCacheSize();
     _initialized = true;
     LogService.info('MemoryManager initialized');
@@ -29,13 +29,14 @@ class MemoryManager {
   static void limitCacheSize({int maxSize = 100, int maxSizeBytes = 50 << 20}) {
     PaintingBinding.instance.imageCache.maximumSize = maxSize;
     PaintingBinding.instance.imageCache.maximumSizeBytes = maxSizeBytes;
-    LogService.debug('Image cache limited: $maxSize images, ${maxSizeBytes ~/ (1 << 20)}MB');
+    LogService.debug(
+        'Image cache limited: $maxSize images, ${maxSizeBytes ~/ (1 << 20)}MB');
   }
 
   /// Get current memory usage statistics
   static Map<String, dynamic> getStats() {
     final imageCache = PaintingBinding.instance.imageCache;
-    
+
     return {
       'imageCacheSize': imageCache.currentSize,
       'imageCacheMaxSize': imageCache.maximumSize,
@@ -48,26 +49,26 @@ class MemoryManager {
   /// Perform aggressive memory cleanup
   static void aggressiveCleanup() {
     LogService.info('Performing aggressive memory cleanup...');
-    
+
     // Clear image cache
     clearImageCache();
-    
+
     // Clear data cache
     CacheService.clear();
-    
+
     // Force garbage collection (hint to VM)
     // Note: This is just a hint, actual GC is controlled by the VM
-    
+
     LogService.info('Aggressive cleanup complete');
   }
 
   /// Perform light memory cleanup
   static void lightCleanup() {
     LogService.debug('Performing light memory cleanup...');
-    
+
     // Clean up expired cache entries
     CacheService.cleanup();
-    
+
     // Trim image cache if over 80% capacity
     final imageCache = PaintingBinding.instance.imageCache;
     if (imageCache.currentSize > imageCache.maximumSize * 0.8) {
@@ -88,7 +89,7 @@ class MemoryManager {
   static bool isMemoryHigh() {
     final imageCache = PaintingBinding.instance.imageCache;
     return imageCache.currentSize > imageCache.maximumSize * 0.9 ||
-           imageCache.currentSizeBytes > imageCache.maximumSizeBytes * 0.9;
+        imageCache.currentSizeBytes > imageCache.maximumSizeBytes * 0.9;
   }
 
   /// Auto cleanup if memory is high

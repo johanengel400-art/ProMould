@@ -7,7 +7,7 @@ import 'package:syncfusion_flutter_gauges/gauges.dart';
 class OEEGauge extends StatelessWidget {
   final double oeePercentage;
   final String label;
-  
+
   const OEEGauge({
     super.key,
     required this.oeePercentage,
@@ -17,7 +17,7 @@ class OEEGauge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = _getOEEColor(oeePercentage);
-    
+
     return SfRadialGauge(
       axes: <RadialAxis>[
         RadialAxis(
@@ -87,14 +87,14 @@ class OEEGauge extends StatelessWidget {
       ],
     );
   }
-  
+
   Color _getOEEColor(double oee) {
     if (oee >= 85) return const Color(0xFF00D26A); // World Class
     if (oee >= 60) return const Color(0xFF80ED99); // Good
     if (oee >= 40) return const Color(0xFFFFD166); // Fair
     return const Color(0xFFFF6B6B); // Poor
   }
-  
+
   String _getOEEStatus(double oee) {
     if (oee >= 85) return 'World Class';
     if (oee >= 60) return 'Good';

@@ -46,13 +46,13 @@ class _TimelineScreenState extends State<TimelineScreen> {
               .cast<Map>()
               .where((j) => j['status'] == 'Running' || j['status'] == 'Queued')
               .toList();
-          
+
           final machines = {
             for (final m in machinesBox.values.cast<Map>()) m['id']: m['name']
           };
 
           final data = <_JobBar>[];
-          
+
           // Group jobs by machine
           final jobsByMachine = <String, List<Map>>{};
           for (final j in jobs) {
@@ -66,40 +66,44 @@ class _TimelineScreenState extends State<TimelineScreen> {
           for (final entry in jobsByMachine.entries) {
             final machineId = entry.key;
             final machineJobs = entry.value;
-            
+
             // Sort by status (Running first, then Queued)
             machineJobs.sort((a, b) {
-              if (a['status'] == 'Running' && b['status'] != 'Running') return -1;
-              if (a['status'] != 'Running' && b['status'] == 'Running') return 1;
+              if (a['status'] == 'Running' && b['status'] != 'Running')
+                return -1;
+              if (a['status'] != 'Running' && b['status'] == 'Running')
+                return 1;
               return 0;
             });
 
             DateTime currentTime = DateTime.now();
-            
+
             for (final j in machineJobs) {
               final mould = mouldsBox.values.cast<Map?>().firstWhere(
-                (m) => m != null && m['id'] == j['mouldId'],
-                orElse: () => null,
-              );
-              
-              final cycleTime = (mould?['cycleTime'] as num?)?.toDouble() ?? 30.0;
-              
+                    (m) => m != null && m['id'] == j['mouldId'],
+                    orElse: () => null,
+                  );
+
+              final cycleTime =
+                  (mould?['cycleTime'] as num?)?.toDouble() ?? 30.0;
+
               // Use live estimated shots for accurate remaining calculation
               final currentShots = j['status'] == 'Running'
                   ? LiveProgressService.getEstimatedShots(j, mouldsBox)
                   : (j['shotsCompleted'] as num? ?? 0);
               final remaining = (j['targetShots'] as num? ?? 0) - currentShots;
               final durationMinutes = (remaining * cycleTime / 60).toDouble();
-              
+
               DateTime startTime;
               if (j['status'] == 'Running' && j['startTime'] != null) {
                 startTime = DateTime.parse(j['startTime'] as String);
               } else {
                 startTime = currentTime;
               }
-              
-              final endTime = currentTime.add(Duration(minutes: durationMinutes.round()));
-              
+
+              final endTime =
+                  currentTime.add(Duration(minutes: durationMinutes.round()));
+
               data.add(_JobBar(
                 j['productName'] ?? 'Job',
                 machines[machineId] ?? machineId,
@@ -107,14 +111,15 @@ class _TimelineScreenState extends State<TimelineScreen> {
                 endTime,
                 j['status'] ?? 'Queued',
               ));
-              
+
               currentTime = endTime;
             }
           }
 
           if (data.isEmpty) {
             return const Center(
-              child: Text('No active or queued jobs', style: TextStyle(fontSize: 16)),
+              child: Text('No active or queued jobs',
+                  style: TextStyle(fontSize: 16)),
             );
           }
 
@@ -126,7 +131,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
                   child: SfCartesianChart(
                     title: ChartTitle(
                       text: 'Production Schedule',
-                      textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      textStyle: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     primaryXAxis: CategoryAxis(
                       title: AxisTitle(text: 'Machines'),
@@ -149,18 +155,23 @@ class _TimelineScreenState extends State<TimelineScreen> {
                       RangeColumnSeries<_JobBar, String>(
                         dataSource: data,
                         xValueMapper: (d, _) => d.machine,
-                        lowValueMapper: (d, _) => d.start.millisecondsSinceEpoch.toDouble(),
-                        highValueMapper: (d, _) => d.end.millisecondsSinceEpoch.toDouble(),
+                        lowValueMapper: (d, _) =>
+                            d.start.millisecondsSinceEpoch.toDouble(),
+                        highValueMapper: (d, _) =>
+                            d.end.millisecondsSinceEpoch.toDouble(),
                         pointColorMapper: (d, _) => d.status == 'Running'
                             ? const Color(0xFF00D26A)
                             : const Color(0xFFFFD166),
                         dataLabelSettings: DataLabelSettings(
                           isVisible: true,
                           labelAlignment: ChartDataLabelAlignment.middle,
-                          textStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
-                          builder: (data, point, series, pointIndex, seriesIndex) {
+                          textStyle: const TextStyle(
+                              fontSize: 10, fontWeight: FontWeight.bold),
+                          builder:
+                              (data, point, series, pointIndex, seriesIndex) {
                             final job = data as _JobBar;
-                            final endDate = DateFormat('MMM d HH:mm').format(job.end);
+                            final endDate =
+                                DateFormat('MMM d HH:mm').format(job.end);
                             return Container(
                               padding: const EdgeInsets.all(4),
                               decoration: BoxDecoration(
@@ -206,7 +217,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
                 const SizedBox(height: 8),
                 Text(
                   'Timeline shows estimated completion dates',
-                  style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.5)),
+                  style: TextStyle(
+                      fontSize: 12, color: Colors.white.withOpacity(0.5)),
                 ),
               ],
             ),
@@ -240,6 +252,6 @@ class _JobBar {
   final DateTime start;
   final DateTime end;
   final String status;
-  
+
   _JobBar(this.product, this.machine, this.start, this.end, this.status);
 }

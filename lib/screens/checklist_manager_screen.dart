@@ -53,7 +53,10 @@ class _ChecklistManagerScreenState extends State<ChecklistManagerScreen> {
             child: ValueListenableBuilder(
               valueListenable: Hive.box('checklistsBox').listenable(),
               builder: (context, box, _) {
-                final checklists = box.values.cast<Map>().map((c) => Map<String, dynamic>.from(c)).where((c) {
+                final checklists = box.values
+                    .cast<Map>()
+                    .map((c) => Map<String, dynamic>.from(c))
+                    .where((c) {
                   if (_selectedCategory == 'All') return true;
                   return c['category'] == _selectedCategory;
                 }).toList();
@@ -63,7 +66,8 @@ class _ChecklistManagerScreenState extends State<ChecklistManagerScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.checklist, size: 64, color: Colors.grey[600]),
+                        Icon(Icons.checklist,
+                            size: 64, color: Colors.grey[600]),
                         const SizedBox(height: 16),
                         const Text(
                           'No checklists found',
@@ -137,7 +141,8 @@ class _ChecklistManagerScreenState extends State<ChecklistManagerScreen> {
     final items = checklist['items'] as List? ?? [];
     final completedCount = items.where((i) => i['isCompleted'] == true).length;
     final totalCount = items.length;
-    final completionRate = totalCount > 0 ? (completedCount / totalCount * 100).toDouble() : 0.0;
+    final completionRate =
+        totalCount > 0 ? (completedCount / totalCount * 100).toDouble() : 0.0;
 
     return Card(
       color: const Color(0xFF1E1E1E),
@@ -166,7 +171,8 @@ class _ChecklistManagerScreenState extends State<ChecklistManagerScreen> {
                         const SizedBox(height: 4),
                         Text(
                           checklist['category'] ?? 'Uncategorized',
-                          style: const TextStyle(color: Colors.grey, fontSize: 12),
+                          style:
+                              const TextStyle(color: Colors.grey, fontSize: 12),
                         ),
                       ],
                     ),
@@ -179,9 +185,11 @@ class _ChecklistManagerScreenState extends State<ChecklistManagerScreen> {
                         value: 'export_pdf',
                         child: Row(
                           children: [
-                            Icon(Icons.picture_as_pdf, color: Colors.white, size: 20),
+                            Icon(Icons.picture_as_pdf,
+                                color: Colors.white, size: 20),
                             SizedBox(width: 8),
-                            Text('Export as PDF', style: TextStyle(color: Colors.white)),
+                            Text('Export as PDF',
+                                style: TextStyle(color: Colors.white)),
                           ],
                         ),
                       ),
@@ -189,9 +197,11 @@ class _ChecklistManagerScreenState extends State<ChecklistManagerScreen> {
                         value: 'export_csv',
                         child: Row(
                           children: [
-                            Icon(Icons.table_chart, color: Colors.white, size: 20),
+                            Icon(Icons.table_chart,
+                                color: Colors.white, size: 20),
                             SizedBox(width: 8),
-                            Text('Export as CSV', style: TextStyle(color: Colors.white)),
+                            Text('Export as CSV',
+                                style: TextStyle(color: Colors.white)),
                           ],
                         ),
                       ),
@@ -201,7 +211,8 @@ class _ChecklistManagerScreenState extends State<ChecklistManagerScreen> {
                           children: [
                             Icon(Icons.copy, color: Colors.white, size: 20),
                             SizedBox(width: 8),
-                            Text('Duplicate', style: TextStyle(color: Colors.white)),
+                            Text('Duplicate',
+                                style: TextStyle(color: Colors.white)),
                           ],
                         ),
                       ),
@@ -216,7 +227,8 @@ class _ChecklistManagerScreenState extends State<ChecklistManagerScreen> {
                         ),
                       ),
                     ],
-                    onSelected: (value) => _handleMenuAction(value.toString(), checklist),
+                    onSelected: (value) =>
+                        _handleMenuAction(value.toString(), checklist),
                   ),
                 ],
               ),
@@ -325,7 +337,7 @@ class _ChecklistManagerScreenState extends State<ChecklistManagerScreen> {
     duplicate['id'] = newId;
     duplicate['title'] = '${checklist['title']} (Copy)';
     duplicate['createdAt'] = DateTime.now().toIso8601String();
-    
+
     // Reset completion status
     final items = (duplicate['items'] as List).map((item) {
       final newItem = Map<String, dynamic>.from(item);
@@ -336,7 +348,7 @@ class _ChecklistManagerScreenState extends State<ChecklistManagerScreen> {
     duplicate['items'] = items;
 
     await box.put(newId, duplicate);
-    
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Checklist duplicated')),
@@ -349,7 +361,8 @@ class _ChecklistManagerScreenState extends State<ChecklistManagerScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1E1E1E),
-        title: const Text('Delete Checklist', style: TextStyle(color: Colors.white)),
+        title: const Text('Delete Checklist',
+            style: TextStyle(color: Colors.white)),
         content: Text(
           'Are you sure you want to delete "${checklist['title']}"?',
           style: const TextStyle(color: Colors.grey),
@@ -393,7 +406,8 @@ class _ChecklistManagerScreenState extends State<ChecklistManagerScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1E1E1E),
-        title: const Text('Export All Checklists', style: TextStyle(color: Colors.white)),
+        title: const Text('Export All Checklists',
+            style: TextStyle(color: Colors.white)),
         content: const Text(
           'Choose export format:',
           style: TextStyle(color: Colors.grey),
@@ -419,7 +433,10 @@ class _ChecklistManagerScreenState extends State<ChecklistManagerScreen> {
   Future<void> _exportAllCSV() async {
     try {
       final box = Hive.box('checklistsBox');
-      final checklists = box.values.cast<Map>().map((c) => Map<String, dynamic>.from(c)).toList();
+      final checklists = box.values
+          .cast<Map>()
+          .map((c) => Map<String, dynamic>.from(c))
+          .toList();
       await ChecklistExportService.exportMultipleToCSV(checklists);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -452,7 +469,8 @@ class _CreateChecklistDialogState extends State<_CreateChecklistDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       backgroundColor: const Color(0xFF1E1E1E),
-      title: const Text('Create Checklist', style: TextStyle(color: Colors.white)),
+      title:
+          const Text('Create Checklist', style: TextStyle(color: Colors.white)),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -477,8 +495,10 @@ class _CreateChecklistDialogState extends State<_CreateChecklistDialog> {
               items: const [
                 DropdownMenuItem(value: 'Safety', child: Text('Safety')),
                 DropdownMenuItem(value: 'Quality', child: Text('Quality')),
-                DropdownMenuItem(value: 'Maintenance', child: Text('Maintenance')),
-                DropdownMenuItem(value: 'Production', child: Text('Production')),
+                DropdownMenuItem(
+                    value: 'Maintenance', child: Text('Maintenance')),
+                DropdownMenuItem(
+                    value: 'Production', child: Text('Production')),
                 DropdownMenuItem(value: 'Setup', child: Text('Setup')),
               ],
               onChanged: (value) => setState(() => _category = value!),
@@ -499,7 +519,8 @@ class _CreateChecklistDialogState extends State<_CreateChecklistDialog> {
               final index = entry.key;
               final item = entry.value;
               return ListTile(
-                title: Text(item['title'], style: const TextStyle(color: Colors.white)),
+                title: Text(item['title'],
+                    style: const TextStyle(color: Colors.white)),
                 trailing: IconButton(
                   icon: const Icon(Icons.delete, color: Colors.red),
                   onPressed: () => setState(() => _items.removeAt(index)),
@@ -568,14 +589,15 @@ class _CreateChecklistDialogState extends State<_CreateChecklistDialog> {
   void _save() async {
     if (_titleController.text.isEmpty || _items.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all fields and add at least one item')),
+        const SnackBar(
+            content: Text('Please fill all fields and add at least one item')),
       );
       return;
     }
 
     final box = Hive.box('checklistsBox');
     final id = const Uuid().v4();
-    
+
     await box.put(id, {
       'id': id,
       'title': _titleController.text,

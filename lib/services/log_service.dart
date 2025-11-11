@@ -30,7 +30,8 @@ class LogService {
     _isProduction = isProduction;
   }
 
-  static Logger get _activeLogger => _isProduction ? _productionLogger : _logger;
+  static Logger get _activeLogger =>
+      _isProduction ? _productionLogger : _logger;
 
   /// Log debug information (development only)
   static void debug(String message, [dynamic error, StackTrace? stackTrace]) {
@@ -58,8 +59,10 @@ class LogService {
   }
 
   /// Log service-specific messages with context
-  static void service(String serviceName, String message, {dynamic error, StackTrace? stackTrace}) {
-    _activeLogger.i('[$serviceName] $message', error: error, stackTrace: stackTrace);
+  static void service(String serviceName, String message,
+      {dynamic error, StackTrace? stackTrace}) {
+    _activeLogger.i('[$serviceName] $message',
+        error: error, stackTrace: stackTrace);
   }
 
   /// Log sync operations
@@ -96,6 +99,7 @@ class LogService {
 
   /// Log performance metrics
   static void performance(String operation, Duration duration) {
-    _activeLogger.i('[Performance] $operation took ${duration.inMilliseconds}ms');
+    _activeLogger
+        .i('[Performance] $operation took ${duration.inMilliseconds}ms');
   }
 }

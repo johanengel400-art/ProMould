@@ -66,9 +66,13 @@ class SyncService {
   }
 
   /// Push a local Hive record to Firestore.
-  static Future<void> push(String boxName, String id, Map<String, dynamic> data) async {
+  static Future<void> push(
+      String boxName, String id, Map<String, dynamic> data) async {
     try {
-      await _fire.collection(boxName.replaceAll('Box', '')).doc(id).set(data, SetOptions(merge: true));
+      await _fire
+          .collection(boxName.replaceAll('Box', ''))
+          .doc(id)
+          .set(data, SetOptions(merge: true));
     } catch (e) {
       LogService.sync('Push error ($boxName/$id)', error: e);
     }
@@ -89,7 +93,8 @@ class SyncService {
   }
 
   // Legacy method names for backward compatibility
-  static Future<void> pushChange(String boxName, String id, Map<String, dynamic> data) async {
+  static Future<void> pushChange(
+      String boxName, String id, Map<String, dynamic> data) async {
     await push(boxName, id, data);
   }
 
@@ -102,12 +107,14 @@ class SyncService {
   }
 
   /// Push a finished job to Firestore 'finishedJobs' collection organized by date
-  static Future<void> pushFinishedJob(String jobId, Map<String, dynamic> jobData) async {
+  static Future<void> pushFinishedJob(
+      String jobId, Map<String, dynamic> jobData) async {
     try {
       // Get the finished date
       final finishedDate = jobData['finishedDate'] as String?;
       if (finishedDate == null) {
-        LogService.error('Cannot push finished job without finishedDate', jobData);
+        LogService.error(
+            'Cannot push finished job without finishedDate', jobData);
         return;
       }
 

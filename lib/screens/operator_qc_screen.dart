@@ -29,14 +29,17 @@ class _OperatorQCScreenState extends State<OperatorQCScreen> {
 
     // Get operator's assigned machine
     final user = usersBox.values.cast<Map>().firstWhere(
-      (u) => u['username'] == widget.username,
-      orElse: () => {},
-    );
+          (u) => u['username'] == widget.username,
+          orElse: () => {},
+        );
     final assignedMachineId = user['assignedMachineId'] as String?;
 
     // Get machines to show (assigned or all if no assignment)
     final machines = assignedMachineId != null
-        ? machinesBox.values.cast<Map>().where((m) => m['id'] == assignedMachineId).toList()
+        ? machinesBox.values
+            .cast<Map>()
+            .where((m) => m['id'] == assignedMachineId)
+            .toList()
         : machinesBox.values.cast<Map>().toList();
 
     // Set default machine
@@ -47,13 +50,17 @@ class _OperatorQCScreenState extends State<OperatorQCScreen> {
     // Get running job for selected machine
     final runningJob = _selectedMachineId != null
         ? jobsBox.values.cast<Map?>().firstWhere(
-            (j) => j != null && j['machineId'] == _selectedMachineId && j['status'] == 'Running',
-            orElse: () => null,
-          )
+              (j) =>
+                  j != null &&
+                  j['machineId'] == _selectedMachineId &&
+                  j['status'] == 'Running',
+              orElse: () => null,
+            )
         : null;
 
     // Get recent issues for this operator
-    final myIssues = issuesBox.values.cast<Map>()
+    final myIssues = issuesBox.values
+        .cast<Map>()
         .where((i) => i['reportedBy'] == widget.username)
         .toList()
       ..sort((a, b) => (b['timestamp'] ?? '').compareTo(a['timestamp'] ?? ''));
@@ -116,21 +123,28 @@ class _OperatorQCScreenState extends State<OperatorQCScreen> {
                             dropdownColor: const Color(0xFF0F1419),
                             style: const TextStyle(color: Colors.white),
                             decoration: InputDecoration(
-                              prefixIcon: const Icon(Icons.precision_manufacturing, color: Color(0xFF4CC9F0)),
+                              prefixIcon: const Icon(
+                                  Icons.precision_manufacturing,
+                                  color: Color(0xFF4CC9F0)),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: Colors.white12),
+                                borderSide:
+                                    const BorderSide(color: Colors.white12),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: Color(0xFF4CC9F0)),
+                                borderSide:
+                                    const BorderSide(color: Color(0xFF4CC9F0)),
                               ),
                             ),
-                            items: machines.map((m) => DropdownMenuItem(
-                              value: m['id'] as String,
-                              child: Text(m['name'] as String),
-                            )).toList(),
-                            onChanged: (v) => setState(() => _selectedMachineId = v),
+                            items: machines
+                                .map((m) => DropdownMenuItem(
+                                      value: m['id'] as String,
+                                      child: Text(m['name'] as String),
+                                    ))
+                                .toList(),
+                            onChanged: (v) =>
+                                setState(() => _selectedMachineId = v),
                           ),
                           if (runningJob != null) ...[
                             const SizedBox(height: 12),
@@ -139,19 +153,25 @@ class _OperatorQCScreenState extends State<OperatorQCScreen> {
                               decoration: BoxDecoration(
                                 color: const Color(0xFF06D6A0).withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: const Color(0xFF06D6A0).withOpacity(0.3)),
+                                border: Border.all(
+                                    color: const Color(0xFF06D6A0)
+                                        .withOpacity(0.3)),
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.work, color: Color(0xFF06D6A0), size: 20),
+                                  const Icon(Icons.work,
+                                      color: Color(0xFF06D6A0), size: 20),
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         const Text(
                                           'Currently Running:',
-                                          style: TextStyle(fontSize: 11, color: Colors.white54),
+                                          style: TextStyle(
+                                              fontSize: 11,
+                                              color: Colors.white54),
                                         ),
                                         Text(
                                           '${runningJob['productName']} • ${runningJob['color'] ?? ''}',
@@ -240,7 +260,8 @@ class _OperatorQCScreenState extends State<OperatorQCScreen> {
                       icon: const Icon(Icons.report_problem, size: 28),
                       label: Text(
                         'Report ${_reportType == 'Product' ? 'Product Defect' : 'Machine Issue'}',
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
@@ -280,7 +301,8 @@ class _OperatorQCScreenState extends State<OperatorQCScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
-                  (context, index) => _buildIssueCard(myIssues[index], machinesBox),
+                  (context, index) =>
+                      _buildIssueCard(myIssues[index], machinesBox),
                   childCount: myIssues.length > 10 ? 10 : myIssues.length,
                 ),
               ),
@@ -338,7 +360,8 @@ class _OperatorQCScreenState extends State<OperatorQCScreen> {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: statusColor.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(6),
@@ -354,7 +377,8 @@ class _OperatorQCScreenState extends State<OperatorQCScreen> {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: priorityColor.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(6),
@@ -397,7 +421,8 @@ class _OperatorQCScreenState extends State<OperatorQCScreen> {
             const SizedBox(height: 8),
             Row(
               children: [
-                const Icon(Icons.precision_manufacturing, size: 12, color: Colors.white38),
+                const Icon(Icons.precision_manufacturing,
+                    size: 12, color: Colors.white38),
                 const SizedBox(width: 4),
                 Text(
                   machine?['name'] ?? 'Unknown',
@@ -421,7 +446,8 @@ class _OperatorQCScreenState extends State<OperatorQCScreen> {
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: Text('Report ${_reportType == 'Product' ? 'Product Defect' : 'Machine Issue'}'),
+          title: Text(
+              'Report ${_reportType == 'Product' ? 'Product Defect' : 'Machine Issue'}'),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -464,18 +490,30 @@ class _OperatorQCScreenState extends State<OperatorQCScreen> {
                   items: ['Low', 'Medium', 'High', 'Critical']
                       .map((p) => DropdownMenuItem(value: p, child: Text(p)))
                       .toList(),
-                  onChanged: (v) => setDialogState(() => priority = v ?? 'Medium'),
+                  onChanged: (v) =>
+                      setDialogState(() => priority = v ?? 'Medium'),
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   value: category,
                   decoration: const InputDecoration(labelText: 'Category'),
                   items: (_reportType == 'Product'
-                          ? ['Quality', 'Contamination', 'Dimension', 'Appearance']
-                          : ['Mechanical', 'Electrical', 'Hydraulic', 'Temperature'])
+                          ? [
+                              'Quality',
+                              'Contamination',
+                              'Dimension',
+                              'Appearance'
+                            ]
+                          : [
+                              'Mechanical',
+                              'Electrical',
+                              'Hydraulic',
+                              'Temperature'
+                            ])
                       .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                       .toList(),
-                  onChanged: (v) => setDialogState(() => category = v ?? category),
+                  onChanged: (v) =>
+                      setDialogState(() => category = v ?? category),
                 ),
               ],
             ),
@@ -515,7 +553,8 @@ class _OperatorQCScreenState extends State<OperatorQCScreen> {
                 if (context.mounted) {
                   Navigator.pop(dialogContext);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Report submitted successfully')),
+                    const SnackBar(
+                        content: Text('Report submitted successfully')),
                   );
                   setState(() {});
                 }

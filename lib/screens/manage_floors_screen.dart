@@ -3,46 +3,59 @@ import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 import '../services/sync_service.dart';
 
-class ManageFloorsScreen extends StatefulWidget{
-  final int level; const ManageFloorsScreen({super.key, required this.level});
-  @override State<ManageFloorsScreen> createState()=>_ManageFloorsScreenState();
+class ManageFloorsScreen extends StatefulWidget {
+  final int level;
+  const ManageFloorsScreen({super.key, required this.level});
+  @override
+  State<ManageFloorsScreen> createState() => _ManageFloorsScreenState();
 }
 
-class _ManageFloorsScreenState extends State<ManageFloorsScreen>{
-  final uuid=const Uuid();
+class _ManageFloorsScreenState extends State<ManageFloorsScreen> {
+  final uuid = const Uuid();
 
-  Future<void> _addOrEdit({Map<String,dynamic>? floor}) async {
-    final nameCtrl = TextEditingController(text: floor?['name']??'');
-    final noteCtrl = TextEditingController(text: floor?['note']??'');
-    await showDialog(context: context, builder: (dialogContext)=>AlertDialog(
-      title: Text(floor==null? 'Add Floor' : 'Edit Floor'),
-      content: Column(mainAxisSize: MainAxisSize.min, children:[
-        TextField(controller: nameCtrl, decoration: const InputDecoration(labelText:'Floor Name')),
-        const SizedBox(height:8),
-        TextField(controller: noteCtrl, decoration: const InputDecoration(labelText:'Notes')),
-      ]),
-      actions: [
-        TextButton(onPressed: ()=>Navigator.pop(dialogContext), child: const Text('Cancel')),
-        ElevatedButton(onPressed: () async {
-          final box = Hive.box('floorsBox');
-          final id = floor?['id'] ?? uuid.v4();
-          final data = {
-            'id': id,
-            'name': nameCtrl.text.trim(),
-            'note': noteCtrl.text.trim(),
-          };
-          await box.put(id, data);
-          await SyncService.pushChange('floorsBox', id, data);
-          if (dialogContext.mounted) {
-            Navigator.pop(dialogContext);
-          }
-        }, child: const Text('Save')),
-      ],
-    ));
-    setState((){});
+  Future<void> _addOrEdit({Map<String, dynamic>? floor}) async {
+    final nameCtrl = TextEditingController(text: floor?['name'] ?? '');
+    final noteCtrl = TextEditingController(text: floor?['note'] ?? '');
+    await showDialog(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+              title: Text(floor == null ? 'Add Floor' : 'Edit Floor'),
+              content: Column(mainAxisSize: MainAxisSize.min, children: [
+                TextField(
+                    controller: nameCtrl,
+                    decoration: const InputDecoration(labelText: 'Floor Name')),
+                const SizedBox(height: 8),
+                TextField(
+                    controller: noteCtrl,
+                    decoration: const InputDecoration(labelText: 'Notes')),
+              ]),
+              actions: [
+                TextButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    child: const Text('Cancel')),
+                ElevatedButton(
+                    onPressed: () async {
+                      final box = Hive.box('floorsBox');
+                      final id = floor?['id'] ?? uuid.v4();
+                      final data = {
+                        'id': id,
+                        'name': nameCtrl.text.trim(),
+                        'note': noteCtrl.text.trim(),
+                      };
+                      await box.put(id, data);
+                      await SyncService.pushChange('floorsBox', id, data);
+                      if (dialogContext.mounted) {
+                        Navigator.pop(dialogContext);
+                      }
+                    },
+                    child: const Text('Save')),
+              ],
+            ));
+    setState(() {});
   }
 
-  @override Widget build(BuildContext context){
+  @override
+  Widget build(BuildContext context) {
     final box = Hive.box('floorsBox');
     final items = box.values.cast<Map>().toList();
     return Scaffold(
@@ -74,7 +87,7 @@ class _ManageFloorsScreenState extends State<ManageFloorsScreen>{
             padding: const EdgeInsets.all(16),
             sliver: SliverList(
               delegate: SliverChildBuilderDelegate(
-                (_,i){
+                (_, i) {
                   final f = items[i];
                   return Card(
                     margin: const EdgeInsets.only(bottom: 12),
@@ -91,20 +104,27 @@ class _ManageFloorsScreenState extends State<ManageFloorsScreen>{
                           color: const Color(0xFF4CC9F0).withOpacity(0.2),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Icon(Icons.business, color: Color(0xFF4CC9F0)),
+                        child: const Icon(Icons.business,
+                            color: Color(0xFF4CC9F0)),
                       ),
-                      title: Text('${f['name']}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                      subtitle: Text('${f['note']??'No notes'}', style: const TextStyle(color: Colors.white70)),
-                      onTap: ()=>_addOrEdit(floor: Map<String,dynamic>.from(f)),
+                      title: Text('${f['name']}',
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold)),
+                      subtitle: Text('${f['note'] ?? 'No notes'}',
+                          style: const TextStyle(color: Colors.white70)),
+                      onTap: () =>
+                          _addOrEdit(floor: Map<String, dynamic>.from(f)),
                       trailing: IconButton(
-                        icon: const Icon(Icons.delete_outline, color: Colors.red), 
-                        onPressed: () async {
-                          final floorId = f['id'] as String;
-                          await box.delete(floorId);
-                          await SyncService.deleteRemote('floorsBox', floorId);
-                          setState((){});
-                        }
-                      ),
+                          icon: const Icon(Icons.delete_outline,
+                              color: Colors.red),
+                          onPressed: () async {
+                            final floorId = f['id'] as String;
+                            await box.delete(floorId);
+                            await SyncService.deleteRemote(
+                                'floorsBox', floorId);
+                            setState(() {});
+                          }),
                     ),
                   );
                 },
@@ -115,7 +135,7 @@ class _ManageFloorsScreenState extends State<ManageFloorsScreen>{
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: ()=>_addOrEdit(),
+        onPressed: () => _addOrEdit(),
         backgroundColor: const Color(0xFF4CC9F0),
         icon: const Icon(Icons.add),
         label: const Text('Add Floor'),

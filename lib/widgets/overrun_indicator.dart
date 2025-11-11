@@ -8,7 +8,7 @@ import '../utils/job_status.dart';
 class OverrunBadge extends StatelessWidget {
   final Map job;
   final bool compact;
-  
+
   const OverrunBadge({
     super.key,
     required this.job,
@@ -20,11 +20,12 @@ class OverrunBadge extends StatelessWidget {
     final shotsCompleted = job['shotsCompleted'] as int? ?? 0;
     final targetShots = job['targetShots'] as int? ?? 0;
     final overrunShots = JobStatus.getOverrunShots(shotsCompleted, targetShots);
-    
+
     if (overrunShots == 0) return const SizedBox.shrink();
-    
-    final percentage = JobStatus.getOverrunPercentage(shotsCompleted, targetShots);
-    
+
+    final percentage =
+        JobStatus.getOverrunPercentage(shotsCompleted, targetShots);
+
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: compact ? 6 : 8,
@@ -45,7 +46,7 @@ class OverrunBadge extends StatelessWidget {
           ),
           SizedBox(width: compact ? 4 : 6),
           Text(
-            compact 
+            compact
                 ? '+$overrunShots'
                 : '+$overrunShots (${percentage.toStringAsFixed(1)}%)',
             style: TextStyle(
@@ -64,7 +65,7 @@ class OverrunBadge extends StatelessWidget {
 class OverrunPulseIndicator extends StatefulWidget {
   final Map job;
   final double size;
-  
+
   const OverrunPulseIndicator({
     super.key,
     required this.job,
@@ -87,7 +88,7 @@ class _OverrunPulseIndicatorState extends State<OverrunPulseIndicator>
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     )..repeat(reverse: true);
-    
+
     _animation = Tween<double>(begin: 0.3, end: 1.0).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
@@ -103,7 +104,7 @@ class _OverrunPulseIndicatorState extends State<OverrunPulseIndicator>
   Widget build(BuildContext context) {
     final status = widget.job['status'] as String?;
     if (status != JobStatus.overrunning) return const SizedBox.shrink();
-    
+
     return AnimatedBuilder(
       animation: _animation,
       builder: (context, child) {
@@ -115,7 +116,8 @@ class _OverrunPulseIndicatorState extends State<OverrunPulseIndicator>
             color: const Color(0xFFFF6B6B).withOpacity(_animation.value),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFFFF6B6B).withOpacity(_animation.value * 0.5),
+                color:
+                    const Color(0xFFFF6B6B).withOpacity(_animation.value * 0.5),
                 blurRadius: widget.size * 0.5,
                 spreadRadius: widget.size * 0.2,
               ),
@@ -132,7 +134,7 @@ class OverrunProgressBar extends StatelessWidget {
   final Map job;
   final double height;
   final bool showPercentage;
-  
+
   const OverrunProgressBar({
     super.key,
     required this.job,
@@ -144,15 +146,15 @@ class OverrunProgressBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final shotsCompleted = job['shotsCompleted'] as int? ?? 0;
     final targetShots = job['targetShots'] as int? ?? 0;
-    
+
     if (targetShots == 0) return const SizedBox.shrink();
-    
+
     final progress = (shotsCompleted / targetShots).clamp(0.0, 1.0);
     final isOverrun = shotsCompleted > targetShots;
-    final overrunProgress = isOverrun 
+    final overrunProgress = isOverrun
         ? ((shotsCompleted - targetShots) / targetShots).clamp(0.0, 0.5)
         : 0.0;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -231,7 +233,7 @@ class OverrunProgressBar extends StatelessWidget {
 class JobStatusBadge extends StatelessWidget {
   final String? status;
   final bool compact;
-  
+
   const JobStatusBadge({
     super.key,
     required this.status,
@@ -243,7 +245,7 @@ class JobStatusBadge extends StatelessWidget {
     final color = JobStatus.getColor(status);
     final icon = JobStatus.getIcon(status);
     final displayName = JobStatus.getDisplayName(status);
-    
+
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: compact ? 6 : 8,
@@ -279,7 +281,7 @@ class JobStatusBadge extends StatelessWidget {
 class OverrunDurationDisplay extends StatelessWidget {
   final Map job;
   final bool compact;
-  
+
   const OverrunDurationDisplay({
     super.key,
     required this.job,
@@ -290,9 +292,9 @@ class OverrunDurationDisplay extends StatelessWidget {
   Widget build(BuildContext context) {
     final duration = JobStatus.getOverrunDuration(job);
     if (duration == null) return const SizedBox.shrink();
-    
+
     final formatted = JobStatus.formatOverrunDuration(duration);
-    
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [

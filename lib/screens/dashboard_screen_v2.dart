@@ -13,7 +13,8 @@ import '../utils/job_status.dart';
 class DashboardScreenV2 extends StatefulWidget {
   final String username;
   final int level;
-  const DashboardScreenV2({super.key, required this.username, required this.level});
+  const DashboardScreenV2(
+      {super.key, required this.username, required this.level});
 
   @override
   State<DashboardScreenV2> createState() => _DashboardScreenV2State();
@@ -38,10 +39,10 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
     mouldsBox = Hive.box('mouldsBox');
     issuesBox = Hive.box('issuesBox');
     downtimeBox = Hive.box('downtimeBox');
-    
+
     machinesBox.listenable().addListener(_onDataChanged);
     jobsBox.listenable().addListener(_onDataChanged);
-    
+
     _uiUpdateTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
       if (mounted) setState(() {});
     });
@@ -63,21 +64,22 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
   Widget build(BuildContext context) {
     final allMachines = machinesBox.values.cast<Map>().toList();
     final floors = floorsBox.values.cast<Map>().toList();
-    
+
     // Filter by assigned machine for operators (level 1)
     List<Map> machines;
     if (widget.level == 1) {
       // Get operator's assigned machine
       final usersBox = Hive.box('usersBox');
       final user = usersBox.values.cast<Map>().firstWhere(
-        (u) => u['username'] == widget.username,
-        orElse: () => {},
-      );
+            (u) => u['username'] == widget.username,
+            orElse: () => {},
+          );
       final assignedMachineId = user['assignedMachineId'] as String?;
-      
+
       if (assignedMachineId != null) {
         // Show only assigned machine
-        machines = allMachines.where((m) => m['id'] == assignedMachineId).toList();
+        machines =
+            allMachines.where((m) => m['id'] == assignedMachineId).toList();
       } else {
         // No assignment - show all (fallback)
         machines = allMachines;
@@ -88,18 +90,27 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
           ? allMachines
           : allMachines.where((m) => m['floorId'] == selectedFloorId).toList();
     }
-    
+
     // Calculate overall stats
-    final runningMachines = machines.where((m) => m['status'] == 'Running').length;
-    final breakdownMachines = machines.where((m) => m['status'] == 'Breakdown').length;
-    
+    final runningMachines =
+        machines.where((m) => m['status'] == 'Running').length;
+    final breakdownMachines =
+        machines.where((m) => m['status'] == 'Breakdown').length;
+
     final allJobs = jobsBox.values.cast<Map>().toList();
-    final runningJobs = allJobs.where((j) => JobStatus.isActivelyRunning(j['status'] as String?)).length;
-    final overrunningJobs = allJobs.where((j) => j['status'] == JobStatus.overrunning).length;
-    final queuedJobs = allJobs.where((j) => j['status'] == JobStatus.queued).length;
-    
-    final openIssues = issuesBox.values.cast<Map>().where((i) => i['status'] != 'Resolved').length;
-    
+    final runningJobs = allJobs
+        .where((j) => JobStatus.isActivelyRunning(j['status'] as String?))
+        .length;
+    final overrunningJobs =
+        allJobs.where((j) => j['status'] == JobStatus.overrunning).length;
+    final queuedJobs =
+        allJobs.where((j) => j['status'] == JobStatus.queued).length;
+
+    final openIssues = issuesBox.values
+        .cast<Map>()
+        .where((i) => i['status'] != 'Resolved')
+        .length;
+
     final todayScrap = ScrapRateService.calculateTodayScrapRate();
     final scrapTrend = ScrapRateService.getScrapTrend();
 
@@ -153,19 +164,26 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
                   // Time and Date
                   Row(
                     children: [
-                      const Icon(Icons.access_time, size: 16, color: Colors.white54),
+                      const Icon(Icons.access_time,
+                          size: 16, color: Colors.white54),
                       const SizedBox(width: 8),
                       Text(
-                        DateFormat('EEEE, MMM d, yyyy • HH:mm').format(DateTime.now()),
-                        style: const TextStyle(color: Colors.white70, fontSize: 13),
+                        DateFormat('EEEE, MMM d, yyyy • HH:mm')
+                            .format(DateTime.now()),
+                        style: const TextStyle(
+                            color: Colors.white70, fontSize: 13),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
 
                   // Alerts Section
-                  if (breakdownMachines > 0 || openIssues > 0 || overrunningJobs > 0 || (todayScrap['scrapRate'] as double) > 5.0)
-                    _buildAlertsPanel(breakdownMachines, openIssues, overrunningJobs, todayScrap),
+                  if (breakdownMachines > 0 ||
+                      openIssues > 0 ||
+                      overrunningJobs > 0 ||
+                      (todayScrap['scrapRate'] as double) > 5.0)
+                    _buildAlertsPanel(breakdownMachines, openIssues,
+                        overrunningJobs, todayScrap),
 
                   const SizedBox(height: 16),
 
@@ -187,8 +205,12 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
                           'Active Jobs',
                           runningJobs.toString(),
                           Icons.work_outline,
-                          overrunningJobs > 0 ? const Color(0xFFFF6B6B) : const Color(0xFF4CC9F0),
-                          overrunningJobs > 0 ? '$overrunningJobs overrunning' : '$queuedJobs queued',
+                          overrunningJobs > 0
+                              ? const Color(0xFFFF6B6B)
+                              : const Color(0xFF4CC9F0),
+                          overrunningJobs > 0
+                              ? '$overrunningJobs overrunning'
+                              : '$queuedJobs queued',
                         ),
                       ),
                     ],
@@ -211,7 +233,9 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
                           'Issues',
                           openIssues.toString(),
                           Icons.report_problem_outlined,
-                          openIssues > 0 ? const Color(0xFFFF6B6B) : const Color(0xFF6C757D),
+                          openIssues > 0
+                              ? const Color(0xFFFF6B6B)
+                              : const Color(0xFF6C757D),
                           'Open',
                         ),
                       ),
@@ -223,7 +247,8 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
                   // Floor Filter (hidden for operators)
                   if (floors.isNotEmpty && widget.level > 1)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
                         color: const Color(0xFF1A1F2E),
                         borderRadius: BorderRadius.circular(12),
@@ -231,7 +256,8 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.apartment, size: 20, color: Color(0xFF4CC9F0)),
+                          const Icon(Icons.apartment,
+                              size: 20, color: Color(0xFF4CC9F0)),
                           const SizedBox(width: 12),
                           Expanded(
                             child: DropdownButtonHideUnderline(
@@ -242,14 +268,19 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
                                 items: [
                                   const DropdownMenuItem<String?>(
                                     value: null,
-                                    child: Text('All Floors', style: TextStyle(color: Colors.white)),
+                                    child: Text('All Floors',
+                                        style: TextStyle(color: Colors.white)),
                                   ),
-                                  ...floors.map((f) => DropdownMenuItem<String?>(
-                                    value: f['id'] as String,
-                                    child: Text('${f['name']}', style: const TextStyle(color: Colors.white)),
-                                  )),
+                                  ...floors
+                                      .map((f) => DropdownMenuItem<String?>(
+                                            value: f['id'] as String,
+                                            child: Text('${f['name']}',
+                                                style: const TextStyle(
+                                                    color: Colors.white)),
+                                          )),
                                 ],
-                                onChanged: (v) => setState(() => selectedFloorId = v),
+                                onChanged: (v) =>
+                                    setState(() => selectedFloorId = v),
                               ),
                             ),
                           ),
@@ -264,12 +295,14 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
                     children: [
                       const Text(
                         'Machines',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       const Spacer(),
                       Text(
                         '${machines.length} machines',
-                        style: const TextStyle(color: Colors.white54, fontSize: 13),
+                        style: const TextStyle(
+                            color: Colors.white54, fontSize: 13),
                       ),
                     ],
                   ),
@@ -304,9 +337,10 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
     );
   }
 
-  Widget _buildAlertsPanel(int breakdowns, int issues, int overrunning, Map<String, dynamic> scrapData) {
+  Widget _buildAlertsPanel(int breakdowns, int issues, int overrunning,
+      Map<String, dynamic> scrapData) {
     final alerts = <Map<String, dynamic>>[];
-    
+
     if (breakdowns > 0) {
       alerts.add({
         'icon': Icons.build_outlined,
@@ -315,7 +349,7 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
         'subtitle': 'Requires immediate attention',
       });
     }
-    
+
     if (overrunning > 0) {
       alerts.add({
         'icon': Icons.warning,
@@ -324,7 +358,7 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
         'subtitle': 'Exceeded target shots',
       });
     }
-    
+
     if ((scrapData['scrapRate'] as double) > 5.0) {
       alerts.add({
         'icon': Icons.warning_outlined,
@@ -333,7 +367,7 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
         'subtitle': 'Today: ${scrapData['scrapRateFormatted']}',
       });
     }
-    
+
     if (issues > 0) {
       alerts.add({
         'icon': Icons.report_problem_outlined,
@@ -366,7 +400,8 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
                   color: const Color(0xFFFF6B6B).withOpacity(0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.notifications_active, color: Color(0xFFFF6B6B), size: 20),
+                child: const Icon(Icons.notifications_active,
+                    color: Color(0xFFFF6B6B), size: 20),
               ),
               const SizedBox(width: 12),
               const Text(
@@ -377,35 +412,39 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
           ),
           const SizedBox(height: 12),
           ...alerts.map((alert) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(
-              children: [
-                Icon(alert['icon'] as IconData, size: 18, color: alert['color'] as Color),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        alert['title'] as String,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  children: [
+                    Icon(alert['icon'] as IconData,
+                        size: 18, color: alert['color'] as Color),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            alert['title'] as String,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 13),
+                          ),
+                          Text(
+                            alert['subtitle'] as String,
+                            style: const TextStyle(
+                                color: Colors.white60, fontSize: 11),
+                          ),
+                        ],
                       ),
-                      Text(
-                        alert['subtitle'] as String,
-                        style: const TextStyle(color: Colors.white60, fontSize: 11),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          )),
+              )),
         ],
       ),
     );
   }
 
-  Widget _buildStatCard(String label, String value, IconData icon, Color color, String subtitle) {
+  Widget _buildStatCard(
+      String label, String value, IconData icon, Color color, String subtitle) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -469,32 +508,38 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
   Widget _buildMachineCard(Map m) {
     final mId = (m['id'] ?? '') as String;
     final job = jobsBox.values.cast<Map?>().firstWhere(
-      (j) => j != null && j['machineId'] == mId && JobStatus.isActivelyRunning(j['status'] as String?),
-      orElse: () => null,
-    );
-    
-    final shots = job != null ? LiveProgressService.getEstimatedShots(job, mouldsBox) : 0;
+          (j) =>
+              j != null &&
+              j['machineId'] == mId &&
+              JobStatus.isActivelyRunning(j['status'] as String?),
+          orElse: () => null,
+        );
+
+    final shots =
+        job != null ? LiveProgressService.getEstimatedShots(job, mouldsBox) : 0;
     final target = (job?['targetShots'] ?? 0) as int;
     final progress = target > 0 ? (shots / target).clamp(0.0, 1.0) : 0.0;
     final progress100 = (progress * 100).round();
     final overrun = shots > target ? shots - target : 0;
     final isOverrun = shots > target;
-    
+
     final scrapData = ScrapRateService.calculateMachineScrapRate(mId);
     final scrapRate = scrapData['scrapRate'] as double;
     final scrapColor = scrapData['color'] as Color;
-    
+
     final statusColor = _getStatusColor(m['status'] as String? ?? 'Idle');
 
     return GestureDetector(
-      onTap: widget.level >= 3 ? () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => MachineDetailScreen(machine: m),
-          ),
-        );
-      } : null,
+      onTap: widget.level >= 3
+          ? () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MachineDetailScreen(machine: m),
+                ),
+              );
+            }
+          : null,
       child: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -555,7 +600,7 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  
+
                   Text(
                     '${m['name']}',
                     style: const TextStyle(
@@ -565,9 +610,9 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  
+
                   const SizedBox(height: 4),
-                  
+
                   Text(
                     '${m['tonnage'] ?? ''}T',
                     style: const TextStyle(
@@ -575,9 +620,9 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
                       fontSize: 12,
                     ),
                   ),
-                  
+
                   const Spacer(),
-                  
+
                   // Progress Section
                   if (job != null) ...[
                     Text(
@@ -591,7 +636,6 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 8),
-                    
                     Stack(
                       children: [
                         Container(
@@ -607,7 +651,10 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
                             height: 8,
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
-                                colors: [statusColor, statusColor.withOpacity(0.6)],
+                                colors: [
+                                  statusColor,
+                                  statusColor.withOpacity(0.6)
+                                ],
                               ),
                               borderRadius: BorderRadius.circular(4),
                             ),
@@ -615,22 +662,24 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
                         ),
                       ],
                     ),
-                    
                     const SizedBox(height: 8),
-                    
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           isOverrun ? '100% +$overrun' : '$progress100%',
                           style: TextStyle(
-                            color: isOverrun ? const Color(0xFFFFD166) : statusColor,
+                            color: isOverrun
+                                ? const Color(0xFFFFD166)
+                                : statusColor,
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         Text(
-                          isOverrun ? '$shots/$target (+$overrun)' : '$shots/$target',
+                          isOverrun
+                              ? '$shots/$target (+$overrun)'
+                              : '$shots/$target',
                           style: TextStyle(
                             color: Colors.white60,
                             fontSize: 11,
@@ -648,12 +697,13 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
                       ),
                     ),
                   ],
-                  
+
                   const SizedBox(height: 12),
-                  
+
                   // Scrap Rate
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                     decoration: BoxDecoration(
                       color: scrapColor.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(8),
@@ -662,7 +712,8 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.warning_outlined, size: 12, color: scrapColor),
+                        Icon(Icons.warning_outlined,
+                            size: 12, color: scrapColor),
                         const SizedBox(width: 4),
                         Text(
                           'Scrap: ${scrapRate.toStringAsFixed(1)}%',
@@ -696,6 +747,4 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
         return const Color(0xFF6C757D);
     }
   }
-
-
 }

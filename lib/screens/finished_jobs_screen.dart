@@ -15,12 +15,12 @@ class FinishedJobsScreen extends StatefulWidget {
 
 class _FinishedJobsScreenState extends State<FinishedJobsScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  
+
   DateTime _selectedDate = DateTime.now();
   String _searchQuery = '';
   bool _isLoading = false;
   List<Map<String, dynamic>> _jobs = [];
-  
+
   // Filter options
   bool _showOverrunOnly = false;
   String _sortBy = 'finishedDate'; // finishedDate, productName, overrunAmount
@@ -34,12 +34,12 @@ class _FinishedJobsScreenState extends State<FinishedJobsScreen> {
 
   Future<void> _loadJobs() async {
     setState(() => _isLoading = true);
-    
+
     try {
       final year = _selectedDate.year.toString();
       final month = _selectedDate.month.toString().padLeft(2, '0');
       final day = _selectedDate.day.toString().padLeft(2, '0');
-      
+
       final snapshot = await _firestore
           .collection('finishedJobs')
           .doc(year)
@@ -47,13 +47,13 @@ class _FinishedJobsScreenState extends State<FinishedJobsScreen> {
           .doc(day)
           .collection('jobs')
           .get();
-      
+
       _jobs = snapshot.docs.map((doc) {
         final data = doc.data();
         data['id'] = doc.id;
         return data;
       }).toList();
-      
+
       _applyFiltersAndSort();
     } catch (e) {
       if (mounted) {
@@ -77,29 +77,32 @@ class _FinishedJobsScreenState extends State<FinishedJobsScreen> {
           return false;
         }
       }
-      
+
       // Overrun filter
       if (_showOverrunOnly) {
         final shotsCompleted = job['shotsCompleted'] as int? ?? 0;
         final targetShots = job['targetShots'] as int? ?? 0;
         if (shotsCompleted <= targetShots) return false;
       }
-      
+
       return true;
     }).toList();
-    
+
     // Sort
     filtered.sort((a, b) {
       int comparison = 0;
-      
+
       switch (_sortBy) {
         case 'finishedDate':
-          final dateA = DateTime.tryParse(a['finishedDate'] as String? ?? '') ?? DateTime.now();
-          final dateB = DateTime.tryParse(b['finishedDate'] as String? ?? '') ?? DateTime.now();
+          final dateA = DateTime.tryParse(a['finishedDate'] as String? ?? '') ??
+              DateTime.now();
+          final dateB = DateTime.tryParse(b['finishedDate'] as String? ?? '') ??
+              DateTime.now();
           comparison = dateA.compareTo(dateB);
           break;
         case 'productName':
-          comparison = (a['productName'] as String? ?? '').compareTo(b['productName'] as String? ?? '');
+          comparison = (a['productName'] as String? ?? '')
+              .compareTo(b['productName'] as String? ?? '');
           break;
         case 'overrunAmount':
           final overrunA = JobStatus.getOverrunShots(
@@ -113,10 +116,10 @@ class _FinishedJobsScreenState extends State<FinishedJobsScreen> {
           comparison = overrunA.compareTo(overrunB);
           break;
       }
-      
+
       return _sortAscending ? comparison : -comparison;
     });
-    
+
     setState(() => _jobs = filtered);
   }
 
@@ -138,7 +141,7 @@ class _FinishedJobsScreenState extends State<FinishedJobsScreen> {
         );
       },
     );
-    
+
     if (picked != null && picked != _selectedDate) {
       setState(() => _selectedDate = picked);
       _loadJobs();
@@ -180,24 +183,29 @@ class _FinishedJobsScreenState extends State<FinishedJobsScreen> {
                     decoration: BoxDecoration(
                       color: const Color(0xFF1A1F2E),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color(0xFF4CC9F0).withOpacity(0.3)),
+                      border: Border.all(
+                          color: const Color(0xFF4CC9F0).withOpacity(0.3)),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.calendar_today, color: Color(0xFF4CC9F0), size: 20),
+                        const Icon(Icons.calendar_today,
+                            color: Color(0xFF4CC9F0), size: 20),
                         const SizedBox(width: 12),
                         Text(
-                          DateFormat('EEEE, MMMM d, yyyy').format(_selectedDate),
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                          DateFormat('EEEE, MMMM d, yyyy')
+                              .format(_selectedDate),
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w500),
                         ),
                         const Spacer(),
-                        const Icon(Icons.arrow_drop_down, color: Colors.white54),
+                        const Icon(Icons.arrow_drop_down,
+                            color: Colors.white54),
                       ],
                     ),
                   ),
                 ),
                 const SizedBox(height: 12),
-                
+
                 // Search Bar
                 TextField(
                   onChanged: (value) {
@@ -208,7 +216,8 @@ class _FinishedJobsScreenState extends State<FinishedJobsScreen> {
                   decoration: InputDecoration(
                     hintText: 'Search by product or machine...',
                     hintStyle: const TextStyle(color: Colors.white54),
-                    prefixIcon: const Icon(Icons.search, color: Color(0xFF4CC9F0)),
+                    prefixIcon:
+                        const Icon(Icons.search, color: Color(0xFF4CC9F0)),
                     filled: true,
                     fillColor: const Color(0xFF1A1F2E),
                     border: OutlineInputBorder(
@@ -218,7 +227,7 @@ class _FinishedJobsScreenState extends State<FinishedJobsScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                
+
                 // Filter Chips
                 Row(
                   children: [
@@ -233,7 +242,9 @@ class _FinishedJobsScreenState extends State<FinishedJobsScreen> {
                       selectedColor: const Color(0xFFFF6B6B).withOpacity(0.3),
                       checkmarkColor: const Color(0xFFFF6B6B),
                       labelStyle: TextStyle(
-                        color: _showOverrunOnly ? const Color(0xFFFF6B6B) : Colors.white70,
+                        color: _showOverrunOnly
+                            ? const Color(0xFFFF6B6B)
+                            : Colors.white70,
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -242,13 +253,18 @@ class _FinishedJobsScreenState extends State<FinishedJobsScreen> {
                     DropdownButton<String>(
                       value: _sortBy,
                       dropdownColor: const Color(0xFF1A1F2E),
-                      style: const TextStyle(color: Colors.white70, fontSize: 14),
+                      style:
+                          const TextStyle(color: Colors.white70, fontSize: 14),
                       underline: Container(),
-                      icon: const Icon(Icons.sort, color: Color(0xFF4CC9F0), size: 20),
+                      icon: const Icon(Icons.sort,
+                          color: Color(0xFF4CC9F0), size: 20),
                       items: const [
-                        DropdownMenuItem(value: 'finishedDate', child: Text('Date')),
-                        DropdownMenuItem(value: 'productName', child: Text('Product')),
-                        DropdownMenuItem(value: 'overrunAmount', child: Text('Overrun')),
+                        DropdownMenuItem(
+                            value: 'finishedDate', child: Text('Date')),
+                        DropdownMenuItem(
+                            value: 'productName', child: Text('Product')),
+                        DropdownMenuItem(
+                            value: 'overrunAmount', child: Text('Overrun')),
                       ],
                       onChanged: (value) {
                         if (value != null) {
@@ -259,7 +275,9 @@ class _FinishedJobsScreenState extends State<FinishedJobsScreen> {
                     ),
                     IconButton(
                       icon: Icon(
-                        _sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
+                        _sortAscending
+                            ? Icons.arrow_upward
+                            : Icons.arrow_downward,
                         color: const Color(0xFF4CC9F0),
                         size: 20,
                       ),
@@ -273,11 +291,12 @@ class _FinishedJobsScreenState extends State<FinishedJobsScreen> {
               ],
             ),
           ),
-          
+
           // Jobs List
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator(color: Color(0xFF4CC9F0)))
+                ? const Center(
+                    child: CircularProgressIndicator(color: Color(0xFF4CC9F0)))
                 : _jobs.isEmpty
                     ? Center(
                         child: Column(
@@ -291,12 +310,14 @@ class _FinishedJobsScreenState extends State<FinishedJobsScreen> {
                             const SizedBox(height: 16),
                             const Text(
                               'No finished jobs found',
-                              style: TextStyle(color: Colors.white54, fontSize: 16),
+                              style: TextStyle(
+                                  color: Colors.white54, fontSize: 16),
                             ),
                             const SizedBox(height: 8),
                             Text(
                               'for ${DateFormat('MMM d, yyyy').format(_selectedDate)}',
-                              style: const TextStyle(color: Colors.white38, fontSize: 14),
+                              style: const TextStyle(
+                                  color: Colors.white38, fontSize: 14),
                             ),
                           ],
                         ),
@@ -304,10 +325,11 @@ class _FinishedJobsScreenState extends State<FinishedJobsScreen> {
                     : ListView.builder(
                         padding: const EdgeInsets.all(16),
                         itemCount: _jobs.length,
-                        itemBuilder: (context, index) => _buildJobCard(_jobs[index]),
+                        itemBuilder: (context, index) =>
+                            _buildJobCard(_jobs[index]),
                       ),
           ),
-          
+
           // Summary Footer
           if (_jobs.isNotEmpty)
             Container(
@@ -329,23 +351,26 @@ class _FinishedJobsScreenState extends State<FinishedJobsScreen> {
     final shotsCompleted = job['shotsCompleted'] as int? ?? 0;
     final targetShots = job['targetShots'] as int? ?? 0;
     final overrunShots = JobStatus.getOverrunShots(shotsCompleted, targetShots);
-    final overrunPercentage = JobStatus.getOverrunPercentage(shotsCompleted, targetShots);
+    final overrunPercentage =
+        JobStatus.getOverrunPercentage(shotsCompleted, targetShots);
     final isOverrun = overrunShots > 0;
-    
-    final finishedDate = DateTime.tryParse(job['finishedDate'] as String? ?? '');
+
+    final finishedDate =
+        DateTime.tryParse(job['finishedDate'] as String? ?? '');
     final startTime = DateTime.tryParse(job['startTime'] as String? ?? '');
-    
+
     Duration? duration;
     if (finishedDate != null && startTime != null) {
       duration = finishedDate.difference(startTime);
     }
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            (isOverrun ? const Color(0xFFFF6B6B) : const Color(0xFF4CC9F0)).withOpacity(0.1),
+            (isOverrun ? const Color(0xFFFF6B6B) : const Color(0xFF4CC9F0))
+                .withOpacity(0.1),
             const Color(0xFF1A1F2E),
           ],
           begin: Alignment.topLeft,
@@ -353,7 +378,8 @@ class _FinishedJobsScreenState extends State<FinishedJobsScreen> {
         ),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: (isOverrun ? const Color(0xFFFF6B6B) : const Color(0xFF4CC9F0)).withOpacity(0.3),
+          color: (isOverrun ? const Color(0xFFFF6B6B) : const Color(0xFF4CC9F0))
+              .withOpacity(0.3),
         ),
       ),
       child: Padding(
@@ -367,12 +393,17 @@ class _FinishedJobsScreenState extends State<FinishedJobsScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: (isOverrun ? const Color(0xFFFF6B6B) : const Color(0xFF4CC9F0)).withOpacity(0.2),
+                    color: (isOverrun
+                            ? const Color(0xFFFF6B6B)
+                            : const Color(0xFF4CC9F0))
+                        .withOpacity(0.2),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     isOverrun ? Icons.warning : Icons.check_circle,
-                    color: isOverrun ? const Color(0xFFFF6B6B) : const Color(0xFF4CC9F0),
+                    color: isOverrun
+                        ? const Color(0xFFFF6B6B)
+                        : const Color(0xFF4CC9F0),
                     size: 20,
                   ),
                 ),
@@ -400,11 +431,13 @@ class _FinishedJobsScreenState extends State<FinishedJobsScreen> {
                 ),
                 if (isOverrun)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFF6B6B).withOpacity(0.2),
                       borderRadius: BorderRadius.circular(4),
-                      border: Border.all(color: const Color(0xFFFF6B6B).withOpacity(0.5)),
+                      border: Border.all(
+                          color: const Color(0xFFFF6B6B).withOpacity(0.5)),
                     ),
                     child: const Text(
                       'OVERRUN',
@@ -418,7 +451,7 @@ class _FinishedJobsScreenState extends State<FinishedJobsScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            
+
             // Stats Grid
             Row(
               children: [
@@ -447,12 +480,13 @@ class _FinishedJobsScreenState extends State<FinishedJobsScreen> {
                   ),
               ],
             ),
-            
+
             if (duration != null) ...[
               const SizedBox(height: 8),
               Row(
                 children: [
-                  const Icon(Icons.timer_outlined, size: 14, color: Colors.white54),
+                  const Icon(Icons.timer_outlined,
+                      size: 14, color: Colors.white54),
                   const SizedBox(width: 4),
                   Text(
                     'Duration: ${_formatDuration(duration)}',
@@ -461,12 +495,13 @@ class _FinishedJobsScreenState extends State<FinishedJobsScreen> {
                 ],
               ),
             ],
-            
+
             if (finishedDate != null) ...[
               const SizedBox(height: 4),
               Row(
                 children: [
-                  const Icon(Icons.access_time, size: 14, color: Colors.white54),
+                  const Icon(Icons.access_time,
+                      size: 14, color: Colors.white54),
                   const SizedBox(width: 4),
                   Text(
                     'Finished: ${DateFormat('HH:mm').format(finishedDate)}',
@@ -481,7 +516,8 @@ class _FinishedJobsScreenState extends State<FinishedJobsScreen> {
     );
   }
 
-  Widget _buildStatItem(String label, String value, IconData icon, {Color? color}) {
+  Widget _buildStatItem(String label, String value, IconData icon,
+      {Color? color}) {
     final itemColor = color ?? Colors.white70;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -516,26 +552,32 @@ class _FinishedJobsScreenState extends State<FinishedJobsScreen> {
       final target = j['targetShots'] as int? ?? 0;
       return shots > target;
     }).length;
-    
-    final totalShots = _jobs.fold<int>(0, (total, j) => total + (j['shotsCompleted'] as int? ?? 0));
-    final totalTarget = _jobs.fold<int>(0, (total, j) => total + (j['targetShots'] as int? ?? 0));
-    final totalOverrun = totalShots > totalTarget ? totalShots - totalTarget : 0;
-    
+
+    final totalShots = _jobs.fold<int>(
+        0, (total, j) => total + (j['shotsCompleted'] as int? ?? 0));
+    final totalTarget = _jobs.fold<int>(
+        0, (total, j) => total + (j['targetShots'] as int? ?? 0));
+    final totalOverrun =
+        totalShots > totalTarget ? totalShots - totalTarget : 0;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
         _buildSummaryItem('Total Jobs', '$totalJobs', Icons.work_outline),
-        _buildSummaryItem('Overrun', '$overrunJobs', Icons.warning_outlined, 
-          color: overrunJobs > 0 ? const Color(0xFFFF6B6B) : null),
-        _buildSummaryItem('Total Shots', '$totalShots', Icons.check_circle_outline),
+        _buildSummaryItem('Overrun', '$overrunJobs', Icons.warning_outlined,
+            color: overrunJobs > 0 ? const Color(0xFFFF6B6B) : null),
+        _buildSummaryItem(
+            'Total Shots', '$totalShots', Icons.check_circle_outline),
         if (totalOverrun > 0)
-          _buildSummaryItem('Extra Shots', '+$totalOverrun', Icons.add_circle_outline,
-            color: const Color(0xFFFF6B6B)),
+          _buildSummaryItem(
+              'Extra Shots', '+$totalOverrun', Icons.add_circle_outline,
+              color: const Color(0xFFFF6B6B)),
       ],
     );
   }
 
-  Widget _buildSummaryItem(String label, String value, IconData icon, {Color? color}) {
+  Widget _buildSummaryItem(String label, String value, IconData icon,
+      {Color? color}) {
     final itemColor = color ?? const Color(0xFF4CC9F0);
     return Column(
       children: [

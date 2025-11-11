@@ -44,7 +44,8 @@ class _RoleRouterState extends State<RoleRouter> {
   @override
   void initState() {
     super.initState();
-    _activeScreen = DashboardScreenV2(username: widget.username, level: widget.level);
+    _activeScreen =
+        DashboardScreenV2(username: widget.username, level: widget.level);
     _title = 'Dashboard';
   }
 
@@ -95,7 +96,10 @@ class _RoleRouterState extends State<RoleRouter> {
                 SizedBox(height: 8),
                 Text(
                   'ProMould v7.2',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+                  style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white),
                 ),
                 Text(
                   'Smart Factory',
@@ -106,19 +110,28 @@ class _RoleRouterState extends State<RoleRouter> {
           ),
           // Operator Menu (Level 1) - Only Dashboard and QC
           if (isOperator) ...[
-            _drawerItem(Icons.dashboard_outlined, 'Dashboard',
-                DashboardScreenV2(username: widget.username, level: widget.level)),
+            _drawerItem(
+                Icons.dashboard_outlined,
+                'Dashboard',
+                DashboardScreenV2(
+                    username: widget.username, level: widget.level)),
             _drawerItem(Icons.report_problem_outlined, 'Report Issue',
                 OperatorQCScreen(username: widget.username)),
           ],
           // Setter Menu (Level 2) - Limited access
           if (isSetter) ...[
-            _drawerItem(Icons.dashboard_outlined, 'Dashboard',
-                DashboardScreenV2(username: widget.username, level: widget.level)),
+            _drawerItem(
+                Icons.dashboard_outlined,
+                'Dashboard',
+                DashboardScreenV2(
+                    username: widget.username, level: widget.level)),
             _drawerItem(Icons.swap_horiz, 'Mould Changes',
                 MouldChangeSchedulerScreen(level: widget.level)),
-            _drawerItem(Icons.fact_check, 'Machine Inspections',
-                MachineInspectionChecklistScreen(level: widget.level, username: widget.username)),
+            _drawerItem(
+                Icons.fact_check,
+                'Machine Inspections',
+                MachineInspectionChecklistScreen(
+                    level: widget.level, username: widget.username)),
             _drawerItem(Icons.task_alt, 'My Tasks',
                 MyTasksScreen(username: widget.username, level: widget.level)),
             _drawerItem(Icons.report_problem_outlined, 'Issues',
@@ -126,12 +139,18 @@ class _RoleRouterState extends State<RoleRouter> {
           ],
           // Manager Menu (Level 3+)
           if (isManager) ...[
-            _drawerItem(Icons.dashboard_outlined, 'Dashboard',
-                DashboardScreenV2(username: widget.username, level: widget.level)),
+            _drawerItem(
+                Icons.dashboard_outlined,
+                'Dashboard',
+                DashboardScreenV2(
+                    username: widget.username, level: widget.level)),
             _drawerItem(Icons.calendar_month_outlined, 'Timeline',
                 TimelineScreenV2(level: widget.level)),
-            _drawerItem(Icons.edit_note_outlined, 'Inputs',
-                DailyInputScreen(username: widget.username, level: widget.level)),
+            _drawerItem(
+                Icons.edit_note_outlined,
+                'Inputs',
+                DailyInputScreen(
+                    username: widget.username, level: widget.level)),
             _drawerItem(Icons.report_problem_outlined, 'Issues',
                 IssuesScreenV2(username: widget.username, level: widget.level)),
             _drawerItem(Icons.task_alt, 'My Tasks',
@@ -141,7 +160,11 @@ class _RoleRouterState extends State<RoleRouter> {
           if (isManager)
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Text('MANAGEMENT', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white54)),
+              child: Text('MANAGEMENT',
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white54)),
             ),
           if (isManager)
             _drawerItem(Icons.precision_manufacturing_outlined, 'Machines',
@@ -174,11 +197,17 @@ class _RoleRouterState extends State<RoleRouter> {
             _drawerItem(Icons.timer_outlined, 'Downtime',
                 DowntimeScreen(level: widget.level)),
           if (isManager)
-            _drawerItem(Icons.assignment_outlined, 'Paperwork',
-                PaperworkScreen(level: widget.level, username: widget.username)),
+            _drawerItem(
+                Icons.assignment_outlined,
+                'Paperwork',
+                PaperworkScreen(
+                    level: widget.level, username: widget.username)),
           if (isManager)
-            _drawerItem(Icons.fact_check, 'Machine Inspections',
-                MachineInspectionChecklistScreen(level: widget.level, username: widget.username)),
+            _drawerItem(
+                Icons.fact_check,
+                'Machine Inspections',
+                MachineInspectionChecklistScreen(
+                    level: widget.level, username: widget.username)),
           if (isManager)
             _drawerItem(Icons.assessment, 'Inspection Tracking',
                 const DailyInspectionTrackingScreen()),
@@ -186,16 +215,21 @@ class _RoleRouterState extends State<RoleRouter> {
             _drawerItem(Icons.insights_outlined, 'Reports / OEE',
                 OEEScreen(level: widget.level)),
           if (isManager)
-            _drawerItem(Icons.verified_outlined, 'Quality Control',
-                QualityControlScreen(level: widget.level, username: widget.username)),
+            _drawerItem(
+                Icons.verified_outlined,
+                'Quality Control',
+                QualityControlScreen(
+                    level: widget.level, username: widget.username)),
           if (isAdmin) const Divider(),
           if (isAdmin)
             _drawerItem(Icons.settings_outlined, 'Settings',
                 SettingsScreen(level: widget.level)),
           const Divider(),
           ListTile(
-            leading: const Icon(Icons.exit_to_app_outlined, color: Color(0xFFFF6B6B)),
-            title: const Text('Logout', style: TextStyle(color: Color(0xFFFF6B6B))),
+            leading: const Icon(Icons.exit_to_app_outlined,
+                color: Color(0xFFFF6B6B)),
+            title: const Text('Logout',
+                style: TextStyle(color: Color(0xFFFF6B6B))),
             onTap: () {
               // Show confirmation dialog
               showDialog(
@@ -214,11 +248,13 @@ class _RoleRouterState extends State<RoleRouter> {
                         Navigator.pop(context); // Close drawer
                         // Navigate back to login and remove all routes
                         Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(builder: (_) => const LoginScreen()),
+                          MaterialPageRoute(
+                              builder: (_) => const LoginScreen()),
                           (route) => false,
                         );
                       },
-                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF6B6B)),
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFFF6B6B)),
                       child: const Text('Logout'),
                     ),
                   ],

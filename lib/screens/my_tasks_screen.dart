@@ -40,15 +40,20 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
     if (!Hive.isBoxOpen('mouldChangesBox')) {
       return const SizedBox.shrink();
     }
-    
+
     final mouldChangesBox = Hive.box('mouldChangesBox');
-    final myChanges = mouldChangesBox.values.cast<Map>().where((c) =>
-        c['assignedTo'] == widget.username &&
-        (c['status'] == 'Scheduled' || c['status'] == 'In Progress')).toList();
-    
+    final myChanges = mouldChangesBox.values
+        .cast<Map>()
+        .where((c) =>
+            c['assignedTo'] == widget.username &&
+            (c['status'] == 'Scheduled' || c['status'] == 'In Progress'))
+        .toList();
+
     myChanges.sort((a, b) {
-      final aDate = DateTime.tryParse(a['scheduledDate'] ?? '') ?? DateTime.now();
-      final bDate = DateTime.tryParse(b['scheduledDate'] ?? '') ?? DateTime.now();
+      final aDate =
+          DateTime.tryParse(a['scheduledDate'] ?? '') ?? DateTime.now();
+      final bDate =
+          DateTime.tryParse(b['scheduledDate'] ?? '') ?? DateTime.now();
       return aDate.compareTo(bDate);
     });
 
@@ -58,9 +63,12 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
       const Color(0xFF4CC9F0),
       myChanges.length,
       myChanges.isEmpty
-          ? const Text('No mould changes assigned', style: TextStyle(color: Colors.white54))
+          ? const Text('No mould changes assigned',
+              style: TextStyle(color: Colors.white54))
           : Column(
-              children: myChanges.map((change) => _buildMouldChangeCard(change)).toList(),
+              children: myChanges
+                  .map((change) => _buildMouldChangeCard(change))
+                  .toList(),
             ),
     );
   }
@@ -69,14 +77,17 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
     if (!Hive.isBoxOpen('checklistsBox')) {
       return const SizedBox.shrink();
     }
-    
+
     final checklistsBox = Hive.box('checklistsBox');
     final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-    
-    final myChecklists = checklistsBox.values.cast<Map>().where((c) =>
-        c['date'] == today &&
-        c['setter'] == widget.username &&
-        c['completed'] != true).toList();
+
+    final myChecklists = checklistsBox.values
+        .cast<Map>()
+        .where((c) =>
+            c['date'] == today &&
+            c['setter'] == widget.username &&
+            c['completed'] != true)
+        .toList();
 
     return _buildSection(
       'Today\'s Checklists',
@@ -84,19 +95,24 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
       const Color(0xFF80ED99),
       myChecklists.length,
       myChecklists.isEmpty
-          ? const Text('No checklist items for today', style: TextStyle(color: Colors.white54))
+          ? const Text('No checklist items for today',
+              style: TextStyle(color: Colors.white54))
           : Column(
-              children: myChecklists.map((item) => _buildChecklistCard(item)).toList(),
+              children: myChecklists
+                  .map((item) => _buildChecklistCard(item))
+                  .toList(),
             ),
     );
   }
 
   Widget _buildIssuesSection() {
     final issuesBox = Hive.box('issuesBox');
-    final myIssues = issuesBox.values.cast<Map>().where((i) =>
-        i['reportedBy'] == widget.username &&
-        i['status'] != 'Resolved').toList();
-    
+    final myIssues = issuesBox.values
+        .cast<Map>()
+        .where((i) =>
+            i['reportedBy'] == widget.username && i['status'] != 'Resolved')
+        .toList();
+
     myIssues.sort((a, b) {
       final aDate = DateTime.tryParse(a['date'] ?? '') ?? DateTime.now();
       final bDate = DateTime.tryParse(b['date'] ?? '') ?? DateTime.now();
@@ -109,14 +125,19 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
       const Color(0xFFFFD166),
       myIssues.length,
       myIssues.isEmpty
-          ? const Text('No open issues', style: TextStyle(color: Colors.white54))
+          ? const Text('No open issues',
+              style: TextStyle(color: Colors.white54))
           : Column(
-              children: myIssues.take(5).map((issue) => _buildIssueCard(issue)).toList(),
+              children: myIssues
+                  .take(5)
+                  .map((issue) => _buildIssueCard(issue))
+                  .toList(),
             ),
     );
   }
 
-  Widget _buildSection(String title, IconData icon, Color color, int count, Widget content) {
+  Widget _buildSection(
+      String title, IconData icon, Color color, int count, Widget content) {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -153,11 +174,13 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                 const SizedBox(width: 12),
                 Text(
                   title,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
                     color: color.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(12),
@@ -183,13 +206,16 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
   Widget _buildMouldChangeCard(Map change) {
     final machinesBox = Hive.box('machinesBox');
     final mouldsBox = Hive.box('mouldsBox');
-    
+
     final machine = machinesBox.get(change['machineId']) as Map?;
     final toMould = mouldsBox.get(change['toMouldId']) as Map?;
-    final scheduledDate = DateTime.tryParse(change['scheduledDate'] ?? '') ?? DateTime.now();
+    final scheduledDate =
+        DateTime.tryParse(change['scheduledDate'] ?? '') ?? DateTime.now();
     final isOverdue = scheduledDate.isBefore(DateTime.now());
     final status = change['status'] as String? ?? 'Scheduled';
-    final statusColor = status == 'In Progress' ? const Color(0xFF4CC9F0) : const Color(0xFFFFD166);
+    final statusColor = status == 'In Progress'
+        ? const Color(0xFF4CC9F0)
+        : const Color(0xFFFFD166);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -198,7 +224,9 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
         color: Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: isOverdue ? const Color(0xFFFF6B6B) : statusColor.withOpacity(0.3),
+          color: isOverdue
+              ? const Color(0xFFFF6B6B)
+              : statusColor.withOpacity(0.3),
         ),
       ),
       child: Column(
@@ -221,7 +249,10 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                 ),
                 child: Text(
                   status,
-                  style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      color: statusColor,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold),
                 ),
               ),
             ],
@@ -288,9 +319,11 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
               children: [
                 Text(
                   item['title'] ?? 'Untitled',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 13),
                 ),
-                if (item['description'] != null && (item['description'] as String).isNotEmpty)
+                if (item['description'] != null &&
+                    (item['description'] as String).isNotEmpty)
                   Text(
                     item['description'] as String,
                     style: const TextStyle(fontSize: 11, color: Colors.white60),
@@ -306,7 +339,10 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
             ),
             child: Text(
               priority,
-              style: TextStyle(color: priorityColor, fontSize: 10, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  color: priorityColor,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -334,7 +370,8 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
               Expanded(
                 child: Text(
                   issue['description'] ?? 'No description',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 13),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -347,7 +384,10 @@ class _MyTasksScreenState extends State<MyTasksScreen> {
                 ),
                 child: Text(
                   severity,
-                  style: TextStyle(color: severityColor, fontSize: 10, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      color: severityColor,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold),
                 ),
               ),
             ],

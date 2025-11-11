@@ -22,9 +22,8 @@ class AnalyticsService {
         .cast<Map>()
         .where((m) => m['status'] == 'Running')
         .length;
-    final utilizationRate = totalMachines > 0
-        ? (runningMachines / totalMachines * 100).round()
-        : 0;
+    final utilizationRate =
+        totalMachines > 0 ? (runningMachines / totalMachines * 100).round() : 0;
 
     // Production Metrics
     final todayInputs = inputsBox.values.cast<Map>().where((i) {
@@ -32,10 +31,10 @@ class AnalyticsService {
       return date != null && date.isAfter(today);
     }).toList();
 
-    final totalShots = todayInputs.fold<int>(
-        0, (sum, i) => sum + (i['shots'] as int? ?? 0));
-    final totalScrap = todayInputs.fold<int>(
-        0, (sum, i) => sum + (i['scrap'] as int? ?? 0));
+    final totalShots =
+        todayInputs.fold<int>(0, (sum, i) => sum + (i['shots'] as int? ?? 0));
+    final totalScrap =
+        todayInputs.fold<int>(0, (sum, i) => sum + (i['scrap'] as int? ?? 0));
     final scrapRate = (totalShots + totalScrap) > 0
         ? (totalScrap / (totalShots + totalScrap) * 100)
         : 0.0;
@@ -76,9 +75,8 @@ class AnalyticsService {
     // OEE Calculation (simplified)
     final availableMinutes = runningMachines * 60 * 8; // 8 hour shift
     final actualMinutes = availableMinutes - totalDowntimeMinutes;
-    final availability = availableMinutes > 0
-        ? (actualMinutes / availableMinutes * 100)
-        : 0.0;
+    final availability =
+        availableMinutes > 0 ? (actualMinutes / availableMinutes * 100) : 0.0;
     final performance = 85.0; // Simplified - would need cycle time data
     final quality = 100 - scrapRate;
     final oee = (availability * performance * quality) / 10000;
@@ -157,8 +155,8 @@ class AnalyticsService {
     }
 
     // Sort by risk score descending
-    predictions.sort((a, b) =>
-        (b['riskScore'] as int).compareTo(a['riskScore'] as int));
+    predictions.sort(
+        (a, b) => (b['riskScore'] as int).compareTo(a['riskScore'] as int));
 
     return {
       'predictions': predictions,
@@ -201,10 +199,10 @@ class AnalyticsService {
         return inputDateKey == dateKey;
       }).toList();
 
-      final shots = dayInputs.fold<int>(
-          0, (sum, i) => sum + (i['shots'] as int? ?? 0));
-      final scrap = dayInputs.fold<int>(
-          0, (sum, i) => sum + (i['scrap'] as int? ?? 0));
+      final shots =
+          dayInputs.fold<int>(0, (sum, i) => sum + (i['shots'] as int? ?? 0));
+      final scrap =
+          dayInputs.fold<int>(0, (sum, i) => sum + (i['scrap'] as int? ?? 0));
 
       productionTrend.add({
         'date': dateKey.toIso8601String(),
@@ -225,8 +223,8 @@ class AnalyticsService {
       final dayDowntime = downtimeBox.values.cast<Map>().where((d) {
         final downtimeDate = DateTime.tryParse(d['date'] ?? '');
         if (downtimeDate == null) return false;
-        final downtimeDateKey = DateTime(
-            downtimeDate.year, downtimeDate.month, downtimeDate.day);
+        final downtimeDateKey =
+            DateTime(downtimeDate.year, downtimeDate.month, downtimeDate.day);
         return downtimeDateKey == dateKey;
       }).toList();
 
@@ -303,14 +301,20 @@ class AnalyticsService {
       ..sort((a, b) => b.value.compareTo(a.value));
 
     return {
-      'topCategories': topCategories.take(5).map((e) => {
-            'category': e.key,
-            'count': e.value,
-          }).toList(),
-      'topMachines': topMachines.take(5).map((e) => {
-            'machine': e.key,
-            'count': e.value,
-          }).toList(),
+      'topCategories': topCategories
+          .take(5)
+          .map((e) => {
+                'category': e.key,
+                'count': e.value,
+              })
+          .toList(),
+      'topMachines': topMachines
+          .take(5)
+          .map((e) => {
+                'machine': e.key,
+                'count': e.value,
+              })
+          .toList(),
       'totalIssues': recentIssues.length,
       'openIssues': recentIssues
           .where((i) => i['status'] != 'Resolved' && i['status'] != 'Closed')
@@ -345,14 +349,14 @@ class AnalyticsService {
       }
     }
 
-    final dayShots = dayShift.fold<int>(
-        0, (sum, i) => sum + (i['shots'] as int? ?? 0));
-    final dayScrap = dayShift.fold<int>(
-        0, (sum, i) => sum + (i['scrap'] as int? ?? 0));
-    final nightShots = nightShift.fold<int>(
-        0, (sum, i) => sum + (i['shots'] as int? ?? 0));
-    final nightScrap = nightShift.fold<int>(
-        0, (sum, i) => sum + (i['scrap'] as int? ?? 0));
+    final dayShots =
+        dayShift.fold<int>(0, (sum, i) => sum + (i['shots'] as int? ?? 0));
+    final dayScrap =
+        dayShift.fold<int>(0, (sum, i) => sum + (i['scrap'] as int? ?? 0));
+    final nightShots =
+        nightShift.fold<int>(0, (sum, i) => sum + (i['shots'] as int? ?? 0));
+    final nightScrap =
+        nightShift.fold<int>(0, (sum, i) => sum + (i['scrap'] as int? ?? 0));
 
     return {
       'dayShift': {
@@ -366,7 +370,8 @@ class AnalyticsService {
         'shots': nightShots,
         'scrap': nightScrap,
         'scrapRate': (nightShots + nightScrap) > 0
-            ? ((nightScrap / (nightShots + nightScrap)) * 100).toStringAsFixed(1)
+            ? ((nightScrap / (nightShots + nightScrap)) * 100)
+                .toStringAsFixed(1)
             : '0.0',
       },
     };

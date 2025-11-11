@@ -21,7 +21,7 @@ class _ReportBuilderScreenState extends State<ReportBuilderScreen> {
   bool _includeCharts = true;
   bool _includeSummary = true;
   bool _includeDetails = true;
-  
+
   List<Map<String, dynamic>> _reportData = [];
   bool _isGenerating = false;
 
@@ -81,8 +81,10 @@ class _ReportBuilderScreenState extends State<ReportBuilderScreen> {
                 _buildTypeChip('Production', 'production', Icons.factory),
                 _buildTypeChip('Quality', 'quality', Icons.verified),
                 _buildTypeChip('Downtime', 'downtime', Icons.warning),
-                _buildTypeChip('Machine Performance', 'machine', Icons.precision_manufacturing),
-                _buildTypeChip('Operator Performance', 'operator', Icons.person),
+                _buildTypeChip('Machine Performance', 'machine',
+                    Icons.precision_manufacturing),
+                _buildTypeChip(
+                    'Operator Performance', 'operator', Icons.person),
               ],
             ),
           ],
@@ -165,7 +167,8 @@ class _ReportBuilderScreenState extends State<ReportBuilderScreen> {
     );
   }
 
-  Widget _buildDateButton(String label, DateTime date, Function(DateTime) onSelect) {
+  Widget _buildDateButton(
+      String label, DateTime date, Function(DateTime) onSelect) {
     return OutlinedButton(
       onPressed: () async {
         final picked = await showDatePicker(
@@ -227,7 +230,9 @@ class _ReportBuilderScreenState extends State<ReportBuilderScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            if (_reportType == 'production' || _reportType == 'machine' || _reportType == 'downtime')
+            if (_reportType == 'production' ||
+                _reportType == 'machine' ||
+                _reportType == 'downtime')
               _buildMachineFilter(),
             if (_reportType == 'production' || _reportType == 'operator')
               _buildOperatorFilter(),
@@ -257,9 +262,9 @@ class _ReportBuilderScreenState extends State<ReportBuilderScreen> {
               child: Text('All Machines'),
             ),
             ...machines.map((m) => DropdownMenuItem(
-              value: m['id'],
-              child: Text(m['name']),
-            )),
+                  value: m['id'],
+                  child: Text(m['name']),
+                )),
           ],
           onChanged: (value) => setState(() => _selectedMachine = value),
         );
@@ -289,9 +294,9 @@ class _ReportBuilderScreenState extends State<ReportBuilderScreen> {
                 child: Text('All Operators'),
               ),
               ...operators.map((o) => DropdownMenuItem(
-                value: o['id'],
-                child: Text(o['name']),
-              )),
+                    value: o['id'],
+                    child: Text(o['name']),
+                  )),
             ],
             onChanged: (value) => setState(() => _selectedOperator = value),
           ),
@@ -317,21 +322,27 @@ class _ReportBuilderScreenState extends State<ReportBuilderScreen> {
               ),
             ),
             CheckboxListTile(
-              title: const Text('Include Summary', style: TextStyle(color: Colors.white)),
+              title: const Text('Include Summary',
+                  style: TextStyle(color: Colors.white)),
               value: _includeSummary,
-              onChanged: (value) => setState(() => _includeSummary = value ?? true),
+              onChanged: (value) =>
+                  setState(() => _includeSummary = value ?? true),
               activeColor: Colors.blue,
             ),
             CheckboxListTile(
-              title: const Text('Include Charts', style: TextStyle(color: Colors.white)),
+              title: const Text('Include Charts',
+                  style: TextStyle(color: Colors.white)),
               value: _includeCharts,
-              onChanged: (value) => setState(() => _includeCharts = value ?? true),
+              onChanged: (value) =>
+                  setState(() => _includeCharts = value ?? true),
               activeColor: Colors.blue,
             ),
             CheckboxListTile(
-              title: const Text('Include Detailed Data', style: TextStyle(color: Colors.white)),
+              title: const Text('Include Detailed Data',
+                  style: TextStyle(color: Colors.white)),
               value: _includeDetails,
-              onChanged: (value) => setState(() => _includeDetails = value ?? true),
+              onChanged: (value) =>
+                  setState(() => _includeDetails = value ?? true),
               activeColor: Colors.blue,
             ),
           ],
@@ -421,7 +432,8 @@ class _ReportBuilderScreenState extends State<ReportBuilderScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: ElevatedButton.icon(
-              onPressed: _reportData.isEmpty || _isGenerating ? null : _exportReport,
+              onPressed:
+                  _reportData.isEmpty || _isGenerating ? null : _exportReport,
               icon: const Icon(Icons.download),
               label: const Text('Export Report'),
               style: ElevatedButton.styleFrom(
@@ -474,8 +486,10 @@ class _ReportBuilderScreenState extends State<ReportBuilderScreen> {
       final date = DateTime.tryParse(input['date'] ?? '');
       if (date == null) continue;
       if (date.isBefore(_startDate) || date.isAfter(_endDate)) continue;
-      if (_selectedMachine != null && input['machineId'] != _selectedMachine) continue;
-      if (_selectedOperator != null && input['operatorId'] != _selectedOperator) continue;
+      if (_selectedMachine != null && input['machineId'] != _selectedMachine)
+        continue;
+      if (_selectedOperator != null && input['operatorId'] != _selectedOperator)
+        continue;
 
       data.add({
         'title': 'Production - ${DateFormat('MMM dd').format(date)}',
@@ -494,12 +508,15 @@ class _ReportBuilderScreenState extends State<ReportBuilderScreen> {
     for (final issue in issuesBox.values.cast<Map>()) {
       final timestamp = DateTime.tryParse(issue['timestamp'] ?? '');
       if (timestamp == null) continue;
-      if (timestamp.isBefore(_startDate) || timestamp.isAfter(_endDate)) continue;
-      if (_selectedMachine != null && issue['machineId'] != _selectedMachine) continue;
+      if (timestamp.isBefore(_startDate) || timestamp.isAfter(_endDate))
+        continue;
+      if (_selectedMachine != null && issue['machineId'] != _selectedMachine)
+        continue;
 
       data.add({
         'title': issue['title'] ?? 'Issue',
-        'subtitle': 'Priority: ${issue['priority']}, Status: ${issue['status']}',
+        'subtitle':
+            'Priority: ${issue['priority']}, Status: ${issue['status']}',
         'data': issue,
       });
     }
@@ -515,7 +532,8 @@ class _ReportBuilderScreenState extends State<ReportBuilderScreen> {
       final date = DateTime.tryParse(downtime['date'] ?? '');
       if (date == null) continue;
       if (date.isBefore(_startDate) || date.isAfter(_endDate)) continue;
-      if (_selectedMachine != null && downtime['machineId'] != _selectedMachine) continue;
+      if (_selectedMachine != null && downtime['machineId'] != _selectedMachine)
+        continue;
 
       data.add({
         'title': 'Downtime - ${downtime['reason']}',
@@ -534,8 +552,10 @@ class _ReportBuilderScreenState extends State<ReportBuilderScreen> {
     for (final job in jobsBox.values.cast<Map>()) {
       final startTime = DateTime.tryParse(job['startTime'] ?? '');
       if (startTime == null) continue;
-      if (startTime.isBefore(_startDate) || startTime.isAfter(_endDate)) continue;
-      if (_selectedMachine != null && job['machineId'] != _selectedMachine) continue;
+      if (startTime.isBefore(_startDate) || startTime.isAfter(_endDate))
+        continue;
+      if (_selectedMachine != null && job['machineId'] != _selectedMachine)
+        continue;
 
       final machineId = job['machineId'] as String;
       if (!machineStats.containsKey(machineId)) {
@@ -553,11 +573,14 @@ class _ReportBuilderScreenState extends State<ReportBuilderScreen> {
       }
     }
 
-    return machineStats.values.map((stats) => {
-      'title': stats['machineName'],
-      'subtitle': 'Jobs: ${stats['totalJobs']}, Completed: ${stats['completedJobs']}',
-      'data': stats,
-    }).toList();
+    return machineStats.values
+        .map((stats) => {
+              'title': stats['machineName'],
+              'subtitle':
+                  'Jobs: ${stats['totalJobs']}, Completed: ${stats['completedJobs']}',
+              'data': stats,
+            })
+        .toList();
   }
 
   List<Map<String, dynamic>> _generateOperatorReport() {
@@ -568,7 +591,8 @@ class _ReportBuilderScreenState extends State<ReportBuilderScreen> {
       final date = DateTime.tryParse(input['date'] ?? '');
       if (date == null) continue;
       if (date.isBefore(_startDate) || date.isAfter(_endDate)) continue;
-      if (_selectedOperator != null && input['operatorId'] != _selectedOperator) continue;
+      if (_selectedOperator != null && input['operatorId'] != _selectedOperator)
+        continue;
 
       final operatorId = input['operatorId'] as String?;
       if (operatorId == null) continue;
@@ -586,18 +610,22 @@ class _ReportBuilderScreenState extends State<ReportBuilderScreen> {
       operatorStats[operatorId]!['totalScrap'] += input['scrap'] as int? ?? 0;
     }
 
-    return operatorStats.values.map((stats) => {
-      'title': stats['operatorName'],
-      'subtitle': 'Shots: ${stats['totalShots']}, Scrap: ${stats['totalScrap']}',
-      'data': stats,
-    }).toList();
+    return operatorStats.values
+        .map((stats) => {
+              'title': stats['operatorName'],
+              'subtitle':
+                  'Shots: ${stats['totalShots']}, Scrap: ${stats['totalScrap']}',
+              'data': stats,
+            })
+        .toList();
   }
 
   void _exportReport() async {
     try {
       final csv = _generateCSV();
       final directory = await getApplicationDocumentsDirectory();
-      final fileName = 'report_${_reportType}_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.csv';
+      final fileName =
+          'report_${_reportType}_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.csv';
       final file = File('${directory.path}/$fileName');
       await file.writeAsString(csv);
 
@@ -622,11 +650,13 @@ class _ReportBuilderScreenState extends State<ReportBuilderScreen> {
 
   String _generateCSV() {
     final buffer = StringBuffer();
-    
+
     // Header
     buffer.writeln('ProMould Report - $_reportType');
-    buffer.writeln('Generated: ${DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now())}');
-    buffer.writeln('Date Range: ${DateFormat('yyyy-MM-dd').format(_startDate)} to ${DateFormat('yyyy-MM-dd').format(_endDate)}');
+    buffer.writeln(
+        'Generated: ${DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now())}');
+    buffer.writeln(
+        'Date Range: ${DateFormat('yyyy-MM-dd').format(_startDate)} to ${DateFormat('yyyy-MM-dd').format(_endDate)}');
     buffer.writeln('');
 
     // Data headers
@@ -638,8 +668,11 @@ class _ReportBuilderScreenState extends State<ReportBuilderScreen> {
           final date = DateTime.parse(data['date']);
           final shots = data['shots'] ?? 0;
           final scrap = data['scrap'] ?? 0;
-          final scrapRate = (shots + scrap) > 0 ? (scrap / (shots + scrap) * 100).toStringAsFixed(2) : '0';
-          buffer.writeln('${DateFormat('yyyy-MM-dd').format(date)},${data['machineName']},${data['operatorName']},$shots,$scrap,$scrapRate%');
+          final scrapRate = (shots + scrap) > 0
+              ? (scrap / (shots + scrap) * 100).toStringAsFixed(2)
+              : '0';
+          buffer.writeln(
+              '${DateFormat('yyyy-MM-dd').format(date)},${data['machineName']},${data['operatorName']},$shots,$scrap,$scrapRate%');
         }
         break;
       case 'quality':
@@ -647,7 +680,8 @@ class _ReportBuilderScreenState extends State<ReportBuilderScreen> {
         for (final item in _reportData) {
           final data = item['data'] as Map;
           final timestamp = DateTime.parse(data['timestamp']);
-          buffer.writeln('${DateFormat('yyyy-MM-dd HH:mm').format(timestamp)},${data['title']},${data['priority']},${data['status']},${data['category']}');
+          buffer.writeln(
+              '${DateFormat('yyyy-MM-dd HH:mm').format(timestamp)},${data['title']},${data['priority']},${data['status']},${data['category']}');
         }
         break;
       case 'downtime':
@@ -655,17 +689,20 @@ class _ReportBuilderScreenState extends State<ReportBuilderScreen> {
         for (final item in _reportData) {
           final data = item['data'] as Map;
           final date = DateTime.parse(data['date']);
-          buffer.writeln('${DateFormat('yyyy-MM-dd').format(date)},${data['machineName']},${data['reason']},${data['minutes']}');
+          buffer.writeln(
+              '${DateFormat('yyyy-MM-dd').format(date)},${data['machineName']},${data['reason']},${data['minutes']}');
         }
         break;
       case 'machine':
         buffer.writeln('Machine,Total Jobs,Completed Jobs,Completion Rate');
         for (final item in _reportData) {
           final data = item['data'] as Map;
-          final completionRate = data['totalJobs'] > 0 
-              ? ((data['completedJobs'] / data['totalJobs']) * 100).toStringAsFixed(1)
+          final completionRate = data['totalJobs'] > 0
+              ? ((data['completedJobs'] / data['totalJobs']) * 100)
+                  .toStringAsFixed(1)
               : '0';
-          buffer.writeln('${data['machineName']},${data['totalJobs']},${data['completedJobs']},$completionRate%');
+          buffer.writeln(
+              '${data['machineName']},${data['totalJobs']},${data['completedJobs']},$completionRate%');
         }
         break;
       case 'operator':
@@ -673,9 +710,13 @@ class _ReportBuilderScreenState extends State<ReportBuilderScreen> {
         for (final item in _reportData) {
           final data = item['data'] as Map;
           final scrapRate = (data['totalShots'] + data['totalScrap']) > 0
-              ? ((data['totalScrap'] / (data['totalShots'] + data['totalScrap'])) * 100).toStringAsFixed(2)
+              ? ((data['totalScrap'] /
+                          (data['totalShots'] + data['totalScrap'])) *
+                      100)
+                  .toStringAsFixed(2)
               : '0';
-          buffer.writeln('${data['operatorName']},${data['totalShots']},${data['totalScrap']},$scrapRate%');
+          buffer.writeln(
+              '${data['operatorName']},${data['totalShots']},${data['totalScrap']},$scrapRate%');
         }
         break;
     }

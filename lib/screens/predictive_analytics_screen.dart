@@ -85,8 +85,9 @@ class _PredictiveAnalyticsScreenState extends State<PredictiveAnalyticsScreen> {
 
   Widget _buildSummaryCard(List predictions) {
     final highRisk = predictions.where((p) => p['riskScore'] >= 70).length;
-    final mediumRisk =
-        predictions.where((p) => p['riskScore'] >= 40 && p['riskScore'] < 70).length;
+    final mediumRisk = predictions
+        .where((p) => p['riskScore'] >= 40 && p['riskScore'] < 70)
+        .length;
     final lowRisk = predictions.where((p) => p['riskScore'] < 40).length;
 
     return Card(
@@ -163,7 +164,8 @@ class _PredictiveAnalyticsScreenState extends State<PredictiveAnalyticsScreen> {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: color.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(12),

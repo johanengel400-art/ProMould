@@ -10,7 +10,8 @@ import '../services/sync_service.dart';
 class QualityControlScreen extends StatefulWidget {
   final int level;
   final String username;
-  const QualityControlScreen({super.key, required this.level, required this.username});
+  const QualityControlScreen(
+      {super.key, required this.level, required this.username});
 
   @override
   State<QualityControlScreen> createState() => _QualityControlScreenState();
@@ -41,7 +42,8 @@ class _QualityControlScreenState extends State<QualityControlScreen> {
       future: _initializeBoxes(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          return const Scaffold(
+              body: Center(child: CircularProgressIndicator()));
         }
 
         return Scaffold(
@@ -51,9 +53,12 @@ class _QualityControlScreenState extends State<QualityControlScreen> {
             backgroundColor: const Color(0xFF0F1419),
           ),
           floatingActionButton: FloatingActionButton.extended(
-            onPressed: selectedTab == 'Inspections' ? _addInspection : _addQualityHold,
+            onPressed:
+                selectedTab == 'Inspections' ? _addInspection : _addQualityHold,
             icon: const Icon(Icons.add),
-            label: Text(selectedTab == 'Inspections' ? 'New Inspection' : 'Quality Hold'),
+            label: Text(selectedTab == 'Inspections'
+                ? 'New Inspection'
+                : 'Quality Hold'),
             backgroundColor: const Color(0xFF4CC9F0),
           ),
           body: Column(
@@ -97,7 +102,7 @@ class _QualityControlScreenState extends State<QualityControlScreen> {
   Widget _buildInspectionsList() {
     final inspectionsBox = Hive.box('qualityInspectionsBox');
     final inspections = inspectionsBox.values.cast<Map>().toList();
-    
+
     inspections.sort((a, b) {
       final aDate = DateTime.tryParse(a['date'] ?? '') ?? DateTime.now();
       final bDate = DateTime.tryParse(b['date'] ?? '') ?? DateTime.now();
@@ -106,7 +111,8 @@ class _QualityControlScreenState extends State<QualityControlScreen> {
 
     if (inspections.isEmpty) {
       return const Center(
-        child: Text('No inspections recorded', style: TextStyle(color: Colors.white54)),
+        child: Text('No inspections recorded',
+            style: TextStyle(color: Colors.white54)),
       );
     }
 
@@ -119,8 +125,11 @@ class _QualityControlScreenState extends State<QualityControlScreen> {
 
   Widget _buildQualityHoldsList() {
     final holdsBox = Hive.box('qualityHoldsBox');
-    final holds = holdsBox.values.cast<Map>().where((h) => h['status'] != 'Released').toList();
-    
+    final holds = holdsBox.values
+        .cast<Map>()
+        .where((h) => h['status'] != 'Released')
+        .toList();
+
     holds.sort((a, b) {
       final aDate = DateTime.tryParse(a['date'] ?? '') ?? DateTime.now();
       final bDate = DateTime.tryParse(b['date'] ?? '') ?? DateTime.now();
@@ -129,7 +138,8 @@ class _QualityControlScreenState extends State<QualityControlScreen> {
 
     if (holds.isEmpty) {
       return const Center(
-        child: Text('No active quality holds', style: TextStyle(color: Colors.white54)),
+        child: Text('No active quality holds',
+            style: TextStyle(color: Colors.white54)),
       );
     }
 
@@ -142,7 +152,8 @@ class _QualityControlScreenState extends State<QualityControlScreen> {
 
   Widget _buildInspectionCard(Map inspection) {
     final result = inspection['result'] as String? ?? 'Pass';
-    final resultColor = result == 'Pass' ? const Color(0xFF00D26A) : const Color(0xFFFF6B6B);
+    final resultColor =
+        result == 'Pass' ? const Color(0xFF00D26A) : const Color(0xFFFF6B6B);
     final date = DateTime.tryParse(inspection['date'] ?? '') ?? DateTime.now();
 
     return Container(
@@ -181,10 +192,12 @@ class _QualityControlScreenState extends State<QualityControlScreen> {
             Text('Job: ${inspection['jobId'] ?? 'N/A'}'),
             Text('Inspector: ${inspection['inspector'] ?? 'Unknown'}'),
             Text(DateFormat('MMM d, yyyy HH:mm').format(date)),
-            if (inspection['notes'] != null && (inspection['notes'] as String).isNotEmpty)
+            if (inspection['notes'] != null &&
+                (inspection['notes'] as String).isNotEmpty)
               Text(
                 inspection['notes'] as String,
-                style: const TextStyle(fontSize: 11, fontStyle: FontStyle.italic),
+                style:
+                    const TextStyle(fontSize: 11, fontStyle: FontStyle.italic),
               ),
           ],
         ),
@@ -255,7 +268,10 @@ class _QualityControlScreenState extends State<QualityControlScreen> {
               ),
               child: Text(
                 severity,
-                style: TextStyle(color: severityColor, fontWeight: FontWeight.bold, fontSize: 11),
+                style: TextStyle(
+                    color: severityColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 11),
               ),
             ),
           ),
@@ -296,7 +312,10 @@ class _QualityControlScreenState extends State<QualityControlScreen> {
 
   Future<void> _addInspection() async {
     final jobsBox = Hive.box('jobsBox');
-    final jobs = jobsBox.values.cast<Map>().where((j) => j['status'] == 'Running').toList();
+    final jobs = jobsBox.values
+        .cast<Map>()
+        .where((j) => j['status'] == 'Running')
+        .toList();
 
     if (jobs.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -322,26 +341,31 @@ class _QualityControlScreenState extends State<QualityControlScreen> {
                 DropdownButtonFormField<String>(
                   value: selectedJobId,
                   decoration: const InputDecoration(labelText: 'Job'),
-                  items: jobs.map((j) => DropdownMenuItem(
-                    value: j['id'] as String,
-                    child: Text(j['productName'] as String),
-                  )).toList(),
+                  items: jobs
+                      .map((j) => DropdownMenuItem(
+                            value: j['id'] as String,
+                            child: Text(j['productName'] as String),
+                          ))
+                      .toList(),
                   onChanged: (v) => setDialogState(() => selectedJobId = v),
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   value: inspectionType,
                   decoration: const InputDecoration(labelText: 'Type'),
-                  items: ['First Article', 'In-Process', 'Final', 'Random'].map((t) =>
-                    DropdownMenuItem(value: t, child: Text(t))).toList(),
-                  onChanged: (v) => setDialogState(() => inspectionType = v ?? 'First Article'),
+                  items: ['First Article', 'In-Process', 'Final', 'Random']
+                      .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+                      .toList(),
+                  onChanged: (v) => setDialogState(
+                      () => inspectionType = v ?? 'First Article'),
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   value: result,
                   decoration: const InputDecoration(labelText: 'Result'),
-                  items: ['Pass', 'Fail'].map((r) =>
-                    DropdownMenuItem(value: r, child: Text(r))).toList(),
+                  items: ['Pass', 'Fail']
+                      .map((r) => DropdownMenuItem(value: r, child: Text(r)))
+                      .toList(),
                   onChanged: (v) => setDialogState(() => result = v ?? 'Pass'),
                 ),
                 const SizedBox(height: 12),
@@ -374,7 +398,7 @@ class _QualityControlScreenState extends State<QualityControlScreen> {
                 await inspectionsBox.put(id, data);
                 await SyncService.push('qualityInspectionsBox', id, data);
                 if (context.mounted) {
-                Navigator.pop(dialogContext);
+                  Navigator.pop(dialogContext);
                 }
                 setState(() {});
               },
@@ -388,7 +412,10 @@ class _QualityControlScreenState extends State<QualityControlScreen> {
 
   Future<void> _addQualityHold() async {
     final jobsBox = Hive.box('jobsBox');
-    final jobs = jobsBox.values.cast<Map>().where((j) => j['status'] == 'Running').toList();
+    final jobs = jobsBox.values
+        .cast<Map>()
+        .where((j) => j['status'] == 'Running')
+        .toList();
 
     if (jobs.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -414,10 +441,12 @@ class _QualityControlScreenState extends State<QualityControlScreen> {
                 DropdownButtonFormField<String>(
                   value: selectedJobId,
                   decoration: const InputDecoration(labelText: 'Job'),
-                  items: jobs.map((j) => DropdownMenuItem(
-                    value: j['id'] as String,
-                    child: Text(j['productName'] as String),
-                  )).toList(),
+                  items: jobs
+                      .map((j) => DropdownMenuItem(
+                            value: j['id'] as String,
+                            child: Text(j['productName'] as String),
+                          ))
+                      .toList(),
                   onChanged: (v) => setDialogState(() => selectedJobId = v),
                 ),
                 const SizedBox(height: 12),
@@ -435,9 +464,11 @@ class _QualityControlScreenState extends State<QualityControlScreen> {
                 DropdownButtonFormField<String>(
                   value: severity,
                   decoration: const InputDecoration(labelText: 'Severity'),
-                  items: ['Low', 'Medium', 'High', 'Critical'].map((s) =>
-                    DropdownMenuItem(value: s, child: Text(s))).toList(),
-                  onChanged: (v) => setDialogState(() => severity = v ?? 'Medium'),
+                  items: ['Low', 'Medium', 'High', 'Critical']
+                      .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+                      .toList(),
+                  onChanged: (v) =>
+                      setDialogState(() => severity = v ?? 'Medium'),
                 ),
               ],
             ),
@@ -464,7 +495,7 @@ class _QualityControlScreenState extends State<QualityControlScreen> {
                 await holdsBox.put(id, data);
                 await SyncService.push('qualityHoldsBox', id, data);
                 if (context.mounted) {
-                Navigator.pop(dialogContext);
+                  Navigator.pop(dialogContext);
                 }
                 setState(() {});
               },

@@ -9,7 +9,8 @@ class BackgroundSync {
   static Future<void> initialize() async {
     await Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
     await Workmanager().registerPeriodicTask(
-      taskName, taskName,
+      taskName,
+      taskName,
       frequency: const Duration(minutes: 1),
       initialDelay: const Duration(seconds: 15),
       existingWorkPolicy: ExistingWorkPolicy.keep,
@@ -22,16 +23,19 @@ class BackgroundSync {
       try {
         final fire = FirebaseFirestore.instance;
         for (final pair in {
-          'jobsBox':'jobs',
-          'inputsBox':'inputs',
-          'issuesBox':'issues',
-          'queueBox':'queue',
+          'jobsBox': 'jobs',
+          'inputsBox': 'inputs',
+          'issuesBox': 'issues',
+          'queueBox': 'queue',
         }.entries) {
           final box = await Hive.openBox(pair.key);
           for (final key in box.keys) {
             final v = box.get(key);
             if (v is Map) {
-              await fire.collection(pair.value).doc('$key').set(Map<String,dynamic>.from(v), SetOptions(merge: true));
+              await fire
+                  .collection(pair.value)
+                  .doc('$key')
+                  .set(Map<String, dynamic>.from(v), SetOptions(merge: true));
             }
           }
         }

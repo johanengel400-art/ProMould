@@ -11,7 +11,8 @@ class MachineInspectionScreen extends StatefulWidget {
   const MachineInspectionScreen({super.key, required this.level});
 
   @override
-  State<MachineInspectionScreen> createState() => _MachineInspectionScreenState();
+  State<MachineInspectionScreen> createState() =>
+      _MachineInspectionScreenState();
 }
 
 class _MachineInspectionScreenState extends State<MachineInspectionScreen> {
@@ -47,8 +48,7 @@ class _MachineInspectionScreenState extends State<MachineInspectionScreen> {
   void initState() {
     super.initState();
     status = {
-      for (var c in checks)
-        c: {for (var d in days) d: false}
+      for (var c in checks) c: {for (var d in days) d: false}
     };
   }
 
@@ -85,8 +85,7 @@ class _MachineInspectionScreenState extends State<MachineInspectionScreen> {
     remarksCtrl.clear();
     addRemarksCtrl.clear();
     status = {
-      for (var c in checks)
-        c: {for (var d in days) d: false}
+      for (var c in checks) c: {for (var d in days) d: false}
     };
     setState(() {});
   }
@@ -150,7 +149,8 @@ class _MachineInspectionScreenState extends State<MachineInspectionScreen> {
                   label: const Text('Save Inspection'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF06D6A0),
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 32, vertical: 16),
                   ),
                 ),
               ),
@@ -222,15 +222,17 @@ class _MachineInspectionScreenState extends State<MachineInspectionScreen> {
           const DataColumn(
             label: Text(
               'Inspection Point',
-              style: TextStyle(color: Color(0xFF06D6A0), fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  color: Color(0xFF06D6A0), fontWeight: FontWeight.bold),
             ),
           ),
           ...days.map((d) => DataColumn(
-            label: Text(
-              d,
-              style: const TextStyle(color: Color(0xFF06D6A0), fontWeight: FontWeight.bold),
-            ),
-          )),
+                label: Text(
+                  d,
+                  style: const TextStyle(
+                      color: Color(0xFF06D6A0), fontWeight: FontWeight.bold),
+                ),
+              )),
         ],
         rows: checks.map((c) {
           return DataRow(

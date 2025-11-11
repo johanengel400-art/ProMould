@@ -28,7 +28,9 @@ class ConfirmationDialog {
             if (icon != null) ...[
               Icon(
                 icon,
-                color: isDangerous ? const Color(0xFFFF6B6B) : const Color(0xFF4CC9F0),
+                color: isDangerous
+                    ? const Color(0xFFFF6B6B)
+                    : const Color(0xFF4CC9F0),
                 size: 28,
               ),
               const SizedBox(width: 12),
@@ -63,8 +65,10 @@ class ConfirmationDialog {
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: confirmColor ?? 
-                (isDangerous ? const Color(0xFFFF6B6B) : const Color(0xFF4CC9F0)),
+              backgroundColor: confirmColor ??
+                  (isDangerous
+                      ? const Color(0xFFFF6B6B)
+                      : const Color(0xFF4CC9F0)),
               foregroundColor: Colors.white,
             ),
             child: Text(confirmText),
@@ -85,8 +89,8 @@ class ConfirmationDialog {
     return await show(
       context: context,
       title: 'Delete $itemName?',
-      message: additionalMessage ?? 
-        'Are you sure you want to delete this $itemName? This action cannot be undone.',
+      message: additionalMessage ??
+          'Are you sure you want to delete this $itemName? This action cannot be undone.',
       confirmText: 'Delete',
       cancelText: 'Cancel',
       icon: Icons.delete_outline,
@@ -101,7 +105,8 @@ class ConfirmationDialog {
     return await show(
       context: context,
       title: 'Discard Changes?',
-      message: 'You have unsaved changes. Are you sure you want to discard them?',
+      message:
+          'You have unsaved changes. Are you sure you want to discard them?',
       confirmText: 'Discard',
       cancelText: 'Keep Editing',
       icon: Icons.warning_amber_outlined,
@@ -132,7 +137,8 @@ class ConfirmationDialog {
     return await show(
       context: context,
       title: 'Stop Job?',
-      message: 'Are you sure you want to stop "$jobName"? Progress will be saved.',
+      message:
+          'Are you sure you want to stop "$jobName"? Progress will be saved.',
       confirmText: 'Stop Job',
       cancelText: 'Cancel',
       icon: Icons.stop_circle_outlined,
@@ -148,7 +154,8 @@ class ConfirmationDialog {
     return await show(
       context: context,
       title: 'Report Breakdown?',
-      message: 'Mark "$machineName" as broken down? This will stop all running jobs.',
+      message:
+          'Mark "$machineName" as broken down? This will stop all running jobs.',
       confirmText: 'Report Breakdown',
       cancelText: 'Cancel',
       icon: Icons.build_circle_outlined,
@@ -164,7 +171,8 @@ class ConfirmationDialog {
     return await show(
       context: context,
       title: 'Place Quality Hold?',
-      message: 'Place a quality hold for: $reason\n\nThis will stop production until resolved.',
+      message:
+          'Place a quality hold for: $reason\n\nThis will stop production until resolved.',
       confirmText: 'Place Hold',
       cancelText: 'Cancel',
       icon: Icons.block,
@@ -181,7 +189,8 @@ class ConfirmationDialog {
     return await show(
       context: context,
       title: 'Start Mould Change?',
-      message: 'Start mould change on "$machineName" to "$newMould"?\n\nThis will stop current production.',
+      message:
+          'Start mould change on "$machineName" to "$newMould"?\n\nThis will stop current production.',
       confirmText: 'Start Change',
       cancelText: 'Cancel',
       icon: Icons.swap_horiz,
@@ -197,7 +206,8 @@ class ConfirmationDialog {
     return await show(
       context: context,
       title: 'Reset $dataType?',
-      message: 'This will permanently delete all $dataType data. This action cannot be undone!',
+      message:
+          'This will permanently delete all $dataType data. This action cannot be undone!',
       confirmText: 'Reset',
       cancelText: 'Cancel',
       icon: Icons.warning_amber_rounded,
