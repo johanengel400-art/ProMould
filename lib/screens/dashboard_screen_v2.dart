@@ -528,7 +528,8 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
     final scrapColor = scrapData['color'] as Color;
 
     // Determine actual machine status based on job
-    final actualStatus = job != null ? 'Running' : (m['status'] as String? ?? 'Idle');
+    final actualStatus =
+        job != null ? 'Running' : (m['status'] as String? ?? 'Idle');
     final statusColor = _getStatusColor(actualStatus);
 
     return GestureDetector(
@@ -686,8 +687,8 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
                               color: const Color(0xFFFF6B6B).withOpacity(0.2),
                               borderRadius: BorderRadius.circular(4),
                               border: Border.all(
-                                  color: const Color(0xFFFF6B6B)
-                                      .withOpacity(0.5)),
+                                  color:
+                                      const Color(0xFFFF6B6B).withOpacity(0.5)),
                             ),
                             child: Text(
                               '+$overrun',
@@ -724,8 +725,8 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
                   // Scrap Rate (only show if job is running)
                   if (job != null && scrapRate > 0)
                     Container(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 6),
                       decoration: BoxDecoration(
                         color: scrapColor.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(8),
