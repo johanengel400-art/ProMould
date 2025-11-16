@@ -47,10 +47,10 @@ dependencies:
   camera: ^0.11.0+2
   
   # Advanced image processing
-  opencv_dart: ^1.0.4
+  # opencv_dart: ^1.0.4  # Optional - uncomment if needed
   
   # ML and AI
-  tflite_flutter: ^0.10.4
+  # tflite_flutter: ^0.10.4  # Optional - uncomment if needed
   
   # Cloud services (optional fallback)
   http: ^1.2.0
@@ -59,7 +59,7 @@ dependencies:
   sqflite: ^2.3.3+1
   
   # Async processing
-  isolate: ^2.1.2
+  isolate: ^2.1.1
 
 dev_dependencies:
   flutter_test:
