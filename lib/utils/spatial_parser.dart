@@ -324,7 +324,8 @@ class SpatialParser {
   }
 
   /// Detect form sections based on layout
-  static Map<String, BoundingRect> detectFormSections(RecognizedText recognizedText) {
+  static Map<String, BoundingRect> detectFormSections(
+      RecognizedText recognizedText) {
     final sections = <String, Rect>{};
 
     // Analyze layout to detect sections
