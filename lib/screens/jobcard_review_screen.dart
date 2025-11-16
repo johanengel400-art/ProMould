@@ -262,8 +262,8 @@ class _JobcardReviewScreenState extends State<JobcardReviewScreen> {
                   widget.jobcardData.overallConfidence >= 0.6
                       ? Icons.check_circle
                       : Icons.warning,
-                  color: _getConfidenceColor(
-                      widget.jobcardData.overallConfidence),
+                  color:
+                      _getConfidenceColor(widget.jobcardData.overallConfidence),
                 ),
                 const SizedBox(width: 12),
                 Expanded(

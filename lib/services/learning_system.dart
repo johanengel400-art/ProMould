@@ -182,7 +182,8 @@ class LearningSystem {
 
     // Compare cycle time
     if (a.cycleTimeSeconds.value != null && b.cycleTimeSeconds.value != null) {
-      final diff = (a.cycleTimeSeconds.value! - b.cycleTimeSeconds.value!).abs();
+      final diff =
+          (a.cycleTimeSeconds.value! - b.cycleTimeSeconds.value!).abs();
       if (diff < 5) matches++; // Within 5 seconds
       total++;
     }
@@ -221,7 +222,8 @@ class LearningSystem {
         confidenceCount > 0 ? totalConfidence / confidenceCount : 0.0;
 
     // Calculate correction rate
-    final correctionRate = scans.isNotEmpty ? corrections.length / scans.length : 0.0;
+    final correctionRate =
+        scans.isNotEmpty ? corrections.length / scans.length : 0.0;
 
     // Most corrected fields
     final fieldCorrections = <String, int>{};
@@ -278,9 +280,12 @@ class LearningSystem {
   }
 
   int _getWeekNumber(DateTime date) {
-    final dayOfYear = int.parse(date.difference(
-      DateTime(date.year, 1, 1),
-    ).inDays.toString());
+    final dayOfYear = int.parse(date
+        .difference(
+          DateTime(date.year, 1, 1),
+        )
+        .inDays
+        .toString());
     return ((dayOfYear - date.weekday + 10) / 7).floor();
   }
 

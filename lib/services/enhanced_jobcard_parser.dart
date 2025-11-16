@@ -30,7 +30,8 @@ class EnhancedJobcardParser {
       onProgress?.call('Preprocessing image...');
 
       // Step 1: Advanced preprocessing
-      final preprocessResult = await AdvancedPreprocessing.fullPipeline(imagePath);
+      final preprocessResult =
+          await AdvancedPreprocessing.fullPipeline(imagePath);
 
       onProgress?.call('Running OCR...');
 
@@ -59,7 +60,8 @@ class EnhancedJobcardParser {
       onProgress?.call('Extracting data...');
 
       // Step 4: Barcode scanning
-      final inputImage = InputImage.fromFilePath(preprocessResult.processedPath);
+      final inputImage =
+          InputImage.fromFilePath(preprocessResult.processedPath);
       final barcodes = await _barcodeScanner.processImage(inputImage);
 
       // Step 5: Extract data using spatial parsing
@@ -122,10 +124,11 @@ class EnhancedJobcardParser {
 
     // Use spatial parsing for better accuracy
     final worksOrderNo = _extractWithSpatial(
-      recognizedText,
-      ['works order', 'order no', 'wo'],
-      template?.fieldPositions['worksOrderNo'],
-    ) ?? ConfidenceValue(value: barcodeValue, confidence: barcodeConfidence);
+          recognizedText,
+          ['works order', 'order no', 'wo'],
+          template?.fieldPositions['worksOrderNo'],
+        ) ??
+        ConfidenceValue(value: barcodeValue, confidence: barcodeConfidence);
 
     final fgCode = _extractWithSpatial(
       recognizedText,
@@ -197,7 +200,8 @@ class EnhancedJobcardParser {
 
     return JobcardData(
       worksOrderNo: worksOrderNo,
-      barcode: ConfidenceValue(value: barcodeValue, confidence: barcodeConfidence),
+      barcode:
+          ConfidenceValue(value: barcodeValue, confidence: barcodeConfidence),
       fgCode: fgCode,
       dateStarted: dateStarted,
       quantityToManufacture: quantityToManufacture,
@@ -328,7 +332,8 @@ class EnhancedJobcardParser {
       final isoDate =
           '$year-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
 
-      return ConfidenceValue(value: isoDate, confidence: stringValue.confidence);
+      return ConfidenceValue(
+          value: isoDate, confidence: stringValue.confidence);
     }
 
     return ConfidenceValue(value: null, confidence: 0.0);

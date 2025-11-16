@@ -310,7 +310,9 @@ class JobcardParserService {
     if (tableStartIndex == -1) return materials;
 
     // Parse table rows (simplified - assumes space-separated columns)
-    for (int i = tableStartIndex; i < lines.length && i < tableStartIndex + 10; i++) {
+    for (int i = tableStartIndex;
+        i < lines.length && i < tableStartIndex + 10;
+        i++) {
       final line = lines[i].trim();
       if (line.isEmpty) continue;
 

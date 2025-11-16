@@ -78,8 +78,10 @@ class TemplateManager {
     }
 
     // Check layout similarity (number of blocks, lines)
-    final blockCountDiff = (recognizedText.blocks.length - template.blockCount).abs();
-    final blockSimilarity = 1.0 - (blockCountDiff / template.blockCount).clamp(0.0, 1.0);
+    final blockCountDiff =
+        (recognizedText.blocks.length - template.blockCount).abs();
+    final blockSimilarity =
+        1.0 - (blockCountDiff / template.blockCount).clamp(0.0, 1.0);
     score += blockSimilarity;
     checks++;
 
@@ -131,10 +133,14 @@ class TemplateManager {
       for (final line in block.lines) {
         if (line.text.contains(searchText)) {
           return FieldPosition(
-            x: line.boundingBox.left / recognizedText.blocks.first.boundingBox.width,
-            y: line.boundingBox.top / recognizedText.blocks.last.boundingBox.bottom,
-            width: line.boundingBox.width / recognizedText.blocks.first.boundingBox.width,
-            height: line.boundingBox.height / recognizedText.blocks.last.boundingBox.bottom,
+            x: line.boundingBox.left /
+                recognizedText.blocks.first.boundingBox.width,
+            y: line.boundingBox.top /
+                recognizedText.blocks.last.boundingBox.bottom,
+            width: line.boundingBox.width /
+                recognizedText.blocks.first.boundingBox.width,
+            height: line.boundingBox.height /
+                recognizedText.blocks.last.boundingBox.bottom,
           );
         }
       }
@@ -153,10 +159,14 @@ class TemplateManager {
       for (final line in block.lines) {
         if (line.text.toLowerCase().contains(fieldName.toLowerCase())) {
           return FieldPosition(
-            x: line.boundingBox.left / recognizedText.blocks.first.boundingBox.width,
-            y: line.boundingBox.top / recognizedText.blocks.last.boundingBox.bottom,
-            width: line.boundingBox.width / recognizedText.blocks.first.boundingBox.width,
-            height: line.boundingBox.height / recognizedText.blocks.last.boundingBox.bottom,
+            x: line.boundingBox.left /
+                recognizedText.blocks.first.boundingBox.width,
+            y: line.boundingBox.top /
+                recognizedText.blocks.last.boundingBox.bottom,
+            width: line.boundingBox.width /
+                recognizedText.blocks.first.boundingBox.width,
+            height: line.boundingBox.height /
+                recognizedText.blocks.last.boundingBox.bottom,
           );
         }
       }
@@ -221,7 +231,8 @@ class TemplateManager {
           x: oldPosition.x * weight + newPosition.x * (1 - weight),
           y: oldPosition.y * weight + newPosition.y * (1 - weight),
           width: oldPosition.width * weight + newPosition.width * (1 - weight),
-          height: oldPosition.height * weight + newPosition.height * (1 - weight),
+          height:
+              oldPosition.height * weight + newPosition.height * (1 - weight),
         );
       } else {
         mergedPositions[fieldName] = oldPosition;

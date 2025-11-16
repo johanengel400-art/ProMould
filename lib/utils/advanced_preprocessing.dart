@@ -354,13 +354,13 @@ class AdvancedPreprocessing {
 
             // Spatial weight
             final spatialDist = math.sqrt(kx * kx + ky * ky);
-            final spatialWeight =
-                math.exp(-(spatialDist * spatialDist) / (2 * sigmaSpace * sigmaSpace));
+            final spatialWeight = math.exp(
+                -(spatialDist * spatialDist) / (2 * sigmaSpace * sigmaSpace));
 
             // Color weight
             final colorDist = _colorDistance(centerPixel, neighborPixel);
-            final colorWeight =
-                math.exp(-(colorDist * colorDist) / (2 * sigmaColor * sigmaColor));
+            final colorWeight = math
+                .exp(-(colorDist * colorDist) / (2 * sigmaColor * sigmaColor));
 
             final weight = spatialWeight * colorWeight;
 
@@ -464,9 +464,15 @@ class AdvancedPreprocessing {
         final origPixel = original.getPixel(x, y);
         final blurPixel = blurred.getPixel(x, y);
 
-        final r = (origPixel.r + amount * (origPixel.r - blurPixel.r)).clamp(0, 255).toInt();
-        final g = (origPixel.g + amount * (origPixel.g - blurPixel.g)).clamp(0, 255).toInt();
-        final b = (origPixel.b + amount * (origPixel.b - blurPixel.b)).clamp(0, 255).toInt();
+        final r = (origPixel.r + amount * (origPixel.r - blurPixel.r))
+            .clamp(0, 255)
+            .toInt();
+        final g = (origPixel.g + amount * (origPixel.g - blurPixel.g))
+            .clamp(0, 255)
+            .toInt();
+        final b = (origPixel.b + amount * (origPixel.b - blurPixel.b))
+            .clamp(0, 255)
+            .toInt();
 
         output.setPixel(x, y, img.ColorRgb8(r, g, b));
       }

@@ -4,7 +4,8 @@ import 'dart:math' as math;
 /// Spatial context parser using bounding box analysis
 class SpatialParser {
   /// Parse text using spatial relationships
-  static Map<String, TextElement> buildSpatialIndex(RecognizedText recognizedText) {
+  static Map<String, TextElement> buildSpatialIndex(
+      RecognizedText recognizedText) {
     final index = <String, TextElement>{};
 
     for (final block in recognizedText.blocks) {
@@ -124,8 +125,7 @@ class SpatialParser {
         // Extract table rows
         if (inTable) {
           // Stop if empty line or new section
-          if (line.text.trim().isEmpty ||
-              _isNewSection(line.text)) {
+          if (line.text.trim().isEmpty || _isNewSection(line.text)) {
             break;
           }
 
@@ -244,7 +244,8 @@ class SpatialParser {
     final sortedElements = List<TextElement>.from(elements);
 
     // Sort by Y position
-    sortedElements.sort((a, b) => a.boundingBox.top.compareTo(b.boundingBox.top));
+    sortedElements
+        .sort((a, b) => a.boundingBox.top.compareTo(b.boundingBox.top));
 
     List<TextElement> currentRow = [];
     double? currentY;
@@ -280,7 +281,8 @@ class SpatialParser {
     final sortedElements = List<TextElement>.from(elements);
 
     // Sort by X position
-    sortedElements.sort((a, b) => a.boundingBox.left.compareTo(b.boundingBox.left));
+    sortedElements
+        .sort((a, b) => a.boundingBox.left.compareTo(b.boundingBox.left));
 
     List<TextElement> currentColumn = [];
     double? currentX;
@@ -332,7 +334,8 @@ class SpatialParser {
     // Header section (top 20%)
     final firstBlock = blocks.first;
     final lastBlock = blocks.last;
-    final totalHeight = lastBlock.boundingBox.bottom - firstBlock.boundingBox.top;
+    final totalHeight =
+        lastBlock.boundingBox.bottom - firstBlock.boundingBox.top;
 
     sections['header'] = Rect.fromLTWH(
       firstBlock.boundingBox.left.toDouble(),
