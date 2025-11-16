@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 import '../services/sync_service.dart';
+import 'jobcard_capture_screen.dart';
 
 class ManageJobsScreen extends StatefulWidget {
   final int level;
@@ -579,11 +580,36 @@ class _ManageJobsScreenState extends State<ManageJobsScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _add,
-        backgroundColor: const Color(0xFF4CC9F0),
-        icon: const Icon(Icons.add),
-        label: const Text('Add Job'),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            heroTag: 'scan_jobcard',
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      JobcardCaptureScreen(level: widget.level),
+                ),
+              );
+              if (result == true) {
+                setState(() {});
+              }
+            },
+            backgroundColor: const Color(0xFF80ED99),
+            child: const Icon(Icons.document_scanner, color: Colors.black),
+          ),
+          const SizedBox(height: 12),
+          FloatingActionButton.extended(
+            heroTag: 'add_job',
+            onPressed: _add,
+            backgroundColor: const Color(0xFF4CC9F0),
+            icon: const Icon(Icons.add),
+            label: const Text('Add Job'),
+          ),
+        ],
       ),
     );
   }
