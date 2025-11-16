@@ -385,7 +385,7 @@ class BoundingRect {
   final double width;
   final double height;
 
-  BoundingBoundingRect.fromLTWH(this.left, this.top, this.width, this.height);
+  BoundingRect.fromLTWH(this.left, this.top, this.width, this.height);
 
   double get right => left + width;
   double get bottom => top + height;
