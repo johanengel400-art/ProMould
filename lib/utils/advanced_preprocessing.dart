@@ -160,18 +160,18 @@ class AdvancedPreprocessing {
 
         // Bilinear interpolation of corner positions
         final srcX = _interpolate(
-          corners[0].x,
-          corners[1].x,
-          corners[3].x,
-          corners[2].x,
+          corners[0].x.toDouble(),
+          corners[1].x.toDouble(),
+          corners[3].x.toDouble(),
+          corners[2].x.toDouble(),
           u,
           v,
         );
         final srcY = _interpolate(
-          corners[0].y,
-          corners[1].y,
-          corners[3].y,
-          corners[2].y,
+          corners[0].y.toDouble(),
+          corners[1].y.toDouble(),
+          corners[3].y.toDouble(),
+          corners[2].y.toDouble(),
           u,
           v,
         );

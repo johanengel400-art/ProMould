@@ -1,7 +1,5 @@
-import 'dart:convert';
 import 'package:hive/hive.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
-import '../utils/spatial_parser.dart';
 
 /// Template detection and learning system for jobcards
 class TemplateManager {

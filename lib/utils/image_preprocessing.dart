@@ -25,9 +25,6 @@ class ImagePreprocessing {
       // Increase contrast
       image = img.contrast(image, contrast: 120);
 
-      // Adjust brightness
-      image = img.brightness(image, brightness: 10);
-
       // Sharpen
       image = img.adjustColor(image, saturation: 0);
 
