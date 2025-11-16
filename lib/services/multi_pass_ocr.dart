@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:http/http.dart' as http;
 import '../utils/jobcard_models.dart';
@@ -245,6 +246,3 @@ class OCRResult {
     this.alternativeResults,
   });
 }
-
-// Import for File
-import 'dart:io';
