@@ -1,3 +1,4 @@
+import 'dart:ui' show Rect;
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'dart:math' as math;
 
@@ -326,7 +327,7 @@ class SpatialParser {
   /// Detect form sections based on layout
   static Map<String, BoundingRect> detectFormSections(
       RecognizedText recognizedText) {
-    final sections = <String, Rect>{};
+    final sections = <String, BoundingRect>{};
 
     // Analyze layout to detect sections
     final blocks = recognizedText.blocks;
