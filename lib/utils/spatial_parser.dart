@@ -312,7 +312,7 @@ class SpatialParser {
   /// Find elements within a bounding box region
   static List<TextElement> findElementsInRegion(
     List<TextElement> elements,
-    Rect region,
+    BoundingRect region,
   ) {
     return elements.where((element) {
       final box = element.boundingBox;
@@ -324,7 +324,7 @@ class SpatialParser {
   }
 
   /// Detect form sections based on layout
-  static Map<String, Rect> detectFormSections(RecognizedText recognizedText) {
+  static Map<String, BoundingRect> detectFormSections(RecognizedText recognizedText) {
     final sections = <String, Rect>{};
 
     // Analyze layout to detect sections
@@ -337,7 +337,7 @@ class SpatialParser {
     final totalHeight =
         lastBlock.boundingBox.bottom - firstBlock.boundingBox.top;
 
-    sections['header'] = Rect.fromLTWH(
+    sections['header'] = BoundingRect.fromLTWH(
       firstBlock.boundingBox.left.toDouble(),
       firstBlock.boundingBox.top.toDouble(),
       firstBlock.boundingBox.width.toDouble(),
@@ -345,7 +345,7 @@ class SpatialParser {
     );
 
     // Body section (middle 60%)
-    sections['body'] = Rect.fromLTWH(
+    sections['body'] = BoundingRect.fromLTWH(
       firstBlock.boundingBox.left.toDouble(),
       firstBlock.boundingBox.top + totalHeight * 0.2,
       firstBlock.boundingBox.width.toDouble(),
@@ -353,7 +353,7 @@ class SpatialParser {
     );
 
     // Footer section (bottom 20%)
-    sections['footer'] = Rect.fromLTWH(
+    sections['footer'] = BoundingRect.fromLTWH(
       firstBlock.boundingBox.left.toDouble(),
       firstBlock.boundingBox.top + totalHeight * 0.8,
       firstBlock.boundingBox.width.toDouble(),
@@ -379,13 +379,13 @@ class TextElement {
   String toString() => 'TextElement($text, confidence: $confidence)';
 }
 
-class Rect {
+class BoundingRect {
   final double left;
   final double top;
   final double width;
   final double height;
 
-  Rect.fromLTWH(this.left, this.top, this.width, this.height);
+  BoundingBoundingRect.fromLTWH(this.left, this.top, this.width, this.height);
 
   double get right => left + width;
   double get bottom => top + height;

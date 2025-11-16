@@ -125,7 +125,7 @@ class AdvancedPreprocessing {
 
       if (luminance < 128) {
         // Found edge
-        return Point(x, y);
+        return Point(x.toDouble(), y.toDouble());
       }
 
       x += dirX * 2;
@@ -137,7 +137,7 @@ class AdvancedPreprocessing {
       }
     }
 
-    return Point(startX, startY);
+    return Point(startX.toDouble(), startY.toDouble());
   }
 
   /// Apply perspective transform to correct skew
