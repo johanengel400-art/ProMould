@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:image/image.dart' as img;
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 import '../services/jobcard_parser_service.dart';
 import 'jobcard_review_screen.dart';
 
@@ -45,6 +48,8 @@ class _JobcardCaptureScreenState extends State<JobcardCaptureScreen> {
       final XFile? photo = await _picker.pickImage(
         source: ImageSource.camera,
         imageQuality: 85,
+        maxWidth: 2048,
+        maxHeight: 2048,
         preferredCameraDevice: CameraDevice.rear,
       );
 
@@ -96,6 +101,8 @@ class _JobcardCaptureScreenState extends State<JobcardCaptureScreen> {
       final XFile? image = await _picker.pickImage(
         source: ImageSource.gallery,
         imageQuality: 85,
+        maxWidth: 2048,
+        maxHeight: 2048,
       );
 
       if (image != null) {
@@ -119,6 +126,49 @@ class _JobcardCaptureScreenState extends State<JobcardCaptureScreen> {
     }
   }
 
+  Future<String> _resizeImageIfNeeded(String imagePath) async {
+    try {
+      final file = File(imagePath);
+      final bytes = await file.readAsBytes();
+      final image = img.decodeImage(bytes);
+      
+      if (image == null) {
+        print('Failed to decode image');
+        return imagePath;
+      }
+
+      print('Original image size: ${image.width}x${image.height}');
+
+      // Resize if larger than 2048px on longest side (optimal for OCR)
+      if (image.width > 2048 || image.height > 2048) {
+        final resized = img.copyResize(
+          image,
+          width: image.width > image.height ? 2048 : null,
+          height: image.height > image.width ? 2048 : null,
+        );
+        
+        print('Resized to: ${resized.width}x${resized.height}');
+
+        // Save resized image
+        final tempDir = await getTemporaryDirectory();
+        final resizedPath = path.join(
+          tempDir.path,
+          'resized_${DateTime.now().millisecondsSinceEpoch}.jpg',
+        );
+        
+        final resizedFile = File(resizedPath);
+        await resizedFile.writeAsBytes(img.encodeJpg(resized, quality: 90));
+        
+        return resizedPath;
+      }
+
+      return imagePath;
+    } catch (e) {
+      print('Error resizing image: $e');
+      return imagePath; // Return original on error
+    }
+  }
+
   Future<void> _processImage(String imagePath) async {
     setState(() {
       _isProcessing = true;
@@ -127,8 +177,8 @@ class _JobcardCaptureScreenState extends State<JobcardCaptureScreen> {
     try {
       print('Processing image: $imagePath');
 
-      // Use original image directly - skip preprocessing completely
-      final processedPath = imagePath;
+      // Resize image if too large
+      final processedPath = await _resizeImageIfNeeded(imagePath);
 
       print('Starting OCR...');
 
