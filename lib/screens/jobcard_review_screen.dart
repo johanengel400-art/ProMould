@@ -244,7 +244,8 @@ class _JobcardReviewScreenState extends State<JobcardReviewScreen> {
             icon: const Icon(Icons.text_fields),
             tooltip: 'View Raw OCR Text',
             onPressed: () {
-              final rawText = widget.jobcardData.rawOcrText.value ?? 'No text available';
+              final rawText =
+                  widget.jobcardData.rawOcrText.value ?? 'No text available';
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
