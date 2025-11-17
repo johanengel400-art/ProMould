@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 import '../utils/jobcard_models.dart';
@@ -243,19 +244,32 @@ class _JobcardReviewScreenState extends State<JobcardReviewScreen> {
             icon: const Icon(Icons.text_fields),
             tooltip: 'View Raw OCR Text',
             onPressed: () {
+              final rawText = widget.jobcardData.rawOcrText.value ?? 'No text available';
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
                   title: const Text('Raw OCR Text'),
                   content: SingleChildScrollView(
-                    child: Text(
-                      widget.jobcardData.rawOcrText.value ??
-                          'No text available',
+                    child: SelectableText(
+                      rawText,
                       style: const TextStyle(
                           fontSize: 12, fontFamily: 'monospace'),
                     ),
                   ),
                   actions: [
+                    TextButton(
+                      onPressed: () {
+                        Clipboard.setData(ClipboardData(text: rawText));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('OCR text copied to clipboard'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Copy'),
+                    ),
                     TextButton(
                       onPressed: () => Navigator.pop(context),
                       child: const Text('Close'),
