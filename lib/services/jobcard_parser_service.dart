@@ -9,8 +9,10 @@ class JobcardParserService {
   /// Parse a jobcard image and extract structured data
   Future<JobcardData?> parseJobcard(String imagePath) async {
     try {
+      print('JobcardParser: Creating input image from $imagePath');
       final inputImage = InputImage.fromFilePath(imagePath);
 
+      print('JobcardParser: Running OCR and barcode scanning...');
       // Run OCR and barcode scanning in parallel
       final results = await Future.wait([
         _textRecognizer.processImage(inputImage),
@@ -20,19 +22,26 @@ class JobcardParserService {
       final recognizedText = results[0] as RecognizedText;
       final barcodes = results[1] as List<Barcode>;
 
-      // Check OCR confidence
-      if (recognizedText.text.isEmpty) {
+      print('JobcardParser: OCR text length: ${recognizedText.text.length}');
+      print('JobcardParser: Barcodes found: ${barcodes.length}');
+      
+      // Return partial data even if text is minimal
+      if (recognizedText.text.isEmpty && barcodes.isEmpty) {
+        print('JobcardParser: No text or barcodes found');
         return null;
       }
 
       // Extract data from OCR text
+      print('JobcardParser: Extracting data...');
       final jobcardData = _extractJobcardData(
         recognizedText,
         barcodes,
       );
 
+      print('JobcardParser: Extraction complete');
       return jobcardData;
     } catch (e) {
+      print('JobcardParser ERROR: $e');
       return null;
     }
   }
@@ -45,12 +54,17 @@ class JobcardParserService {
     final lines = fullText.split('\n');
     final verificationNeeded = <VerificationIssue>[];
 
+    print('JobcardParser: Full text (${fullText.length} chars):');
+    print(fullText.substring(0, fullText.length > 200 ? 200 : fullText.length));
+    print('JobcardParser: Lines: ${lines.length}');
+
     // Extract barcode
     String? barcodeValue;
     double barcodeConfidence = 0.0;
     if (barcodes.isNotEmpty) {
       barcodeValue = barcodes.first.displayValue;
       barcodeConfidence = 1.0;
+      print('JobcardParser: Barcode found: $barcodeValue');
     }
 
     // Extract works order number (from barcode or text)

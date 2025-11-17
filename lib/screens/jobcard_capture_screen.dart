@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import '../services/jobcard_parser_service.dart';
 import '../utils/image_preprocessing.dart';
 import 'jobcard_review_screen.dart';
@@ -125,35 +126,74 @@ class _JobcardCaptureScreenState extends State<JobcardCaptureScreen> {
     });
 
     try {
-      // Use original image path directly for now (skip preprocessing to avoid errors)
-      String processedPath = imagePath;
+      print('Processing image: $imagePath');
+      
+      // Use original image directly - skip preprocessing completely
+      final processedPath = imagePath;
 
-      // Try basic preprocessing if available
+      print('Starting OCR...');
+      
+      // Try to get raw OCR text first for debugging
+      String? rawOcrText;
       try {
-        processedPath = await ImagePreprocessing.preprocessForOcr(imagePath);
+        final inputImage = InputImage.fromFilePath(processedPath);
+        final textRecognizer = TextRecognizer();
+        final recognizedText = await textRecognizer.processImage(inputImage);
+        rawOcrText = recognizedText.text;
+        textRecognizer.close();
+        print('Raw OCR text length: ${rawOcrText.length}');
       } catch (e) {
-        print('Preprocessing failed, using original image: $e');
-        processedPath = imagePath;
+        print('Failed to get raw OCR: $e');
       }
-
+      
       // Parse jobcard
       final jobcardData = await _parserService.parseJobcard(processedPath);
-
-      // Clean up temp files
-      try {
-        await ImagePreprocessing.cleanupTempImages();
-      } catch (e) {
-        print('Cleanup failed: $e');
-      }
+      print('OCR completed. Result: ${jobcardData != null ? "Success" : "Failed"}');
 
       if (jobcardData == null) {
+        print('No data extracted from image');
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                  'Failed to extract data. Please try again with better lighting.'),
-              backgroundColor: Colors.red,
-              duration: Duration(seconds: 4),
+          // Show dialog with raw text if available
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('No Data Extracted'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Could not extract structured data.\n\nTips:\n• Ensure text is clear and in focus\n• Capture entire document\n• Try again with different angle\n• Ensure good lighting',
+                    ),
+                    if (rawOcrText != null && rawOcrText.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Raw text detected:',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[800],
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          rawOcrText.substring(0, rawOcrText.length > 300 ? 300 : rawOcrText.length),
+                          style: const TextStyle(fontSize: 10, fontFamily: 'monospace'),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'),
+                ),
+              ],
             ),
           );
         }
@@ -162,6 +202,11 @@ class _JobcardCaptureScreenState extends State<JobcardCaptureScreen> {
         });
         return;
       }
+      
+      print('Data extracted successfully');
+      print('Works Order: ${jobcardData.worksOrderNo.value ?? "not found"}');
+      print('FG Code: ${jobcardData.fgCode.value ?? "not found"}');
+      print('Overall confidence: ${jobcardData.overallConfidence}');
 
       // Navigate to review screen
       if (mounted) {
