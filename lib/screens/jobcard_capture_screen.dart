@@ -4,7 +4,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import '../services/jobcard_parser_service.dart';
-import '../utils/image_preprocessing.dart';
 import 'jobcard_review_screen.dart';
 
 class JobcardCaptureScreen extends StatefulWidget {
