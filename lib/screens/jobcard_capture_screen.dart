@@ -59,7 +59,8 @@ class _JobcardCaptureScreenState extends State<JobcardCaptureScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error opening camera: ${e.toString().substring(0, 50)}'),
+            content:
+                Text('Error opening camera: ${e.toString().substring(0, 50)}'),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 4),
           ),
@@ -71,13 +72,13 @@ class _JobcardCaptureScreenState extends State<JobcardCaptureScreen> {
   Future<void> _pickFromGallery() async {
     // Request storage permission (handle different Android versions)
     PermissionStatus status;
-    if (await Permission.photos.isRestricted || 
+    if (await Permission.photos.isRestricted ||
         await Permission.photos.isPermanentlyDenied) {
       status = await Permission.storage.request();
     } else {
       status = await Permission.photos.request();
     }
-    
+
     if (!status.isGranted) {
       // Try alternative permission
       status = await Permission.storage.request();
@@ -108,7 +109,8 @@ class _JobcardCaptureScreenState extends State<JobcardCaptureScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error opening gallery: ${e.toString().substring(0, 50)}'),
+            content:
+                Text('Error opening gallery: ${e.toString().substring(0, 50)}'),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 4),
           ),
@@ -125,7 +127,7 @@ class _JobcardCaptureScreenState extends State<JobcardCaptureScreen> {
     try {
       // Use original image path directly for now (skip preprocessing to avoid errors)
       String processedPath = imagePath;
-      
+
       // Try basic preprocessing if available
       try {
         processedPath = await ImagePreprocessing.preprocessForOcr(imagePath);
@@ -148,7 +150,8 @@ class _JobcardCaptureScreenState extends State<JobcardCaptureScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Failed to extract data. Please try again with better lighting.'),
+              content: Text(
+                  'Failed to extract data. Please try again with better lighting.'),
               backgroundColor: Colors.red,
               duration: Duration(seconds: 4),
             ),
@@ -183,7 +186,8 @@ class _JobcardCaptureScreenState extends State<JobcardCaptureScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error processing image. Please try again.\nDetails: ${e.toString().substring(0, 100)}'),
+            content: Text(
+                'Error processing image. Please try again.\nDetails: ${e.toString().substring(0, 100)}'),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 5),
           ),
