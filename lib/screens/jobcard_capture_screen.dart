@@ -27,21 +27,25 @@ class _JobcardCaptureScreenState extends State<JobcardCaptureScreen> {
   }
 
   Future<void> _captureFromCamera() async {
-    // Request camera permission
-    final status = await Permission.camera.request();
-    if (!status.isGranted) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Camera permission required')),
-        );
-      }
-      return;
-    }
-
     try {
+      // Request camera permission
+      final status = await Permission.camera.request();
+      if (!status.isGranted) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Camera permission is required to scan jobcards'),
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+        return;
+      }
+
       final XFile? photo = await _picker.pickImage(
         source: ImageSource.camera,
-        imageQuality: 100,
+        imageQuality: 85,
+        preferredCameraDevice: CameraDevice.rear,
       );
 
       if (photo != null) {
@@ -51,30 +55,46 @@ class _JobcardCaptureScreenState extends State<JobcardCaptureScreen> {
         await _processImage(photo.path);
       }
     } catch (e) {
+      print('Camera error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error capturing image: $e')),
+          SnackBar(
+            content: Text('Error opening camera: ${e.toString().substring(0, 50)}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
         );
       }
     }
   }
 
   Future<void> _pickFromGallery() async {
-    // Request storage permission
-    final status = await Permission.photos.request();
+    // Request storage permission (handle different Android versions)
+    PermissionStatus status;
+    if (await Permission.photos.isRestricted || 
+        await Permission.photos.isPermanentlyDenied) {
+      status = await Permission.storage.request();
+    } else {
+      status = await Permission.photos.request();
+    }
+    
     if (!status.isGranted) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Storage permission required')),
-        );
+      // Try alternative permission
+      status = await Permission.storage.request();
+      if (!status.isGranted) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Storage permission required')),
+          );
+        }
+        return;
       }
-      return;
     }
 
     try {
       final XFile? image = await _picker.pickImage(
         source: ImageSource.gallery,
-        imageQuality: 100,
+        imageQuality: 85,
       );
 
       if (image != null) {
@@ -84,9 +104,14 @@ class _JobcardCaptureScreenState extends State<JobcardCaptureScreen> {
         await _processImage(image.path);
       }
     } catch (e) {
+      print('Gallery error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error selecting image: $e')),
+          SnackBar(
+            content: Text('Error opening gallery: ${e.toString().substring(0, 50)}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
         );
       }
     }
@@ -98,24 +123,34 @@ class _JobcardCaptureScreenState extends State<JobcardCaptureScreen> {
     });
 
     try {
-      // Step 1: Resize if needed
-      String processedPath = await ImagePreprocessing.resizeIfNeeded(imagePath);
+      // Use original image path directly for now (skip preprocessing to avoid errors)
+      String processedPath = imagePath;
+      
+      // Try basic preprocessing if available
+      try {
+        processedPath = await ImagePreprocessing.preprocessForOcr(imagePath);
+      } catch (e) {
+        print('Preprocessing failed, using original image: $e');
+        processedPath = imagePath;
+      }
 
-      // Step 2: Full preprocessing
-      processedPath = await ImagePreprocessing.fullPreprocess(processedPath);
-
-      // Step 3: Parse jobcard
+      // Parse jobcard
       final jobcardData = await _parserService.parseJobcard(processedPath);
 
       // Clean up temp files
-      await ImagePreprocessing.cleanupTempImages();
+      try {
+        await ImagePreprocessing.cleanupTempImages();
+      } catch (e) {
+        print('Cleanup failed: $e');
+      }
 
       if (jobcardData == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Failed to extract data. Please try again.'),
+              content: Text('Failed to extract data. Please try again with better lighting.'),
               backgroundColor: Colors.red,
+              duration: Duration(seconds: 4),
             ),
           );
         }
@@ -144,11 +179,13 @@ class _JobcardCaptureScreenState extends State<JobcardCaptureScreen> {
         }
       }
     } catch (e) {
+      print('Error processing image: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error processing image: $e'),
+            content: Text('Error processing image. Please try again.\nDetails: ${e.toString().substring(0, 100)}'),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
           ),
         );
       }
