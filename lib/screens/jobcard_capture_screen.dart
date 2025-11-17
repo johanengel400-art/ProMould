@@ -127,12 +127,12 @@ class _JobcardCaptureScreenState extends State<JobcardCaptureScreen> {
 
     try {
       print('Processing image: $imagePath');
-      
+
       // Use original image directly - skip preprocessing completely
       final processedPath = imagePath;
 
       print('Starting OCR...');
-      
+
       // Try to get raw OCR text first for debugging
       String? rawOcrText;
       try {
@@ -145,10 +145,11 @@ class _JobcardCaptureScreenState extends State<JobcardCaptureScreen> {
       } catch (e) {
         print('Failed to get raw OCR: $e');
       }
-      
+
       // Parse jobcard
       final jobcardData = await _parserService.parseJobcard(processedPath);
-      print('OCR completed. Result: ${jobcardData != null ? "Success" : "Failed"}');
+      print(
+          'OCR completed. Result: ${jobcardData != null ? "Success" : "Failed"}');
 
       if (jobcardData == null) {
         print('No data extracted from image');
@@ -180,8 +181,13 @@ class _JobcardCaptureScreenState extends State<JobcardCaptureScreen> {
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
-                          rawOcrText.substring(0, rawOcrText.length > 300 ? 300 : rawOcrText.length),
-                          style: const TextStyle(fontSize: 10, fontFamily: 'monospace'),
+                          rawOcrText.substring(
+                              0,
+                              rawOcrText.length > 300
+                                  ? 300
+                                  : rawOcrText.length),
+                          style: const TextStyle(
+                              fontSize: 10, fontFamily: 'monospace'),
                         ),
                       ),
                     ],
@@ -202,7 +208,7 @@ class _JobcardCaptureScreenState extends State<JobcardCaptureScreen> {
         });
         return;
       }
-      
+
       print('Data extracted successfully');
       print('Works Order: ${jobcardData.worksOrderNo.value ?? "not found"}');
       print('FG Code: ${jobcardData.fgCode.value ?? "not found"}');

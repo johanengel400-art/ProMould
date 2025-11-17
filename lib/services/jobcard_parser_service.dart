@@ -24,7 +24,7 @@ class JobcardParserService {
 
       print('JobcardParser: OCR text length: ${recognizedText.text.length}');
       print('JobcardParser: Barcodes found: ${barcodes.length}');
-      
+
       // Return partial data even if text is minimal
       if (recognizedText.text.isEmpty && barcodes.isEmpty) {
         print('JobcardParser: No text or barcodes found');
