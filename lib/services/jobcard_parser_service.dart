@@ -147,14 +147,16 @@ class JobcardParserService {
     // Look for "Works Order No" label, then check next line for value
     for (int i = 0; i < lines.length; i++) {
       final line = lines[i].trim();
-      
+
       // Check if this line contains the label
-      if (RegExp(r'works?\s*order\s*no\.?:?\s*$', caseSensitive: false).hasMatch(line)) {
+      if (RegExp(r'works?\s*order\s*no\.?:?\s*$', caseSensitive: false)
+          .hasMatch(line)) {
         // Value is on next line
         if (i + 1 < lines.length) {
           final nextLine = lines[i + 1].trim();
           // Extract alphanumeric code (e.g., JC031351)
-          final match = RegExp(r'^([A-Z]{2}\d+)', caseSensitive: false).firstMatch(nextLine);
+          final match = RegExp(r'^([A-Z]{2}\d+)', caseSensitive: false)
+              .firstMatch(nextLine);
           if (match != null) {
             final value = match.group(1)!;
             print('Found works order on next line: $value');
@@ -162,14 +164,15 @@ class JobcardParserService {
           }
         }
       }
-      
+
       // Also try same-line patterns
       final sameLinePatterns = [
-        RegExp(r'works?\s*order\s*no\.?\s*:?\s*([A-Z]{2}\d+)', caseSensitive: false),
+        RegExp(r'works?\s*order\s*no\.?\s*:?\s*([A-Z]{2}\d+)',
+            caseSensitive: false),
         RegExp(r'order\s*no\.?\s*:?\s*([A-Z]{2}\d+)', caseSensitive: false),
         RegExp(r'wo\s*:?\s*([A-Z]{2}\d+)', caseSensitive: false),
       ];
-      
+
       for (final pattern in sameLinePatterns) {
         final match = pattern.firstMatch(line);
         if (match != null && match.group(1) != null) {
@@ -182,7 +185,8 @@ class JobcardParserService {
 
     // Fallback: Look for JC followed by digits anywhere
     for (final line in lines) {
-      final match = RegExp(r'\b(JC\d{6})\b', caseSensitive: false).firstMatch(line);
+      final match =
+          RegExp(r'\b(JC\d{6})\b', caseSensitive: false).firstMatch(line);
       if (match != null) {
         final value = match.group(1)!;
         print('Found works order pattern: $value');
@@ -198,14 +202,15 @@ class JobcardParserService {
     // Look for "FG Code:" label, then check next line for value
     for (int i = 0; i < lines.length; i++) {
       final line = lines[i].trim();
-      
+
       // Check if this line contains the label
       if (RegExp(r'fg\s*code\s*:?\s*$', caseSensitive: false).hasMatch(line)) {
         // Value is on next line
         if (i + 1 < lines.length) {
           final nextLine = lines[i + 1].trim();
           // Extract code with dashes and slashes (e.g., CMP-DR-CB50/2-CBL)
-          final match = RegExp(r'^([A-Z]{2,}[-/\w]+)', caseSensitive: false).firstMatch(nextLine);
+          final match = RegExp(r'^([A-Z]{2,}[-/\w]+)', caseSensitive: false)
+              .firstMatch(nextLine);
           if (match != null) {
             final value = match.group(1)!;
             print('Found FG code on next line: $value');
@@ -213,14 +218,16 @@ class JobcardParserService {
           }
         }
       }
-      
+
       // Also try same-line patterns
       final sameLinePatterns = [
         RegExp(r'fg\s*code\s*:?\s*([A-Z]{2,}[-/\w]+)', caseSensitive: false),
-        RegExp(r'finished\s*goods?\s*code\s*:?\s*([A-Z]{2,}[-/\w]+)', caseSensitive: false),
-        RegExp(r'product\s*code\s*:?\s*([A-Z]{2,}[-/\w]+)', caseSensitive: false),
+        RegExp(r'finished\s*goods?\s*code\s*:?\s*([A-Z]{2,}[-/\w]+)',
+            caseSensitive: false),
+        RegExp(r'product\s*code\s*:?\s*([A-Z]{2,}[-/\w]+)',
+            caseSensitive: false),
       ];
-      
+
       for (final pattern in sameLinePatterns) {
         final match = pattern.firstMatch(line);
         if (match != null && match.group(1) != null) {
@@ -233,7 +240,9 @@ class JobcardParserService {
 
     // Fallback: Look for codes with pattern XXX-XX-XXXX anywhere
     for (final line in lines) {
-      final match = RegExp(r'\b([A-Z]{2,}[-/][A-Z]{2,}[-/][\w/-]+)\b', caseSensitive: false).firstMatch(line);
+      final match = RegExp(r'\b([A-Z]{2,}[-/][A-Z]{2,}[-/][\w/-]+)\b',
+              caseSensitive: false)
+          .firstMatch(line);
       if (match != null) {
         final value = match.group(1)!;
         print('Found FG code pattern: $value');
@@ -253,8 +262,9 @@ class JobcardParserService {
     // Look for "Date Started:" label, then check next line
     for (int i = 0; i < lines.length; i++) {
       final line = lines[i].trim();
-      
-      if (RegExp(r'date\s*started\s*:?\s*$', caseSensitive: false).hasMatch(line)) {
+
+      if (RegExp(r'date\s*started\s*:?\s*$', caseSensitive: false)
+          .hasMatch(line)) {
         // Value is on next line
         if (i + 1 < lines.length) {
           final nextLine = lines[i + 1].trim();
@@ -265,13 +275,14 @@ class JobcardParserService {
             var year = int.parse(match.group(3)!);
             if (year < 100) year += 2000;
 
-            final isoDate = '$year-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
+            final isoDate =
+                '$year-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
             print('Found date started on next line: $isoDate');
             return ConfidenceValue(value: isoDate, confidence: 0.9);
           }
         }
       }
-      
+
       // Also try same-line pattern
       if (RegExp(r'date\s*started\s*:?', caseSensitive: false).hasMatch(line)) {
         final match = datePattern.firstMatch(line);
@@ -281,7 +292,8 @@ class JobcardParserService {
           var year = int.parse(match.group(3)!);
           if (year < 100) year += 2000;
 
-          final isoDate = '$year-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
+          final isoDate =
+              '$year-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
           print('Found date started same line: $isoDate');
           return ConfidenceValue(value: isoDate, confidence: 0.85);
         }
@@ -298,7 +310,8 @@ class JobcardParserService {
           var year = int.parse(match.group(3)!);
           if (year < 100) year += 2000;
 
-          final isoDate = '$year-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
+          final isoDate =
+              '$year-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
           print('Found date from Opened status: $isoDate');
           return ConfidenceValue(value: isoDate, confidence: 0.7);
         }
@@ -312,8 +325,9 @@ class JobcardParserService {
     // Look for "Quantity to Manufacture:" label, then check next line
     for (int i = 0; i < lines.length; i++) {
       final line = lines[i].trim();
-      
-      if (RegExp(r'quantity\s*to\s*manufacture\s*:?\s*$', caseSensitive: false).hasMatch(line)) {
+
+      if (RegExp(r'quantity\s*to\s*manufacture\s*:?\s*$', caseSensitive: false)
+          .hasMatch(line)) {
         // Value is on next line
         if (i + 1 < lines.length) {
           final nextLine = lines[i + 1].trim();
@@ -330,7 +344,7 @@ class JobcardParserService {
         }
       }
     }
-    
+
     // Fallback to same-line patterns
     return _extractNumericField(
       lines,
@@ -347,8 +361,9 @@ class JobcardParserService {
     // Look for "Daily Output (Units):" label, then check next line
     for (int i = 0; i < lines.length; i++) {
       final line = lines[i].trim();
-      
-      if (RegExp(r'daily\s*output.*:?\s*$', caseSensitive: false).hasMatch(line)) {
+
+      if (RegExp(r'daily\s*output.*:?\s*$', caseSensitive: false)
+          .hasMatch(line)) {
         // Value is on next line
         if (i + 1 < lines.length) {
           final nextLine = lines[i + 1].trim();
@@ -365,7 +380,7 @@ class JobcardParserService {
         }
       }
     }
-    
+
     // Fallback to same-line patterns
     return _extractNumericField(
       lines,
@@ -388,7 +403,8 @@ class JobcardParserService {
       for (final pattern in patterns) {
         final match = pattern.firstMatch(line);
         if (match != null && match.group(1) != null) {
-          final valueStr = match.group(1)!.replaceAll(',', '').replaceAll(' ', '');
+          final valueStr =
+              match.group(1)!.replaceAll(',', '').replaceAll(' ', '');
           final value = int.tryParse(valueStr);
           if (value != null && value > 0 && value < 1000) {
             print('Extracted cycle time: $value from line: $line');
