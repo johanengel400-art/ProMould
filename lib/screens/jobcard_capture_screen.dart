@@ -131,7 +131,7 @@ class _JobcardCaptureScreenState extends State<JobcardCaptureScreen> {
       final file = File(imagePath);
       final bytes = await file.readAsBytes();
       final image = img.decodeImage(bytes);
-      
+
       if (image == null) {
         print('Failed to decode image');
         return imagePath;
@@ -146,7 +146,7 @@ class _JobcardCaptureScreenState extends State<JobcardCaptureScreen> {
           width: image.width > image.height ? 2048 : null,
           height: image.height > image.width ? 2048 : null,
         );
-        
+
         print('Resized to: ${resized.width}x${resized.height}');
 
         // Save resized image
@@ -155,10 +155,10 @@ class _JobcardCaptureScreenState extends State<JobcardCaptureScreen> {
           tempDir.path,
           'resized_${DateTime.now().millisecondsSinceEpoch}.jpg',
         );
-        
+
         final resizedFile = File(resizedPath);
         await resizedFile.writeAsBytes(img.encodeJpg(resized, quality: 90));
-        
+
         return resizedPath;
       }
 
