@@ -238,9 +238,34 @@ class _JobcardReviewScreenState extends State<JobcardReviewScreen> {
       appBar: AppBar(
         title: const Text('Review Jobcard Data'),
         actions: [
+          // Show raw OCR text button
+          IconButton(
+            icon: const Icon(Icons.text_fields),
+            tooltip: 'View Raw OCR Text',
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Raw OCR Text'),
+                  content: SingleChildScrollView(
+                    child: Text(
+                      widget.jobcardData.rawOcrText.value ?? 'No text available',
+                      style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Close'),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
           if (widget.jobcardData.hasLowConfidenceFields)
             Padding(
-              padding: const EdgeInsets.only(right: 16),
+              padding: const EdgeInsets.only(right: 8),
               child: Icon(
                 Icons.warning_amber,
                 color: Colors.orange,

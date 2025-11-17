@@ -140,50 +140,68 @@ class JobcardParserService {
   ) {
     // If barcode exists, use it as authoritative
     if (barcodeValue != null && barcodeValue.isNotEmpty) {
+      print('Using barcode as works order: $barcodeValue');
       return ConfidenceValue(value: barcodeValue, confidence: 1.0);
     }
 
-    // Look for "Works Order No" or similar labels
+    // Look for "Works Order No" or similar labels - more flexible patterns
     final patterns = [
-      RegExp(r'works?\s*order\s*no\.?\s*:?\s*(\w+)', caseSensitive: false),
-      RegExp(r'order\s*no\.?\s*:?\s*(\w+)', caseSensitive: false),
-      RegExp(r'wo\s*:?\s*(\w+)', caseSensitive: false),
+      RegExp(r'works?\s*order\s*no\.?\s*:?\s*(\S+)', caseSensitive: false),
+      RegExp(r'order\s*no\.?\s*:?\s*(\S+)', caseSensitive: false),
+      RegExp(r'wo\s*:?\s*(\S+)', caseSensitive: false),
+      RegExp(r'work\s*order\s*:?\s*(\S+)', caseSensitive: false),
+      // Try to find any alphanumeric code that looks like a work order
+      RegExp(r'(WO\d+)', caseSensitive: false),
+      RegExp(r'([A-Z]{2,}\d{3,})', caseSensitive: false),
     ];
 
     for (final line in lines) {
+      print('Checking line for works order: $line');
       for (final pattern in patterns) {
         final match = pattern.firstMatch(line);
         if (match != null && match.group(1) != null) {
+          final value = match.group(1)!.trim();
+          print('Found works order: $value');
           return ConfidenceValue(
-            value: match.group(1)!.trim(),
+            value: value,
             confidence: 0.8,
           );
         }
       }
     }
 
+    print('No works order found');
     return ConfidenceValue(value: null, confidence: 0.0);
   }
 
   ConfidenceValue<String> _extractFgCode(List<String> lines) {
     final patterns = [
-      RegExp(r'fg\s*code\s*:?\s*(\w+)', caseSensitive: false),
-      RegExp(r'finished\s*goods?\s*code\s*:?\s*(\w+)', caseSensitive: false),
-      RegExp(r'product\s*code\s*:?\s*(\w+)', caseSensitive: false),
+      RegExp(r'fg\s*code\s*:?\s*(\S+)', caseSensitive: false),
+      RegExp(r'finished\s*goods?\s*code\s*:?\s*(\S+)', caseSensitive: false),
+      RegExp(r'product\s*code\s*:?\s*(\S+)', caseSensitive: false),
+      RegExp(r'part\s*no\.?\s*:?\s*(\S+)', caseSensitive: false),
+      RegExp(r'item\s*code\s*:?\s*(\S+)', caseSensitive: false),
+      // Try to find codes with dashes or specific patterns
+      RegExp(r'(FG-[\w-]+)', caseSensitive: false),
+      RegExp(r'([A-Z]{2,}-[\w-]+)', caseSensitive: false),
     ];
 
     for (final line in lines) {
+      print('Checking line for FG code: $line');
       for (final pattern in patterns) {
         final match = pattern.firstMatch(line);
         if (match != null && match.group(1) != null) {
+          final value = match.group(1)!.trim();
+          print('Found FG code: $value');
           return ConfidenceValue(
-            value: match.group(1)!.trim(),
+            value: value,
             confidence: 0.8,
           );
         }
       }
     }
 
+    print('No FG code found');
     return ConfidenceValue(value: null, confidence: 0.0);
   }
 
@@ -295,10 +313,27 @@ class JobcardParserService {
       for (final pattern in patterns) {
         final match = pattern.firstMatch(line);
         if (match != null && match.group(1) != null) {
-          final valueStr = match.group(1)!.replaceAll(',', '');
+          final valueStr = match.group(1)!.replaceAll(',', '').replaceAll(' ', '');
           final value = int.tryParse(valueStr);
           if (value != null) {
+            print('Extracted numeric value: $value from line: $line');
             return ConfidenceValue(value: value, confidence: 0.75);
+          }
+        }
+      }
+      
+      // Try to find any number in lines containing the keywords
+      for (final pattern in patterns) {
+        if (pattern.hasMatch(line)) {
+          // Found the label, now look for any number in this line
+          final numberMatch = RegExp(r'(\d[\d,\s]*\d|\d+)').firstMatch(line);
+          if (numberMatch != null) {
+            final valueStr = numberMatch.group(1)!.replaceAll(',', '').replaceAll(' ', '');
+            final value = int.tryParse(valueStr);
+            if (value != null) {
+              print('Extracted numeric value (fallback): $value from line: $line');
+              return ConfidenceValue(value: value, confidence: 0.6);
+            }
           }
         }
       }
