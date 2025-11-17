@@ -249,8 +249,10 @@ class _JobcardReviewScreenState extends State<JobcardReviewScreen> {
                   title: const Text('Raw OCR Text'),
                   content: SingleChildScrollView(
                     child: Text(
-                      widget.jobcardData.rawOcrText.value ?? 'No text available',
-                      style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
+                      widget.jobcardData.rawOcrText.value ??
+                          'No text available',
+                      style: const TextStyle(
+                          fontSize: 12, fontFamily: 'monospace'),
                     ),
                   ),
                   actions: [

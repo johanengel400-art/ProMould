@@ -313,7 +313,8 @@ class JobcardParserService {
       for (final pattern in patterns) {
         final match = pattern.firstMatch(line);
         if (match != null && match.group(1) != null) {
-          final valueStr = match.group(1)!.replaceAll(',', '').replaceAll(' ', '');
+          final valueStr =
+              match.group(1)!.replaceAll(',', '').replaceAll(' ', '');
           final value = int.tryParse(valueStr);
           if (value != null) {
             print('Extracted numeric value: $value from line: $line');
@@ -321,17 +322,19 @@ class JobcardParserService {
           }
         }
       }
-      
+
       // Try to find any number in lines containing the keywords
       for (final pattern in patterns) {
         if (pattern.hasMatch(line)) {
           // Found the label, now look for any number in this line
           final numberMatch = RegExp(r'(\d[\d,\s]*\d|\d+)').firstMatch(line);
           if (numberMatch != null) {
-            final valueStr = numberMatch.group(1)!.replaceAll(',', '').replaceAll(' ', '');
+            final valueStr =
+                numberMatch.group(1)!.replaceAll(',', '').replaceAll(' ', '');
             final value = int.tryParse(valueStr);
             if (value != null) {
-              print('Extracted numeric value (fallback): $value from line: $line');
+              print(
+                  'Extracted numeric value (fallback): $value from line: $line');
               return ConfidenceValue(value: value, confidence: 0.6);
             }
           }
