@@ -4,8 +4,6 @@ import 'package:uuid/uuid.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
 
 class DailyProductionSheetScreen extends StatefulWidget {
   final String username;

@@ -177,8 +177,8 @@ class EnhancedJobcardParser {
       'raw material',
     ).map((row) => _parseRawMaterialRow(row)).toList();
 
-    // Extract counters
-    final counters = _extractCounters(recognizedText);
+    // Extract production rows (not implemented in enhanced parser)
+    final productionRows = _extractProductionRows(recognizedText);
 
     // Check for low confidence fields
     final fields = [
@@ -199,17 +199,15 @@ class EnhancedJobcardParser {
 
     return JobcardData(
       worksOrderNo: worksOrderNo,
-      barcode:
-          ConfidenceValue(value: barcodeValue, confidence: barcodeConfidence),
-      fgCode: fgCode,
-      dateStarted: dateStarted,
+      jobName: ConfidenceValue(value: null, confidence: 0.0),
+      color: ConfidenceValue(value: null, confidence: 0.0),
+      cycleWeightGrams: cycleWeightGrams,
       quantityToManufacture: quantityToManufacture,
       dailyOutput: dailyOutput,
-      cycleTimeSeconds: cycleTimeSeconds,
-      cycleWeightGrams: cycleWeightGrams,
-      cavity: cavity,
+      targetCycleDay: ConfidenceValue(value: null, confidence: 0.0),
+      targetCycleNight: ConfidenceValue(value: null, confidence: 0.0),
+      productionRows: [],
       rawMaterials: rawMaterials,
-      counters: counters,
       rawOcrText: ConfidenceValue(
         value: recognizedText.text,
         confidence: 1.0,
@@ -392,16 +390,11 @@ class EnhancedJobcardParser {
     );
   }
 
-  /// Extract counters
-  JobcardCounters _extractCounters(RecognizedText recognizedText) {
-    return JobcardCounters(
-      dayCounter: _extractCounter(recognizedText, ['day counter', 'day count']),
-      dayActual: _extractCounter(recognizedText, ['day actual']),
-      dayScrap: _extractCounter(recognizedText, ['day scrap']),
-      nightCounter: _extractCounter(recognizedText, ['night counter']),
-      nightActual: _extractCounter(recognizedText, ['night actual']),
-      nightScrap: _extractCounter(recognizedText, ['night scrap']),
-    );
+  /// Extract production rows (placeholder - not implemented in enhanced parser)
+  List<ProductionTableRow> _extractProductionRows(RecognizedText recognizedText) {
+    // This enhanced parser doesn't extract production table
+    // Use the main jobcard_parser_service.dart instead
+    return [];
   }
 
   ConfidenceValue<int> _extractCounter(

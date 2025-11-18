@@ -260,7 +260,7 @@ class _JobcardCaptureScreenState extends State<JobcardCaptureScreen> {
 
       print('Data extracted successfully');
       print('Works Order: ${jobcardData.worksOrderNo.value ?? "not found"}');
-      print('FG Code: ${jobcardData.fgCode.value ?? "not found"}');
+      print('Job Name: ${jobcardData.jobName.value ?? "not found"}');
       print('Overall confidence: ${jobcardData.overallConfidence}');
 
       // Navigate to review screen
