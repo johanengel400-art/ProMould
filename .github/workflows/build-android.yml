@@ -63,11 +63,14 @@ jobs:
     - name: Analyze code
       run: |
         echo "Running code analysis..."
-        flutter analyze --no-fatal-infos --no-fatal-warnings || {
+        flutter analyze --no-fatal-infos --no-fatal-warnings 2>&1 | tee analyze_output.txt
+        if grep -q "error •" analyze_output.txt; then
           echo "❌ Critical errors found in code"
-          echo "Fix errors before pushing (warnings/infos are OK)"
+          grep "error •" analyze_output.txt
           exit 1
-        }
+        else
+          echo "✅ No critical errors found (warnings/infos are OK)"
+        fi
       
     - name: Build APK
       run: flutter build apk --release --verbose
