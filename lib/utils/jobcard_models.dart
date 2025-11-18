@@ -66,29 +66,38 @@ class RawMaterialEntry {
   }
 }
 
-class JobcardCounters {
-  final ConfidenceValue<int> dayCounter;
+class ProductionTableRow {
+  final ConfidenceValue<String> date;
+  final ConfidenceValue<int> dayCounterStart;
+  final ConfidenceValue<int> dayCounterEnd;
   final ConfidenceValue<int> dayActual;
   final ConfidenceValue<int> dayScrap;
-  final ConfidenceValue<int> nightCounter;
+  final ConfidenceValue<int> nightCounterStart;
+  final ConfidenceValue<int> nightCounterEnd;
   final ConfidenceValue<int> nightActual;
   final ConfidenceValue<int> nightScrap;
 
-  JobcardCounters({
-    required this.dayCounter,
+  ProductionTableRow({
+    required this.date,
+    required this.dayCounterStart,
+    required this.dayCounterEnd,
     required this.dayActual,
     required this.dayScrap,
-    required this.nightCounter,
+    required this.nightCounterStart,
+    required this.nightCounterEnd,
     required this.nightActual,
     required this.nightScrap,
   });
 
-  factory JobcardCounters.fromJson(Map<String, dynamic> json) {
-    return JobcardCounters(
-      dayCounter: ConfidenceValue<int>.fromJson(json['dayCounter']),
+  factory ProductionTableRow.fromJson(Map<String, dynamic> json) {
+    return ProductionTableRow(
+      date: ConfidenceValue<String>.fromJson(json['date']),
+      dayCounterStart: ConfidenceValue<int>.fromJson(json['dayCounterStart']),
+      dayCounterEnd: ConfidenceValue<int>.fromJson(json['dayCounterEnd']),
       dayActual: ConfidenceValue<int>.fromJson(json['dayActual']),
       dayScrap: ConfidenceValue<int>.fromJson(json['dayScrap']),
-      nightCounter: ConfidenceValue<int>.fromJson(json['nightCounter']),
+      nightCounterStart: ConfidenceValue<int>.fromJson(json['nightCounterStart']),
+      nightCounterEnd: ConfidenceValue<int>.fromJson(json['nightCounterEnd']),
       nightActual: ConfidenceValue<int>.fromJson(json['nightActual']),
       nightScrap: ConfidenceValue<int>.fromJson(json['nightScrap']),
     );
@@ -96,13 +105,30 @@ class JobcardCounters {
 
   Map<String, dynamic> toJson() {
     return {
-      'dayCounter': dayCounter.toJson(),
+      'date': date.toJson(),
+      'dayCounterStart': dayCounterStart.toJson(),
+      'dayCounterEnd': dayCounterEnd.toJson(),
       'dayActual': dayActual.toJson(),
       'dayScrap': dayScrap.toJson(),
-      'nightCounter': nightCounter.toJson(),
+      'nightCounterStart': nightCounterStart.toJson(),
+      'nightCounterEnd': nightCounterEnd.toJson(),
       'nightActual': nightActual.toJson(),
       'nightScrap': nightScrap.toJson(),
     };
+  }
+
+  double get dayScrapRate {
+    final actual = dayActual.value ?? 0;
+    final scrap = dayScrap.value ?? 0;
+    if (actual == 0) return 0.0;
+    return (scrap / actual) * 100;
+  }
+
+  double get nightScrapRate {
+    final actual = nightActual.value ?? 0;
+    final scrap = nightScrap.value ?? 0;
+    if (actual == 0) return 0.0;
+    return (scrap / actual) * 100;
   }
 }
 
@@ -131,33 +157,38 @@ class VerificationIssue {
 }
 
 class JobcardData {
+  // Required fields
   final ConfidenceValue<String> worksOrderNo;
-  final ConfidenceValue<String> barcode;
-  final ConfidenceValue<String> fgCode;
-  final ConfidenceValue<String> dateStarted;
+  final ConfidenceValue<String> jobName;
+  final ConfidenceValue<String> color;
+  final ConfidenceValue<double> cycleWeightGrams;
   final ConfidenceValue<int> quantityToManufacture;
   final ConfidenceValue<int> dailyOutput;
-  final ConfidenceValue<int> cycleTimeSeconds;
-  final ConfidenceValue<double> cycleWeightGrams;
-  final ConfidenceValue<int> cavity;
+  final ConfidenceValue<int> targetCycleDay;
+  final ConfidenceValue<int> targetCycleNight;
+  
+  // Production table (all rows)
+  final List<ProductionTableRow> productionRows;
+  
+  // Raw materials (for future use)
   final List<RawMaterialEntry> rawMaterials;
-  final JobcardCounters counters;
+  
+  // Metadata
   final ConfidenceValue<String> rawOcrText;
   final List<VerificationIssue> verificationNeeded;
   final ConfidenceValue<String> timestamp;
 
   JobcardData({
     required this.worksOrderNo,
-    required this.barcode,
-    required this.fgCode,
-    required this.dateStarted,
+    required this.jobName,
+    required this.color,
+    required this.cycleWeightGrams,
     required this.quantityToManufacture,
     required this.dailyOutput,
-    required this.cycleTimeSeconds,
-    required this.cycleWeightGrams,
-    required this.cavity,
+    required this.targetCycleDay,
+    required this.targetCycleNight,
+    required this.productionRows,
     required this.rawMaterials,
-    required this.counters,
     required this.rawOcrText,
     required this.verificationNeeded,
     required this.timestamp,
@@ -166,20 +197,21 @@ class JobcardData {
   factory JobcardData.fromJson(Map<String, dynamic> json) {
     return JobcardData(
       worksOrderNo: ConfidenceValue<String>.fromJson(json['worksOrderNo']),
-      barcode: ConfidenceValue<String>.fromJson(json['barcode']),
-      fgCode: ConfidenceValue<String>.fromJson(json['fgCode']),
-      dateStarted: ConfidenceValue<String>.fromJson(json['dateStarted']),
+      jobName: ConfidenceValue<String>.fromJson(json['jobName']),
+      color: ConfidenceValue<String>.fromJson(json['color']),
+      cycleWeightGrams:
+          ConfidenceValue<double>.fromJson(json['cycleWeightGrams']),
       quantityToManufacture:
           ConfidenceValue<int>.fromJson(json['quantityToManufacture']),
       dailyOutput: ConfidenceValue<int>.fromJson(json['dailyOutput']),
-      cycleTimeSeconds: ConfidenceValue<int>.fromJson(json['cycleTimeSeconds']),
-      cycleWeightGrams:
-          ConfidenceValue<double>.fromJson(json['cycleWeightGrams']),
-      cavity: ConfidenceValue<int>.fromJson(json['cavity']),
+      targetCycleDay: ConfidenceValue<int>.fromJson(json['targetCycleDay']),
+      targetCycleNight: ConfidenceValue<int>.fromJson(json['targetCycleNight']),
+      productionRows: (json['productionRows'] as List)
+          .map((e) => ProductionTableRow.fromJson(e as Map<String, dynamic>))
+          .toList(),
       rawMaterials: (json['rawMaterials'] as List)
           .map((e) => RawMaterialEntry.fromJson(e as Map<String, dynamic>))
           .toList(),
-      counters: JobcardCounters.fromJson(json['counters']),
       rawOcrText: ConfidenceValue<String>.fromJson(json['raw_ocr_text']),
       verificationNeeded: (json['verificationNeeded'] as List)
           .map((e) => VerificationIssue.fromJson(e as Map<String, dynamic>))
@@ -191,16 +223,15 @@ class JobcardData {
   Map<String, dynamic> toJson() {
     return {
       'worksOrderNo': worksOrderNo.toJson(),
-      'barcode': barcode.toJson(),
-      'fgCode': fgCode.toJson(),
-      'dateStarted': dateStarted.toJson(),
+      'jobName': jobName.toJson(),
+      'color': color.toJson(),
+      'cycleWeightGrams': cycleWeightGrams.toJson(),
       'quantityToManufacture': quantityToManufacture.toJson(),
       'dailyOutput': dailyOutput.toJson(),
-      'cycleTimeSeconds': cycleTimeSeconds.toJson(),
-      'cycleWeightGrams': cycleWeightGrams.toJson(),
-      'cavity': cavity.toJson(),
+      'targetCycleDay': targetCycleDay.toJson(),
+      'targetCycleNight': targetCycleNight.toJson(),
+      'productionRows': productionRows.map((e) => e.toJson()).toList(),
       'rawMaterials': rawMaterials.map((e) => e.toJson()).toList(),
-      'counters': counters.toJson(),
       'raw_ocr_text': rawOcrText.toJson(),
       'verificationNeeded': verificationNeeded.map((e) => e.toJson()).toList(),
       'timestamp': timestamp.toJson(),
@@ -212,11 +243,11 @@ class JobcardData {
   double get overallConfidence {
     final confidences = [
       worksOrderNo.confidence,
-      fgCode.confidence,
-      dateStarted.confidence,
+      jobName.confidence,
+      color.confidence,
+      cycleWeightGrams.confidence,
       quantityToManufacture.confidence,
       dailyOutput.confidence,
-      cycleTimeSeconds.confidence,
     ];
     return confidences.reduce((a, b) => a + b) / confidences.length;
   }

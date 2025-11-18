@@ -67,7 +67,7 @@ class JobcardParserService {
       print('JobcardParser: Barcode found: $barcodeValue');
     }
 
-    // Extract works order number (from barcode or text)
+    // Extract required fields
     final worksOrderNo = _extractWorksOrderNo(lines, barcodeValue);
     if (worksOrderNo.confidence < 0.6) {
       verificationNeeded.add(VerificationIssue(
@@ -76,52 +76,45 @@ class JobcardParserService {
       ));
     }
 
-    // Extract FG Code
-    final fgCode = _extractFgCode(lines);
-    if (fgCode.confidence < 0.6) {
+    final jobName = _extractJobName(lines);
+    if (jobName.confidence < 0.6) {
       verificationNeeded.add(VerificationIssue(
-        field: 'fgCode',
-        reason: 'Low confidence: ${fgCode.confidence.toStringAsFixed(2)}',
+        field: 'jobName',
+        reason: 'Low confidence: ${jobName.confidence.toStringAsFixed(2)}',
       ));
     }
 
-    // Extract date started
-    final dateStarted = _extractDateStarted(lines);
-    if (dateStarted.confidence < 0.6) {
+    final color = _extractColor(lines);
+    if (color.confidence < 0.6) {
       verificationNeeded.add(VerificationIssue(
-        field: 'dateStarted',
-        reason: 'Low confidence: ${dateStarted.confidence.toStringAsFixed(2)}',
+        field: 'color',
+        reason: 'Low confidence: ${color.confidence.toStringAsFixed(2)}',
       ));
     }
 
-    // Extract numeric fields
+    final cycleWeightGrams = _extractCycleWeight(lines);
     final quantityToManufacture = _extractQuantityToManufacture(lines);
     final dailyOutput = _extractDailyOutput(lines);
-    final cycleTimeSeconds = _extractCycleTime(lines);
-    final cycleWeightGrams = _extractCycleWeight(lines);
-    final cavity = _extractCavity(lines);
+    final targetCycleDay = _extractTargetCycleDay(lines);
+    final targetCycleNight = _extractTargetCycleNight(lines);
 
-    // Extract raw materials table
+    // Extract raw materials table (for future use)
     final rawMaterials = _extractRawMaterials(lines);
 
-    // Extract counters
-    final counters = _extractCounters(lines);
+    // Extract production table rows
+    final productionRows = _extractProductionTable(lines);
 
     return JobcardData(
       worksOrderNo: worksOrderNo,
-      barcode: ConfidenceValue(
-        value: barcodeValue,
-        confidence: barcodeConfidence,
-      ),
-      fgCode: fgCode,
-      dateStarted: dateStarted,
+      jobName: jobName,
+      color: color,
+      cycleWeightGrams: cycleWeightGrams,
       quantityToManufacture: quantityToManufacture,
       dailyOutput: dailyOutput,
-      cycleTimeSeconds: cycleTimeSeconds,
-      cycleWeightGrams: cycleWeightGrams,
-      cavity: cavity,
+      targetCycleDay: targetCycleDay,
+      targetCycleNight: targetCycleNight,
+      productionRows: productionRows,
       rawMaterials: rawMaterials,
-      counters: counters,
       rawOcrText: ConfidenceValue(
         value: fullText,
         confidence: 1.0,
@@ -132,6 +125,63 @@ class JobcardParserService {
         confidence: 1.0,
       ),
     );
+  }
+
+  ConfidenceValue<String> _extractJobName(List<String> lines) {
+    // Job name appears after "Works Order/Batch Sheet" and before "Works Order No:"
+    // Example: "50LT Coolbox Outer- CampMastr Blue" (first line is job name)
+    for (int i = 0; i < lines.length; i++) {
+      final line = lines[i].trim();
+      
+      if (RegExp(r'works?\s*order.*batch.*sheet', caseSensitive: false).hasMatch(line)) {
+        // Next non-empty line should be the job name
+        for (int j = i + 1; j < lines.length && j < i + 5; j++) {
+          final nextLine = lines[j].trim();
+          if (nextLine.isNotEmpty && 
+              !RegExp(r'works?\s*order\s*no', caseSensitive: false).hasMatch(nextLine) &&
+              nextLine.length > 5) {
+            // Extract just the product name part (before color)
+            // Example: "50LT Coolbox Outer- CampMastr Blue" -> "50LT Coolbox Outer"
+            final parts = nextLine.split(RegExp(r'-\s*'));
+            final jobName = parts[0].trim();
+            print('Found job name: $jobName');
+            return ConfidenceValue(value: jobName, confidence: 0.85);
+          }
+        }
+      }
+    }
+
+    print('No job name found');
+    return ConfidenceValue(value: null, confidence: 0.0);
+  }
+
+  ConfidenceValue<String> _extractColor(List<String> lines) {
+    // Color appears after job name, typically after a dash
+    // Example: "50LT Coolbox Outer- CampMastr Blue" -> "CampMastr Blue"
+    for (int i = 0; i < lines.length; i++) {
+      final line = lines[i].trim();
+      
+      if (RegExp(r'works?\s*order.*batch.*sheet', caseSensitive: false).hasMatch(line)) {
+        // Next non-empty line should contain job name and color
+        for (int j = i + 1; j < lines.length && j < i + 5; j++) {
+          final nextLine = lines[j].trim();
+          if (nextLine.isNotEmpty && 
+              !RegExp(r'works?\s*order\s*no', caseSensitive: false).hasMatch(nextLine) &&
+              nextLine.contains('-')) {
+            // Extract color part (after dash)
+            final parts = nextLine.split(RegExp(r'-\s*'));
+            if (parts.length > 1) {
+              final color = parts[1].trim();
+              print('Found color: $color');
+              return ConfidenceValue(value: color, confidence: 0.85);
+            }
+          }
+        }
+      }
+    }
+
+    print('No color found');
+    return ConfidenceValue(value: null, confidence: 0.0);
   }
 
   ConfidenceValue<String> _extractWorksOrderNo(
@@ -442,14 +492,52 @@ class JobcardParserService {
     return ConfidenceValue(value: null, confidence: 0.0);
   }
 
-  ConfidenceValue<int> _extractCavity(List<String> lines) {
-    return _extractNumericField(
-      lines,
-      [
-        RegExp(r'cavity\s*:?\s*([\d,]+)', caseSensitive: false),
-        RegExp(r'cavities\s*:?\s*([\d,]+)', caseSensitive: false),
-      ],
-    );
+  ConfidenceValue<int> _extractTargetCycleDay(List<String> lines) {
+    // Look for "Target Cycle Day:" pattern
+    final patterns = [
+      RegExp(r'target\s*cycle\s*day\s*:?\s*([\d,]+\.?\d*)', caseSensitive: false),
+      RegExp(r'traget\s*cycle\s*day\s*:?\s*([\d,]+\.?\d*)', caseSensitive: false), // Handle typo
+    ];
+
+    for (final line in lines) {
+      for (final pattern in patterns) {
+        final match = pattern.firstMatch(line);
+        if (match != null && match.group(1) != null) {
+          final valueStr = match.group(1)!.replaceAll(',', '');
+          final value = double.tryParse(valueStr)?.toInt();
+          if (value != null) {
+            print('Extracted target cycle day: $value from line: $line');
+            return ConfidenceValue(value: value, confidence: 0.8);
+          }
+        }
+      }
+    }
+
+    return ConfidenceValue(value: null, confidence: 0.0);
+  }
+
+  ConfidenceValue<int> _extractTargetCycleNight(List<String> lines) {
+    // Look for "Target Cycle Night:" pattern
+    final patterns = [
+      RegExp(r'target\s*cycle\s*night\s*:?\s*([\d,]+\.?\d*)', caseSensitive: false),
+      RegExp(r'traget\s*cycle\s*night\s*:?\s*([\d,]+\.?\d*)', caseSensitive: false), // Handle typo
+    ];
+
+    for (final line in lines) {
+      for (final pattern in patterns) {
+        final match = pattern.firstMatch(line);
+        if (match != null && match.group(1) != null) {
+          final valueStr = match.group(1)!.replaceAll(',', '');
+          final value = double.tryParse(valueStr)?.toInt();
+          if (value != null) {
+            print('Extracted target cycle night: $value from line: $line');
+            return ConfidenceValue(value: value, confidence: 0.8);
+          }
+        }
+      }
+    }
+
+    return ConfidenceValue(value: null, confidence: 0.0);
   }
 
   ConfidenceValue<int> _extractNumericField(
@@ -552,37 +640,115 @@ class JobcardParserService {
     return materials;
   }
 
-  JobcardCounters _extractCounters(List<String> lines) {
-    return JobcardCounters(
-      dayCounter: _extractCounter(lines, ['day counter', 'day count']),
-      dayActual: _extractCounter(lines, ['day actual', 'day act']),
-      dayScrap: _extractCounter(lines, ['day scrap', 'day reject']),
-      nightCounter: _extractCounter(lines, ['night counter', 'night count']),
-      nightActual: _extractCounter(lines, ['night actual', 'night act']),
-      nightScrap: _extractCounter(lines, ['night scrap', 'night reject']),
-    );
-  }
-
-  ConfidenceValue<int> _extractCounter(
-    List<String> lines,
-    List<String> labels,
-  ) {
-    for (final line in lines) {
-      final lowerLine = line.toLowerCase();
-      for (final label in labels) {
-        if (lowerLine.contains(label)) {
-          final match = RegExp(r'(\d+)').firstMatch(line);
-          if (match != null) {
-            final value = int.tryParse(match.group(1)!);
-            if (value != null) {
-              return ConfidenceValue(value: value, confidence: 0.7);
-            }
-          }
-        }
+  List<ProductionTableRow> _extractProductionTable(List<String> lines) {
+    final rows = <ProductionTableRow>[];
+    
+    // Find table header line
+    int tableStartIndex = -1;
+    for (int i = 0; i < lines.length; i++) {
+      final line = lines[i].toLowerCase();
+      if (line.contains('day-counter') && line.contains('night-counter')) {
+        tableStartIndex = i + 1;
+        break;
       }
     }
 
-    return ConfidenceValue(value: null, confidence: 0.0);
+    if (tableStartIndex == -1) {
+      print('Production table header not found');
+      return rows;
+    }
+
+    // Parse table rows
+    // Format: START | DAY-COUNTER | DAY ACTUAL | DAY-SCRAP | NIGHT-COUNTER | NIGHT-ACTUAL | NIGHT-SCRAP
+    // Example: "0 | 68 | 9 | 574 | 556 | 18"
+    // Or multi-line with date
+    
+    for (int i = tableStartIndex; i < lines.length && rows.length < 20; i++) {
+      final line = lines[i].trim();
+      if (line.isEmpty || line.length < 5) continue;
+
+      // Try to extract date from this line or previous lines
+      String? date;
+      final dateMatch = RegExp(r'(\d{1,2}[-/]\d{1,2}[-/]\d{2,4})').firstMatch(line);
+      if (dateMatch != null) {
+        date = _normalizeDate(dateMatch.group(1)!);
+      }
+
+      // Extract numbers from line
+      final numbers = RegExp(r'\d+').allMatches(line).map((m) => int.tryParse(m.group(0)!) ?? 0).toList();
+      
+      // Need at least 6 numbers for a complete row (day start, day end, day actual, day scrap, night start, night end, night actual, night scrap)
+      // Or simplified: day actual, day scrap, night actual, night scrap
+      if (numbers.length >= 4) {
+        // Parse based on pattern
+        int dayCounterStart = 0;
+        int dayCounterEnd = 0;
+        int dayActual = 0;
+        int dayScrap = 0;
+        int nightCounterStart = 0;
+        int nightCounterEnd = 0;
+        int nightActual = 0;
+        int nightScrap = 0;
+
+        if (numbers.length >= 8) {
+          // Full format with counters
+          dayCounterStart = numbers[0];
+          dayCounterEnd = numbers[1];
+          dayActual = numbers[2];
+          dayScrap = numbers[3];
+          nightCounterStart = numbers[4];
+          nightCounterEnd = numbers[5];
+          nightActual = numbers[6];
+          nightScrap = numbers[7];
+        } else if (numbers.length >= 6) {
+          // Format: day counter, day actual, day scrap, night counter, night actual, night scrap
+          dayCounterEnd = numbers[0];
+          dayActual = numbers[1];
+          dayScrap = numbers[2];
+          nightCounterEnd = numbers[3];
+          nightActual = numbers[4];
+          nightScrap = numbers[5];
+        } else if (numbers.length >= 4) {
+          // Simplified: day actual, day scrap, night actual, night scrap
+          dayActual = numbers[0];
+          dayScrap = numbers[1];
+          nightActual = numbers[2];
+          nightScrap = numbers[3];
+        }
+
+        rows.add(ProductionTableRow(
+          date: ConfidenceValue(value: date ?? DateTime.now().toIso8601String().split('T')[0], confidence: date != null ? 0.8 : 0.3),
+          dayCounterStart: ConfidenceValue(value: dayCounterStart, confidence: 0.7),
+          dayCounterEnd: ConfidenceValue(value: dayCounterEnd, confidence: 0.7),
+          dayActual: ConfidenceValue(value: dayActual, confidence: 0.8),
+          dayScrap: ConfidenceValue(value: dayScrap, confidence: 0.8),
+          nightCounterStart: ConfidenceValue(value: nightCounterStart, confidence: 0.7),
+          nightCounterEnd: ConfidenceValue(value: nightCounterEnd, confidence: 0.7),
+          nightActual: ConfidenceValue(value: nightActual, confidence: 0.8),
+          nightScrap: ConfidenceValue(value: nightScrap, confidence: 0.8),
+        ));
+
+        print('Extracted production row: Day ${dayActual}/${dayScrap}, Night ${nightActual}/${nightScrap}');
+      }
+    }
+
+    print('Extracted ${rows.length} production table rows');
+    return rows;
+  }
+
+  String _normalizeDate(String dateStr) {
+    // Convert various date formats to ISO format (YYYY-MM-DD)
+    final parts = dateStr.split(RegExp(r'[-/]'));
+    if (parts.length == 3) {
+      int day = int.parse(parts[0]);
+      int month = int.parse(parts[1]);
+      int year = int.parse(parts[2]);
+      
+      if (year < 100) year += 2000;
+      
+      return '$year-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
+    }
+    return dateStr;
   }
 
   void dispose() {

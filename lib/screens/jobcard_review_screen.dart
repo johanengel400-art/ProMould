@@ -24,13 +24,13 @@ class JobcardReviewScreen extends StatefulWidget {
 
 class _JobcardReviewScreenState extends State<JobcardReviewScreen> {
   late TextEditingController _worksOrderCtrl;
-  late TextEditingController _fgCodeCtrl;
-  late TextEditingController _dateStartedCtrl;
+  late TextEditingController _jobNameCtrl;
+  late TextEditingController _colorCtrl;
   late TextEditingController _quantityCtrl;
   late TextEditingController _dailyOutputCtrl;
-  late TextEditingController _cycleTimeCtrl;
   late TextEditingController _cycleWeightCtrl;
-  late TextEditingController _cavityCtrl;
+  late TextEditingController _targetCycleDayCtrl;
+  late TextEditingController _targetCycleNightCtrl;
 
   final uuid = const Uuid();
   bool _isSaving = false;
@@ -41,11 +41,11 @@ class _JobcardReviewScreenState extends State<JobcardReviewScreen> {
     _worksOrderCtrl = TextEditingController(
       text: widget.jobcardData.worksOrderNo.value ?? '',
     );
-    _fgCodeCtrl = TextEditingController(
-      text: widget.jobcardData.fgCode.value ?? '',
+    _jobNameCtrl = TextEditingController(
+      text: widget.jobcardData.jobName.value ?? '',
     );
-    _dateStartedCtrl = TextEditingController(
-      text: widget.jobcardData.dateStarted.value ?? '',
+    _colorCtrl = TextEditingController(
+      text: widget.jobcardData.color.value ?? '',
     );
     _quantityCtrl = TextEditingController(
       text: widget.jobcardData.quantityToManufacture.value?.toString() ?? '',
@@ -53,27 +53,27 @@ class _JobcardReviewScreenState extends State<JobcardReviewScreen> {
     _dailyOutputCtrl = TextEditingController(
       text: widget.jobcardData.dailyOutput.value?.toString() ?? '',
     );
-    _cycleTimeCtrl = TextEditingController(
-      text: widget.jobcardData.cycleTimeSeconds.value?.toString() ?? '',
-    );
     _cycleWeightCtrl = TextEditingController(
       text: widget.jobcardData.cycleWeightGrams.value?.toString() ?? '',
     );
-    _cavityCtrl = TextEditingController(
-      text: widget.jobcardData.cavity.value?.toString() ?? '',
+    _targetCycleDayCtrl = TextEditingController(
+      text: widget.jobcardData.targetCycleDay.value?.toString() ?? '',
+    );
+    _targetCycleNightCtrl = TextEditingController(
+      text: widget.jobcardData.targetCycleNight.value?.toString() ?? '',
     );
   }
 
   @override
   void dispose() {
     _worksOrderCtrl.dispose();
-    _fgCodeCtrl.dispose();
-    _dateStartedCtrl.dispose();
+    _jobNameCtrl.dispose();
+    _colorCtrl.dispose();
     _quantityCtrl.dispose();
     _dailyOutputCtrl.dispose();
-    _cycleTimeCtrl.dispose();
     _cycleWeightCtrl.dispose();
-    _cavityCtrl.dispose();
+    _targetCycleDayCtrl.dispose();
+    _targetCycleNightCtrl.dispose();
     super.dispose();
   }
 
@@ -175,51 +175,27 @@ class _JobcardReviewScreenState extends State<JobcardReviewScreen> {
     });
 
     try {
-      final box = Hive.box('jobsBox');
-      final id = uuid.v4();
+      final jobsBox = Hive.box('jobsBox');
+      final worksOrderNo = _worksOrderCtrl.text.trim();
 
-      // Create job data
-      final jobData = {
-        'id': id,
-        'productName': _fgCodeCtrl.text.trim(),
-        'color': '', // Not in jobcard
-        'targetShots': int.tryParse(_quantityCtrl.text.trim()) ?? 0,
-        'shotsCompleted': 0,
-        'machineId': '',
-        'mouldId': '',
-        'status': 'Pending',
-        'startTime': null,
-        'endTime': null,
-        // Additional jobcard fields
-        'worksOrderNo': _worksOrderCtrl.text.trim(),
-        'fgCode': _fgCodeCtrl.text.trim(),
-        'dateStarted': _dateStartedCtrl.text.trim(),
-        'dailyOutput': int.tryParse(_dailyOutputCtrl.text.trim()),
-        'cycleTimeSeconds': int.tryParse(_cycleTimeCtrl.text.trim()),
-        'cycleWeightGrams': double.tryParse(_cycleWeightCtrl.text.trim()),
-        'cavity': int.tryParse(_cavityCtrl.text.trim()),
-        'jobcardImagePath': widget.imagePath,
-        'jobcardScannedAt': DateTime.now().toIso8601String(),
-        'jobcardConfidence': widget.jobcardData.overallConfidence,
-      };
+      // Check if job already exists
+      final existingJob = jobsBox.values.firstWhere(
+        (job) => job['worksOrderNo'] == worksOrderNo,
+        orElse: () => null,
+      );
 
-      await box.put(id, jobData);
-      await SyncService.pushChange('jobsBox', id, jobData);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Job created successfully'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.pop(context, true);
+      if (existingJob != null) {
+        // Job exists - add production data only
+        await _addProductionData(existingJob);
+      } else {
+        // New job - show machine selection dialog
+        await _createNewJob();
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error creating job: $e'),
+            content: Text('Error: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -231,6 +207,195 @@ class _JobcardReviewScreenState extends State<JobcardReviewScreen> {
         });
       }
     }
+  }
+
+  Future<void> _addProductionData(Map existingJob) async {
+    // Verify job is on same machine
+    final currentMachine = existingJob['machineId'] as String?;
+    
+    if (currentMachine == null || currentMachine.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Job exists but has no machine assigned'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    // Add production rows to Daily Production Sheet
+    final dpsBox = Hive.box('dailyProductionBox');
+    
+    for (final row in widget.jobcardData.productionRows) {
+      final dpsId = uuid.v4();
+      final dpsEntry = {
+        'id': dpsId,
+        'date': row.date.value,
+        'machineId': currentMachine,
+        'worksOrderNo': _worksOrderCtrl.text.trim(),
+        'jobName': _jobNameCtrl.text.trim(),
+        'color': _colorCtrl.text.trim(),
+        'dayActual': row.dayActual.value ?? 0,
+        'dayScrap': row.dayScrap.value ?? 0,
+        'dayScrapRate': row.dayScrapRate,
+        'nightActual': row.nightActual.value ?? 0,
+        'nightScrap': row.nightScrap.value ?? 0,
+        'nightScrapRate': row.nightScrapRate,
+        'dayCounterStart': row.dayCounterStart.value ?? 0,
+        'dayCounterEnd': row.dayCounterEnd.value ?? 0,
+        'nightCounterStart': row.nightCounterStart.value ?? 0,
+        'nightCounterEnd': row.nightCounterEnd.value ?? 0,
+        'createdAt': DateTime.now().toIso8601String(),
+      };
+
+      await dpsBox.put(dpsId, dpsEntry);
+      await SyncService.pushChange('dailyProductionBox', dpsId, dpsEntry);
+    }
+
+    // Update job's actual count
+    final totalActual = widget.jobcardData.productionRows.fold<int>(
+      0,
+      (sum, row) => sum + (row.dayActual.value ?? 0) + (row.nightActual.value ?? 0),
+    );
+    
+    existingJob['shotsCompleted'] = (existingJob['shotsCompleted'] ?? 0) + totalActual;
+    await Hive.box('jobsBox').put(existingJob['id'], existingJob);
+    await SyncService.pushChange('jobsBox', existingJob['id'], existingJob);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Added ${widget.jobcardData.productionRows.length} production entries to existing job'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      Navigator.pop(context, true);
+    }
+  }
+
+  Future<void> _createNewJob() async {
+    // Show machine selection dialog
+    final machinesBox = Hive.box('machinesBox');
+    final machines = machinesBox.values.toList();
+
+    if (machines.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No machines available. Please add machines first.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final selectedMachine = await showDialog<Map>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Select Machine'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: machines.map((machine) {
+              return ListTile(
+                title: Text(machine['name'] ?? 'Unknown'),
+                subtitle: Text('Floor: ${machine['floor'] ?? 'Unknown'}'),
+                onTap: () => Navigator.pop(context, machine),
+              );
+            }).toList(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+
+    if (selectedMachine == null) return;
+
+    // Auto-match mould
+    final mouldId = await _autoMatchMould(selectedMachine['id']);
+
+    // Create new job
+    final jobsBox = Hive.box('jobsBox');
+    final id = uuid.v4();
+
+    final jobData = {
+      'id': id,
+      'worksOrderNo': _worksOrderCtrl.text.trim(),
+      'jobcardNumber': _worksOrderCtrl.text.trim(),
+      'productName': _jobNameCtrl.text.trim(),
+      'color': _colorCtrl.text.trim(),
+      'targetShots': int.tryParse(_quantityCtrl.text.trim()) ?? 0,
+      'shotsCompleted': 0,
+      'machineId': selectedMachine['id'],
+      'mouldId': mouldId,
+      'status': 'Pending',
+      'startTime': null,
+      'endTime': null,
+      'dailyOutput': int.tryParse(_dailyOutputCtrl.text.trim()),
+      'cycleWeightGrams': double.tryParse(_cycleWeightCtrl.text.trim()),
+      'targetCycleDay': int.tryParse(_targetCycleDayCtrl.text.trim()),
+      'targetCycleNight': int.tryParse(_targetCycleNightCtrl.text.trim()),
+      'jobcardImagePath': widget.imagePath,
+      'jobcardScannedAt': DateTime.now().toIso8601String(),
+      'jobcardConfidence': widget.jobcardData.overallConfidence,
+      'createdAt': DateTime.now().toIso8601String(),
+    };
+
+    await jobsBox.put(id, jobData);
+    await SyncService.pushChange('jobsBox', id, jobData);
+
+    // Add production data if any
+    if (widget.jobcardData.productionRows.isNotEmpty) {
+      await _addProductionData(jobData);
+    }
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Job created successfully'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      Navigator.pop(context, true);
+    }
+  }
+
+  Future<String?> _autoMatchMould(String machineId) async {
+    final mouldsBox = Hive.box('mouldsBox');
+    final cycleWeight = double.tryParse(_cycleWeightCtrl.text.trim());
+    final jobName = _jobNameCtrl.text.trim().toLowerCase();
+
+    if (cycleWeight == null) return null;
+
+    // Find moulds matching cycle weight (within 10% tolerance)
+    final matchingMoulds = mouldsBox.values.where((mould) {
+      final mouldWeight = mould['cycleWeight'] as double?;
+      if (mouldWeight == null) return false;
+
+      final diff = (mouldWeight - cycleWeight).abs();
+      final tolerance = cycleWeight * 0.1; // 10% tolerance
+
+      return diff <= tolerance;
+    }).toList();
+
+    if (matchingMoulds.isEmpty) return null;
+
+    // If multiple matches, try name matching
+    if (matchingMoulds.length > 1) {
+      for (final mould in matchingMoulds) {
+        final mouldName = (mould['name'] as String?)?.toLowerCase() ?? '';
+        if (mouldName.contains(jobName) || jobName.contains(mouldName)) {
+          return mould['id'];
+        }
+      }
+    }
+
+    // Return first match
+    return matchingMoulds.first['id'];
   }
 
   @override
@@ -357,23 +522,32 @@ class _JobcardReviewScreenState extends State<JobcardReviewScreen> {
 
                   // Form fields
                   _buildFieldWithConfidence(
-                    label: 'Works Order No',
+                    label: 'Works Order No (Jobcard Number)',
                     controller: _worksOrderCtrl,
                     confidence: widget.jobcardData.worksOrderNo.confidence,
                   ),
                   const SizedBox(height: 16),
 
                   _buildFieldWithConfidence(
-                    label: 'FG Code',
-                    controller: _fgCodeCtrl,
-                    confidence: widget.jobcardData.fgCode.confidence,
+                    label: 'Job Name',
+                    controller: _jobNameCtrl,
+                    confidence: widget.jobcardData.jobName.confidence,
                   ),
                   const SizedBox(height: 16),
 
                   _buildFieldWithConfidence(
-                    label: 'Date Started',
-                    controller: _dateStartedCtrl,
-                    confidence: widget.jobcardData.dateStarted.confidence,
+                    label: 'Color',
+                    controller: _colorCtrl,
+                    confidence: widget.jobcardData.color.confidence,
+                  ),
+                  const SizedBox(height: 16),
+
+                  _buildFieldWithConfidence(
+                    label: 'Cycle Weight (grams)',
+                    controller: _cycleWeightCtrl,
+                    confidence: widget.jobcardData.cycleWeightGrams.confidence,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                   ),
                   const SizedBox(height: 16),
 
@@ -395,29 +569,36 @@ class _JobcardReviewScreenState extends State<JobcardReviewScreen> {
                   const SizedBox(height: 16),
 
                   _buildFieldWithConfidence(
-                    label: 'Cycle Time (seconds)',
-                    controller: _cycleTimeCtrl,
-                    confidence: widget.jobcardData.cycleTimeSeconds.confidence,
+                    label: 'Target Cycle Day',
+                    controller: _targetCycleDayCtrl,
+                    confidence: widget.jobcardData.targetCycleDay.confidence,
                     keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 16),
 
                   _buildFieldWithConfidence(
-                    label: 'Cycle Weight (grams)',
-                    controller: _cycleWeightCtrl,
-                    confidence: widget.jobcardData.cycleWeightGrams.confidence,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
-                  ),
-                  const SizedBox(height: 16),
-
-                  _buildFieldWithConfidence(
-                    label: 'Cavity',
-                    controller: _cavityCtrl,
-                    confidence: widget.jobcardData.cavity.confidence,
+                    label: 'Target Cycle Night',
+                    controller: _targetCycleNightCtrl,
+                    confidence: widget.jobcardData.targetCycleNight.confidence,
                     keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 24),
+
+                  // Production table data
+                  if (widget.jobcardData.productionRows.isNotEmpty) ...[
+                    const Text(
+                      'Production Data',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ...widget.jobcardData.productionRows.map((row) => 
+                      _buildProductionRow(row)
+                    ),
+                    const SizedBox(height: 24),
+                  ],
 
                   // Verification issues
                   if (widget.jobcardData.verificationNeeded.isNotEmpty) ...[
@@ -489,6 +670,64 @@ class _JobcardReviewScreenState extends State<JobcardReviewScreen> {
                 ],
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProductionRow(ProductionTableRow row) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.white24),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Date: ${row.date.value ?? "Unknown"}',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Day Shift', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                    Text('Actual: ${row.dayActual.value ?? 0}'),
+                    Text('Scrap: ${row.dayScrap.value ?? 0}'),
+                    Text('Scrap Rate: ${row.dayScrapRate.toStringAsFixed(1)}%',
+                      style: TextStyle(
+                        color: row.dayScrapRate > 5 ? Colors.red : Colors.green,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Night Shift', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                    Text('Actual: ${row.nightActual.value ?? 0}'),
+                    Text('Scrap: ${row.nightScrap.value ?? 0}'),
+                    Text('Scrap Rate: ${row.nightScrapRate.toStringAsFixed(1)}%',
+                      style: TextStyle(
+                        color: row.nightScrapRate > 5 ? Colors.red : Colors.green,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
