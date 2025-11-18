@@ -391,7 +391,8 @@ class EnhancedJobcardParser {
   }
 
   /// Extract production rows (placeholder - not implemented in enhanced parser)
-  List<ProductionTableRow> _extractProductionRows(RecognizedText recognizedText) {
+  List<ProductionTableRow> _extractProductionRows(
+      RecognizedText recognizedText) {
     // This enhanced parser doesn't extract production table
     // Use the main jobcard_parser_service.dart instead
     return [];
