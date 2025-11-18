@@ -28,6 +28,7 @@ import 'machine_inspection_checklist_screen.dart';
 import 'daily_inspection_tracking_screen.dart';
 import 'finished_jobs_screen.dart';
 import 'job_analytics_screen.dart';
+import 'daily_production_sheet_screen.dart';
 
 class RoleRouter extends StatefulWidget {
   final int level;
@@ -151,6 +152,11 @@ class _RoleRouterState extends State<RoleRouter> {
                 Icons.edit_note_outlined,
                 'Inputs',
                 DailyInputScreen(
+                    username: widget.username, level: widget.level)),
+            _drawerItem(
+                Icons.assignment_outlined,
+                'Daily Production Sheet',
+                DailyProductionSheetScreen(
                     username: widget.username, level: widget.level)),
             _drawerItem(Icons.report_problem_outlined, 'Issues',
                 IssuesScreenV2(username: widget.username, level: widget.level)),
