@@ -96,7 +96,8 @@ class ProductionTableRow {
       dayCounterEnd: ConfidenceValue<int>.fromJson(json['dayCounterEnd']),
       dayActual: ConfidenceValue<int>.fromJson(json['dayActual']),
       dayScrap: ConfidenceValue<int>.fromJson(json['dayScrap']),
-      nightCounterStart: ConfidenceValue<int>.fromJson(json['nightCounterStart']),
+      nightCounterStart:
+          ConfidenceValue<int>.fromJson(json['nightCounterStart']),
       nightCounterEnd: ConfidenceValue<int>.fromJson(json['nightCounterEnd']),
       nightActual: ConfidenceValue<int>.fromJson(json['nightActual']),
       nightScrap: ConfidenceValue<int>.fromJson(json['nightScrap']),
@@ -166,13 +167,13 @@ class JobcardData {
   final ConfidenceValue<int> dailyOutput;
   final ConfidenceValue<int> targetCycleDay;
   final ConfidenceValue<int> targetCycleNight;
-  
+
   // Production table (all rows)
   final List<ProductionTableRow> productionRows;
-  
+
   // Raw materials (for future use)
   final List<RawMaterialEntry> rawMaterials;
-  
+
   // Metadata
   final ConfidenceValue<String> rawOcrText;
   final List<VerificationIssue> verificationNeeded;

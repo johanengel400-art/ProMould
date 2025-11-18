@@ -132,13 +132,15 @@ class JobcardParserService {
     // Example: "50LT Coolbox Outer- CampMastr Blue" (first line is job name)
     for (int i = 0; i < lines.length; i++) {
       final line = lines[i].trim();
-      
-      if (RegExp(r'works?\s*order.*batch.*sheet', caseSensitive: false).hasMatch(line)) {
+
+      if (RegExp(r'works?\s*order.*batch.*sheet', caseSensitive: false)
+          .hasMatch(line)) {
         // Next non-empty line should be the job name
         for (int j = i + 1; j < lines.length && j < i + 5; j++) {
           final nextLine = lines[j].trim();
-          if (nextLine.isNotEmpty && 
-              !RegExp(r'works?\s*order\s*no', caseSensitive: false).hasMatch(nextLine) &&
+          if (nextLine.isNotEmpty &&
+              !RegExp(r'works?\s*order\s*no', caseSensitive: false)
+                  .hasMatch(nextLine) &&
               nextLine.length > 5) {
             // Extract just the product name part (before color)
             // Example: "50LT Coolbox Outer- CampMastr Blue" -> "50LT Coolbox Outer"
@@ -160,13 +162,15 @@ class JobcardParserService {
     // Example: "50LT Coolbox Outer- CampMastr Blue" -> "CampMastr Blue"
     for (int i = 0; i < lines.length; i++) {
       final line = lines[i].trim();
-      
-      if (RegExp(r'works?\s*order.*batch.*sheet', caseSensitive: false).hasMatch(line)) {
+
+      if (RegExp(r'works?\s*order.*batch.*sheet', caseSensitive: false)
+          .hasMatch(line)) {
         // Next non-empty line should contain job name and color
         for (int j = i + 1; j < lines.length && j < i + 5; j++) {
           final nextLine = lines[j].trim();
-          if (nextLine.isNotEmpty && 
-              !RegExp(r'works?\s*order\s*no', caseSensitive: false).hasMatch(nextLine) &&
+          if (nextLine.isNotEmpty &&
+              !RegExp(r'works?\s*order\s*no', caseSensitive: false)
+                  .hasMatch(nextLine) &&
               nextLine.contains('-')) {
             // Extract color part (after dash)
             final parts = nextLine.split(RegExp(r'-\s*'));
@@ -495,8 +499,10 @@ class JobcardParserService {
   ConfidenceValue<int> _extractTargetCycleDay(List<String> lines) {
     // Look for "Target Cycle Day:" pattern
     final patterns = [
-      RegExp(r'target\s*cycle\s*day\s*:?\s*([\d,]+\.?\d*)', caseSensitive: false),
-      RegExp(r'traget\s*cycle\s*day\s*:?\s*([\d,]+\.?\d*)', caseSensitive: false), // Handle typo
+      RegExp(r'target\s*cycle\s*day\s*:?\s*([\d,]+\.?\d*)',
+          caseSensitive: false),
+      RegExp(r'traget\s*cycle\s*day\s*:?\s*([\d,]+\.?\d*)',
+          caseSensitive: false), // Handle typo
     ];
 
     for (final line in lines) {
@@ -519,8 +525,10 @@ class JobcardParserService {
   ConfidenceValue<int> _extractTargetCycleNight(List<String> lines) {
     // Look for "Target Cycle Night:" pattern
     final patterns = [
-      RegExp(r'target\s*cycle\s*night\s*:?\s*([\d,]+\.?\d*)', caseSensitive: false),
-      RegExp(r'traget\s*cycle\s*night\s*:?\s*([\d,]+\.?\d*)', caseSensitive: false), // Handle typo
+      RegExp(r'target\s*cycle\s*night\s*:?\s*([\d,]+\.?\d*)',
+          caseSensitive: false),
+      RegExp(r'traget\s*cycle\s*night\s*:?\s*([\d,]+\.?\d*)',
+          caseSensitive: false), // Handle typo
     ];
 
     for (final line in lines) {
@@ -642,7 +650,7 @@ class JobcardParserService {
 
   List<ProductionTableRow> _extractProductionTable(List<String> lines) {
     final rows = <ProductionTableRow>[];
-    
+
     // Find table header line
     int tableStartIndex = -1;
     for (int i = 0; i < lines.length; i++) {
@@ -662,21 +670,25 @@ class JobcardParserService {
     // Format: START | DAY-COUNTER | DAY ACTUAL | DAY-SCRAP | NIGHT-COUNTER | NIGHT-ACTUAL | NIGHT-SCRAP
     // Example: "0 | 68 | 9 | 574 | 556 | 18"
     // Or multi-line with date
-    
+
     for (int i = tableStartIndex; i < lines.length && rows.length < 20; i++) {
       final line = lines[i].trim();
       if (line.isEmpty || line.length < 5) continue;
 
       // Try to extract date from this line or previous lines
       String? date;
-      final dateMatch = RegExp(r'(\d{1,2}[-/]\d{1,2}[-/]\d{2,4})').firstMatch(line);
+      final dateMatch =
+          RegExp(r'(\d{1,2}[-/]\d{1,2}[-/]\d{2,4})').firstMatch(line);
       if (dateMatch != null) {
         date = _normalizeDate(dateMatch.group(1)!);
       }
 
       // Extract numbers from line
-      final numbers = RegExp(r'\d+').allMatches(line).map((m) => int.tryParse(m.group(0)!) ?? 0).toList();
-      
+      final numbers = RegExp(r'\d+')
+          .allMatches(line)
+          .map((m) => int.tryParse(m.group(0)!) ?? 0)
+          .toList();
+
       // Need at least 6 numbers for a complete row (day start, day end, day actual, day scrap, night start, night end, night actual, night scrap)
       // Or simplified: day actual, day scrap, night actual, night scrap
       if (numbers.length >= 4) {
@@ -717,18 +729,24 @@ class JobcardParserService {
         }
 
         rows.add(ProductionTableRow(
-          date: ConfidenceValue(value: date ?? DateTime.now().toIso8601String().split('T')[0], confidence: date != null ? 0.8 : 0.3),
-          dayCounterStart: ConfidenceValue(value: dayCounterStart, confidence: 0.7),
+          date: ConfidenceValue(
+              value: date ?? DateTime.now().toIso8601String().split('T')[0],
+              confidence: date != null ? 0.8 : 0.3),
+          dayCounterStart:
+              ConfidenceValue(value: dayCounterStart, confidence: 0.7),
           dayCounterEnd: ConfidenceValue(value: dayCounterEnd, confidence: 0.7),
           dayActual: ConfidenceValue(value: dayActual, confidence: 0.8),
           dayScrap: ConfidenceValue(value: dayScrap, confidence: 0.8),
-          nightCounterStart: ConfidenceValue(value: nightCounterStart, confidence: 0.7),
-          nightCounterEnd: ConfidenceValue(value: nightCounterEnd, confidence: 0.7),
+          nightCounterStart:
+              ConfidenceValue(value: nightCounterStart, confidence: 0.7),
+          nightCounterEnd:
+              ConfidenceValue(value: nightCounterEnd, confidence: 0.7),
           nightActual: ConfidenceValue(value: nightActual, confidence: 0.8),
           nightScrap: ConfidenceValue(value: nightScrap, confidence: 0.8),
         ));
 
-        print('Extracted production row: Day ${dayActual}/${dayScrap}, Night ${nightActual}/${nightScrap}');
+        print(
+            'Extracted production row: Day ${dayActual}/${dayScrap}, Night ${nightActual}/${nightScrap}');
       }
     }
 
@@ -743,9 +761,9 @@ class JobcardParserService {
       int day = int.parse(parts[0]);
       int month = int.parse(parts[1]);
       int year = int.parse(parts[2]);
-      
+
       if (year < 100) year += 2000;
-      
+
       return '$year-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
     }
     return dateStr;

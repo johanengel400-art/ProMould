@@ -212,7 +212,7 @@ class _JobcardReviewScreenState extends State<JobcardReviewScreen> {
   Future<void> _addProductionData(Map existingJob) async {
     // Verify job is on same machine
     final currentMachine = existingJob['machineId'] as String?;
-    
+
     if (currentMachine == null || currentMachine.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -225,7 +225,7 @@ class _JobcardReviewScreenState extends State<JobcardReviewScreen> {
 
     // Add production rows to Daily Production Sheet
     final dpsBox = Hive.box('dailyProductionBox');
-    
+
     for (final row in widget.jobcardData.productionRows) {
       final dpsId = uuid.v4();
       final dpsEntry = {
@@ -255,17 +255,20 @@ class _JobcardReviewScreenState extends State<JobcardReviewScreen> {
     // Update job's actual count
     final totalActual = widget.jobcardData.productionRows.fold<int>(
       0,
-      (sum, row) => sum + (row.dayActual.value ?? 0) + (row.nightActual.value ?? 0),
+      (sum, row) =>
+          sum + (row.dayActual.value ?? 0) + (row.nightActual.value ?? 0),
     );
-    
-    existingJob['shotsCompleted'] = (existingJob['shotsCompleted'] ?? 0) + totalActual;
+
+    existingJob['shotsCompleted'] =
+        (existingJob['shotsCompleted'] ?? 0) + totalActual;
     await Hive.box('jobsBox').put(existingJob['id'], existingJob);
     await SyncService.pushChange('jobsBox', existingJob['id'], existingJob);
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Added ${widget.jobcardData.productionRows.length} production entries to existing job'),
+          content: Text(
+              'Added ${widget.jobcardData.productionRows.length} production entries to existing job'),
           backgroundColor: Colors.green,
         ),
       );
@@ -594,9 +597,8 @@ class _JobcardReviewScreenState extends State<JobcardReviewScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    ...widget.jobcardData.productionRows.map((row) => 
-                      _buildProductionRow(row)
-                    ),
+                    ...widget.jobcardData.productionRows
+                        .map((row) => _buildProductionRow(row)),
                     const SizedBox(height: 24),
                   ],
 
@@ -699,10 +701,12 @@ class _JobcardReviewScreenState extends State<JobcardReviewScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Day Shift', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                    const Text('Day Shift',
+                        style: TextStyle(fontSize: 12, color: Colors.grey)),
                     Text('Actual: ${row.dayActual.value ?? 0}'),
                     Text('Scrap: ${row.dayScrap.value ?? 0}'),
-                    Text('Scrap Rate: ${row.dayScrapRate.toStringAsFixed(1)}%',
+                    Text(
+                      'Scrap Rate: ${row.dayScrapRate.toStringAsFixed(1)}%',
                       style: TextStyle(
                         color: row.dayScrapRate > 5 ? Colors.red : Colors.green,
                         fontWeight: FontWeight.bold,
@@ -715,12 +719,15 @@ class _JobcardReviewScreenState extends State<JobcardReviewScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Night Shift', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                    const Text('Night Shift',
+                        style: TextStyle(fontSize: 12, color: Colors.grey)),
                     Text('Actual: ${row.nightActual.value ?? 0}'),
                     Text('Scrap: ${row.nightScrap.value ?? 0}'),
-                    Text('Scrap Rate: ${row.nightScrapRate.toStringAsFixed(1)}%',
+                    Text(
+                      'Scrap Rate: ${row.nightScrapRate.toStringAsFixed(1)}%',
                       style: TextStyle(
-                        color: row.nightScrapRate > 5 ? Colors.red : Colors.green,
+                        color:
+                            row.nightScrapRate > 5 ? Colors.red : Colors.green,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
