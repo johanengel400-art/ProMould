@@ -10,7 +10,7 @@ import 'package:path_provider/path_provider.dart';
 class DailyProductionSheetScreen extends StatefulWidget {
   final String username;
   final int level;
-  
+
   const DailyProductionSheetScreen({
     super.key,
     required this.username,
@@ -18,10 +18,12 @@ class DailyProductionSheetScreen extends StatefulWidget {
   });
 
   @override
-  State<DailyProductionSheetScreen> createState() => _DailyProductionSheetScreenState();
+  State<DailyProductionSheetScreen> createState() =>
+      _DailyProductionSheetScreenState();
 }
 
-class _DailyProductionSheetScreenState extends State<DailyProductionSheetScreen> {
+class _DailyProductionSheetScreenState
+    extends State<DailyProductionSheetScreen> {
   final uuid = const Uuid();
   String selectedFloor = '16A';
   DateTime selectedDate = DateTime.now();
@@ -159,7 +161,8 @@ class _DailyProductionSheetScreenState extends State<DailyProductionSheetScreen>
                                 children: [
                                   Text(
                                     entry['jobName'] ?? 'Unknown',
-                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold),
                                   ),
                                   Text(
                                     entry['color'] ?? '',
@@ -237,20 +240,24 @@ class _DailyProductionSheetScreenState extends State<DailyProductionSheetScreen>
   }
 
   List<Map> _getFilteredEntries(Box box) {
-    final dateStr = '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
-    
-    return box.values.where((entry) {
-      final entryDate = entry['date'] as String?;
-      final machineId = entry['machineId'] as String?;
-      
-      if (entryDate != dateStr) return false;
-      
-      // Filter by floor
-      final machine = _getMachine(machineId);
-      if (machine == null) return false;
-      
-      return machine['floor'] == selectedFloor;
-    }).cast<Map>().toList();
+    final dateStr =
+        '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
+
+    return box.values
+        .where((entry) {
+          final entryDate = entry['date'] as String?;
+          final machineId = entry['machineId'] as String?;
+
+          if (entryDate != dateStr) return false;
+
+          // Filter by floor
+          final machine = _getMachine(machineId);
+          if (machine == null) return false;
+
+          return machine['floor'] == selectedFloor;
+        })
+        .cast<Map>()
+        .toList();
   }
 
   Map? _getMachine(String? machineId) {
@@ -300,7 +307,8 @@ class _DailyProductionSheetScreenState extends State<DailyProductionSheetScreen>
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Entry'),
-        content: const Text('Are you sure you want to delete this production entry?'),
+        content: const Text(
+            'Are you sure you want to delete this production entry?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -332,7 +340,7 @@ class _DailyProductionSheetScreenState extends State<DailyProductionSheetScreen>
 
     try {
       final entries = _getFilteredEntries(Hive.box('dailyProductionBox'));
-      
+
       if (entries.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('No data to export')),
@@ -351,7 +359,8 @@ class _DailyProductionSheetScreenState extends State<DailyProductionSheetScreen>
               children: [
                 pw.Text(
                   'Daily Production Sheet - Floor $selectedFloor',
-                  style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
+                  style: pw.TextStyle(
+                      fontSize: 20, fontWeight: pw.FontWeight.bold),
                 ),
                 pw.Text(
                   'Date: ${selectedDate.day}/${selectedDate.month}/${selectedDate.year}',
