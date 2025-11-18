@@ -18,18 +18,6 @@ class ValidationService {
 
   /// Auto-correct common OCR errors
   JobcardData _autoCorrectOCRErrors(JobcardData data) {
-    // Common OCR substitutions
-    final corrections = {
-      '0': 'O',
-      'O': '0',
-      '1': 'I',
-      'I': '1',
-      '5': 'S',
-      'S': '5',
-      '8': 'B',
-      'B': '8',
-    };
-
     // Correct works order number
     var worksOrderNo = data.worksOrderNo.value;
     if (worksOrderNo != null) {
@@ -37,10 +25,10 @@ class ValidationService {
       worksOrderNo = _applyContextualCorrections(worksOrderNo, isNumeric: true);
     }
 
-    // Correct FG code
-    var fgCode = data.fgCode.value;
-    if (fgCode != null) {
-      fgCode = _applyContextualCorrections(fgCode, isAlphanumeric: true);
+    // Correct job name
+    var jobName = data.jobName.value;
+    if (jobName != null) {
+      jobName = _applyContextualCorrections(jobName, isAlphanumeric: true);
     }
 
     return JobcardData(
@@ -48,19 +36,18 @@ class ValidationService {
         value: worksOrderNo,
         confidence: data.worksOrderNo.confidence,
       ),
-      barcode: data.barcode,
-      fgCode: ConfidenceValue(
-        value: fgCode,
-        confidence: data.fgCode.confidence,
+      jobName: ConfidenceValue(
+        value: jobName,
+        confidence: data.jobName.confidence,
       ),
-      dateStarted: data.dateStarted,
+      color: data.color,
+      cycleWeightGrams: data.cycleWeightGrams,
       quantityToManufacture: data.quantityToManufacture,
       dailyOutput: data.dailyOutput,
-      cycleTimeSeconds: data.cycleTimeSeconds,
-      cycleWeightGrams: data.cycleWeightGrams,
-      cavity: data.cavity,
+      targetCycleDay: data.targetCycleDay,
+      targetCycleNight: data.targetCycleNight,
+      productionRows: data.productionRows,
       rawMaterials: data.rawMaterials,
-      counters: data.counters,
       rawOcrText: data.rawOcrText,
       verificationNeeded: data.verificationNeeded,
       timestamp: data.timestamp,
@@ -111,61 +98,49 @@ class ValidationService {
       }
     }
 
-    // Validate cycle time
-    if (data.cycleTimeSeconds.value != null) {
-      if (data.cycleTimeSeconds.value! < 1 ||
-          data.cycleTimeSeconds.value! > 3600) {
+    // Validate cycle weight
+    if (data.cycleWeightGrams.value != null) {
+      if (data.cycleWeightGrams.value! < 1 ||
+          data.cycleWeightGrams.value! > 100000) {
         issues.add(VerificationIssue(
-          field: 'cycleTimeSeconds',
-          reason: 'Cycle time should be between 1-3600 seconds',
+          field: 'cycleWeightGrams',
+          reason: 'Cycle weight should be between 1-100000 grams',
         ));
       }
     }
 
-    // Validate date
-    if (data.dateStarted.value != null) {
-      try {
-        final date = DateTime.parse(data.dateStarted.value!);
-        final now = DateTime.now();
-        final oneYearAgo = now.subtract(const Duration(days: 365));
-        final oneMonthAhead = now.add(const Duration(days: 30));
-
-        if (date.isBefore(oneYearAgo) || date.isAfter(oneMonthAhead)) {
-          issues.add(VerificationIssue(
-            field: 'dateStarted',
-            reason: 'Date seems unusual (too far in past or future)',
-          ));
-        }
-      } catch (e) {
+    // Validate target cycles
+    if (data.targetCycleDay.value != null) {
+      if (data.targetCycleDay.value! < 0 ||
+          data.targetCycleDay.value! > 10000) {
         issues.add(VerificationIssue(
-          field: 'dateStarted',
-          reason: 'Invalid date format',
+          field: 'targetCycleDay',
+          reason: 'Target cycle day seems unusual',
         ));
       }
     }
 
-    // Validate cavity
-    if (data.cavity.value != null) {
-      if (data.cavity.value! < 1 || data.cavity.value! > 128) {
+    if (data.targetCycleNight.value != null) {
+      if (data.targetCycleNight.value! < 0 ||
+          data.targetCycleNight.value! > 10000) {
         issues.add(VerificationIssue(
-          field: 'cavity',
-          reason: 'Cavity count should be between 1-128',
+          field: 'targetCycleNight',
+          reason: 'Target cycle night seems unusual',
         ));
       }
     }
 
     return JobcardData(
       worksOrderNo: data.worksOrderNo,
-      barcode: data.barcode,
-      fgCode: data.fgCode,
-      dateStarted: data.dateStarted,
+      jobName: data.jobName,
+      color: data.color,
+      cycleWeightGrams: data.cycleWeightGrams,
       quantityToManufacture: data.quantityToManufacture,
       dailyOutput: data.dailyOutput,
-      cycleTimeSeconds: data.cycleTimeSeconds,
-      cycleWeightGrams: data.cycleWeightGrams,
-      cavity: data.cavity,
+      targetCycleDay: data.targetCycleDay,
+      targetCycleNight: data.targetCycleNight,
+      productionRows: data.productionRows,
       rawMaterials: data.rawMaterials,
-      counters: data.counters,
       rawOcrText: data.rawOcrText,
       verificationNeeded: issues,
       timestamp: data.timestamp,
@@ -180,26 +155,21 @@ class ValidationService {
 
     // Uppercase codes
     worksOrderNo = worksOrderNo?.toUpperCase();
-    fgCode = fgCode?.toUpperCase();
 
     return JobcardData(
       worksOrderNo: ConfidenceValue(
         value: worksOrderNo,
         confidence: data.worksOrderNo.confidence,
       ),
-      barcode: data.barcode,
-      fgCode: ConfidenceValue(
-        value: fgCode,
-        confidence: data.fgCode.confidence,
-      ),
-      dateStarted: data.dateStarted,
+      jobName: data.jobName,
+      color: data.color,
+      cycleWeightGrams: data.cycleWeightGrams,
       quantityToManufacture: data.quantityToManufacture,
       dailyOutput: data.dailyOutput,
-      cycleTimeSeconds: data.cycleTimeSeconds,
-      cycleWeightGrams: data.cycleWeightGrams,
-      cavity: data.cavity,
+      targetCycleDay: data.targetCycleDay,
+      targetCycleNight: data.targetCycleNight,
+      productionRows: data.productionRows,
       rawMaterials: data.rawMaterials,
-      counters: data.counters,
       rawOcrText: data.rawOcrText,
       verificationNeeded: data.verificationNeeded,
       timestamp: data.timestamp,
@@ -223,16 +193,16 @@ class ValidationService {
       }
     }
 
-    // Check for similar FG codes
-    if (data.fgCode.value != null) {
+    // Check for similar job names
+    if (data.jobName.value != null) {
       final similar = existingJobs.where((job) {
-        final jobFgCode = job['fgCode'] as String?;
-        if (jobFgCode == null) return false;
-        return _calculateSimilarity(jobFgCode, data.fgCode.value!) > 0.8;
+        final jobName = job['productName'] as String?;
+        if (jobName == null) return false;
+        return _calculateSimilarity(jobName, data.jobName.value!) > 0.8;
       }).toList();
 
       if (similar.isNotEmpty) {
-        warnings.add('Similar FG code found: ${similar.first['fgCode']}');
+        warnings.add('Similar job name found: ${similar.first['productName']}');
       }
     }
 
