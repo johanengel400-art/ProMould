@@ -151,7 +151,7 @@ class ValidationService {
   JobcardData _normalizeData(JobcardData data) {
     // Trim whitespace
     var worksOrderNo = data.worksOrderNo.value?.trim();
-    var fgCode = data.fgCode.value?.trim();
+    var jobName = data.jobName.value?.trim();
 
     // Uppercase codes
     worksOrderNo = worksOrderNo?.toUpperCase();

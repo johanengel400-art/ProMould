@@ -48,19 +48,19 @@ class LearningSystem {
 
     if (original.fgCode.value != corrected.fgCode.value) {
       corrections.add({
-        'field': 'fgCode',
-        'original': original.fgCode.value,
-        'corrected': corrected.fgCode.value,
-        'confidence': original.fgCode.confidence,
+        'field': 'jobName',
+        'original': original.jobName.value,
+        'corrected': corrected.jobName.value,
+        'confidence': original.jobName.confidence,
       });
     }
 
-    if (original.dateStarted.value != corrected.dateStarted.value) {
+    if (original.color.value != corrected.color.value) {
       corrections.add({
-        'field': 'dateStarted',
-        'original': original.dateStarted.value,
-        'corrected': corrected.dateStarted.value,
-        'confidence': original.dateStarted.confidence,
+        'field': 'color',
+        'original': original.color.value,
+        'corrected': corrected.color.value,
+        'confidence': original.color.confidence,
       });
     }
 
@@ -174,23 +174,23 @@ class LearningSystem {
     int matches = 0;
     int total = 0;
 
-    // Compare FG code
-    if (a.fgCode.value != null && b.fgCode.value != null) {
-      if (a.fgCode.value == b.fgCode.value) matches++;
+    // Compare job name
+    if (a.jobName.value != null && b.jobName.value != null) {
+      if (a.jobName.value == b.jobName.value) matches++;
       total++;
     }
 
-    // Compare cycle time
-    if (a.cycleTimeSeconds.value != null && b.cycleTimeSeconds.value != null) {
+    // Compare color
+    if (a.color.value != null && b.color.value != null) {
+      if (a.color.value == b.color.value) matches++;
+      total++;
+    }
+
+    // Compare cycle weight
+    if (a.cycleWeightGrams.value != null && b.cycleWeightGrams.value != null) {
       final diff =
-          (a.cycleTimeSeconds.value! - b.cycleTimeSeconds.value!).abs();
-      if (diff < 5) matches++; // Within 5 seconds
-      total++;
-    }
-
-    // Compare cavity
-    if (a.cavity.value != null && b.cavity.value != null) {
-      if (a.cavity.value == b.cavity.value) matches++;
+          (a.cycleWeightGrams.value! - b.cycleWeightGrams.value!).abs();
+      if (diff < 100) matches++; // Within 100 grams
       total++;
     }
 
