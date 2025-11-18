@@ -46,7 +46,7 @@ class LearningSystem {
       });
     }
 
-    if (original.fgCode.value != corrected.fgCode.value) {
+    if (original.jobName.value != corrected.jobName.value) {
       corrections.add({
         'field': 'jobName',
         'original': original.jobName.value,

@@ -149,12 +149,8 @@ class ValidationService {
 
   /// Normalize data
   JobcardData _normalizeData(JobcardData data) {
-    // Trim whitespace
-    var worksOrderNo = data.worksOrderNo.value?.trim();
-    var jobName = data.jobName.value?.trim();
-
-    // Uppercase codes
-    worksOrderNo = worksOrderNo?.toUpperCase();
+    // Trim whitespace and uppercase codes
+    var worksOrderNo = data.worksOrderNo.value?.trim().toUpperCase();
 
     return JobcardData(
       worksOrderNo: ConfidenceValue(
