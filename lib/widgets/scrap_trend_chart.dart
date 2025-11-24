@@ -81,13 +81,13 @@ class ScrapTrendChart extends StatelessWidget {
         majorGridLines: const MajorGridLines(width: 0),
         edgeLabelPlacement: EdgeLabelPlacement.shift,
       ),
-      primaryYAxis: NumericAxis(
+      primaryYAxis: const NumericAxis(
         title: AxisTitle(text: 'Scrap Rate (%)'),
         minimum: 0,
         maximum: 15,
         interval: 5,
-        axisLine: const AxisLine(width: 0),
-        majorTickLines: const MajorTickLines(size: 0),
+        axisLine: AxisLine(width: 0),
+        majorTickLines: MajorTickLines(size: 0),
       ),
       tooltipBehavior: TooltipBehavior(
         enable: true,

@@ -153,7 +153,7 @@ class MultiPassOCR {
       text: mergedText,
       recognizedText: bestResult.recognizedText,
       confidence: bestResult.confidence,
-      engine: '${results.map((r) => r.engine).join(' + ')}',
+      engine: results.map((r) => r.engine).join(' + '),
       alternativeResults: results.skip(1).toList(),
     );
   }

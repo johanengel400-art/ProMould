@@ -86,7 +86,7 @@ class LearningSystem {
   /// Get suggestions based on learning history
   Future<List<String>> getSuggestions(JobcardData data) async {
     final suggestions = <String>[];
-    final correctionsBox = await Hive.openBox(_correctionsBox);
+    await Hive.openBox(_correctionsBox);
 
     // Analyze common corrections
     final commonCorrections = await _getCommonCorrections();

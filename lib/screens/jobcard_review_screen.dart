@@ -209,7 +209,7 @@ class _JobcardReviewScreenState extends State<JobcardReviewScreen> {
     }
   }
 
-  Future<void> _addProductionData(Map<dynamic, dynamic> existingJob) async {
+  Future<void> _addProductionData(Map<String, dynamic> existingJob) async {
     // Verify job is on same machine
     final currentMachine = existingJob['machineId'] as String?;
 

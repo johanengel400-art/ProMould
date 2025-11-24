@@ -1,4 +1,5 @@
 /// Jobcard data models matching ONA_jobcard_parser_spec.md
+library;
 
 class ConfidenceValue<T> {
   final T? value;

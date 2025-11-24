@@ -161,7 +161,6 @@ class SpatialParser {
     TextLine line,
     List<double> columnPositions,
   ) {
-    final row = <String>[];
     final elements = line.elements.toList();
 
     // Sort elements by x position

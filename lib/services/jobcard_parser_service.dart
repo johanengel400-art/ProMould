@@ -1,6 +1,7 @@
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
 import '../utils/jobcard_models.dart';
+import 'log_service.dart';
 
 class JobcardParserService {
   final TextRecognizer _textRecognizer = TextRecognizer();
@@ -9,10 +10,10 @@ class JobcardParserService {
   /// Parse a jobcard image and extract structured data
   Future<JobcardData?> parseJobcard(String imagePath) async {
     try {
-      print('JobcardParser: Creating input image from $imagePath');
+      LogService.debug('JobcardParser: Creating input image from $imagePath');
       final inputImage = InputImage.fromFilePath(imagePath);
 
-      print('JobcardParser: Running OCR and barcode scanning...');
+      LogService.debug('JobcardParser: Running OCR and barcode scanning...');
       // Run OCR and barcode scanning in parallel
       final results = await Future.wait([
         _textRecognizer.processImage(inputImage),
@@ -22,26 +23,26 @@ class JobcardParserService {
       final recognizedText = results[0] as RecognizedText;
       final barcodes = results[1] as List<Barcode>;
 
-      print('JobcardParser: OCR text length: ${recognizedText.text.length}');
-      print('JobcardParser: Barcodes found: ${barcodes.length}');
+      LogService.debug('JobcardParser: OCR text length: ${recognizedText.text.length}');
+      LogService.debug('JobcardParser: Barcodes found: ${barcodes.length}');
 
       // Return partial data even if text is minimal
       if (recognizedText.text.isEmpty && barcodes.isEmpty) {
-        print('JobcardParser: No text or barcodes found');
+        LogService.debug('JobcardParser: No text or barcodes found');
         return null;
       }
 
       // Extract data from OCR text
-      print('JobcardParser: Extracting data...');
+      LogService.debug('JobcardParser: Extracting data...');
       final jobcardData = _extractJobcardData(
         recognizedText,
         barcodes,
       );
 
-      print('JobcardParser: Extraction complete');
+      LogService.debug('JobcardParser: Extraction complete');
       return jobcardData;
     } catch (e) {
-      print('JobcardParser ERROR: $e');
+      LogService.error('JobcardParser ERROR', e);
       return null;
     }
   }
@@ -54,9 +55,9 @@ class JobcardParserService {
     final lines = fullText.split('\n');
     final verificationNeeded = <VerificationIssue>[];
 
-    print('JobcardParser: Full text (${fullText.length} chars):');
-    print(fullText.substring(0, fullText.length > 200 ? 200 : fullText.length));
-    print('JobcardParser: Lines: ${lines.length}');
+    LogService.debug('JobcardParser: Full text (${fullText.length} chars):');
+    LogService.debug(fullText.substring(0, fullText.length > 200 ? 200 : fullText.length));
+    LogService.debug('JobcardParser: Lines: ${lines.length}');
 
     // Extract barcode
     String? barcodeValue;
@@ -64,7 +65,7 @@ class JobcardParserService {
     if (barcodes.isNotEmpty) {
       barcodeValue = barcodes.first.displayValue;
       barcodeConfidence = 1.0;
-      print('JobcardParser: Barcode found: $barcodeValue');
+      LogService.debug('JobcardParser: Barcode found: $barcodeValue');
     }
 
     // Extract required fields
@@ -146,14 +147,14 @@ class JobcardParserService {
             // Example: "50LT Coolbox Outer- CampMastr Blue" -> "50LT Coolbox Outer"
             final parts = nextLine.split(RegExp(r'-\s*'));
             final jobName = parts[0].trim();
-            print('Found job name: $jobName');
+            LogService.debug('Found job name: $jobName');
             return ConfidenceValue(value: jobName, confidence: 0.85);
           }
         }
       }
     }
 
-    print('No job name found');
+    LogService.debug('No job name found');
     return ConfidenceValue(value: null, confidence: 0.0);
   }
 
@@ -176,7 +177,7 @@ class JobcardParserService {
             final parts = nextLine.split(RegExp(r'-\s*'));
             if (parts.length > 1) {
               final color = parts[1].trim();
-              print('Found color: $color');
+              LogService.debug('Found color: $color');
               return ConfidenceValue(value: color, confidence: 0.85);
             }
           }
@@ -184,7 +185,7 @@ class JobcardParserService {
       }
     }
 
-    print('No color found');
+    LogService.debug('No color found');
     return ConfidenceValue(value: null, confidence: 0.0);
   }
 
@@ -194,7 +195,7 @@ class JobcardParserService {
   ) {
     // If barcode exists, use it as authoritative
     if (barcodeValue != null && barcodeValue.isNotEmpty) {
-      print('Using barcode as works order: $barcodeValue');
+      LogService.debug('Using barcode as works order: $barcodeValue');
       return ConfidenceValue(value: barcodeValue, confidence: 1.0);
     }
 
@@ -213,7 +214,7 @@ class JobcardParserService {
               .firstMatch(nextLine);
           if (match != null) {
             final value = match.group(1)!;
-            print('Found works order on next line: $value');
+            LogService.debug('Found works order on next line: $value');
             return ConfidenceValue(value: value, confidence: 0.9);
           }
         }
@@ -231,7 +232,7 @@ class JobcardParserService {
         final match = pattern.firstMatch(line);
         if (match != null && match.group(1) != null) {
           final value = match.group(1)!.trim();
-          print('Found works order same line: $value');
+          LogService.debug('Found works order same line: $value');
           return ConfidenceValue(value: value, confidence: 0.85);
         }
       }
@@ -243,12 +244,12 @@ class JobcardParserService {
           RegExp(r'\b(JC\d{6})\b', caseSensitive: false).firstMatch(line);
       if (match != null) {
         final value = match.group(1)!;
-        print('Found works order pattern: $value');
+        LogService.debug('Found works order pattern: $value');
         return ConfidenceValue(value: value, confidence: 0.7);
       }
     }
 
-    print('No works order found');
+    LogService.debug('No works order found');
     return ConfidenceValue(value: null, confidence: 0.0);
   }
 
@@ -267,7 +268,7 @@ class JobcardParserService {
               .firstMatch(nextLine);
           if (match != null) {
             final value = match.group(1)!;
-            print('Found FG code on next line: $value');
+            LogService.debug('Found FG code on next line: $value');
             return ConfidenceValue(value: value, confidence: 0.9);
           }
         }
@@ -286,7 +287,7 @@ class JobcardParserService {
         final match = pattern.firstMatch(line);
         if (match != null && match.group(1) != null) {
           final value = match.group(1)!.trim();
-          print('Found FG code same line: $value');
+          LogService.debug('Found FG code same line: $value');
           return ConfidenceValue(value: value, confidence: 0.85);
         }
       }
@@ -299,12 +300,12 @@ class JobcardParserService {
           .firstMatch(line);
       if (match != null) {
         final value = match.group(1)!;
-        print('Found FG code pattern: $value');
+        LogService.debug('Found FG code pattern: $value');
         return ConfidenceValue(value: value, confidence: 0.7);
       }
     }
 
-    print('No FG code found');
+    LogService.debug('No FG code found');
     return ConfidenceValue(value: null, confidence: 0.0);
   }
 
@@ -331,7 +332,7 @@ class JobcardParserService {
 
             final isoDate =
                 '$year-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
-            print('Found date started on next line: $isoDate');
+            LogService.debug('Found date started on next line: $isoDate');
             return ConfidenceValue(value: isoDate, confidence: 0.9);
           }
         }
@@ -348,7 +349,7 @@ class JobcardParserService {
 
           final isoDate =
               '$year-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
-          print('Found date started same line: $isoDate');
+          LogService.debug('Found date started same line: $isoDate');
           return ConfidenceValue(value: isoDate, confidence: 0.85);
         }
       }
@@ -366,7 +367,7 @@ class JobcardParserService {
 
           final isoDate =
               '$year-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
-          print('Found date from Opened status: $isoDate');
+          LogService.debug('Found date from Opened status: $isoDate');
           return ConfidenceValue(value: isoDate, confidence: 0.7);
         }
       }
@@ -391,7 +392,7 @@ class JobcardParserService {
             final valueStr = match.group(1)!.replaceAll(',', '');
             final value = double.tryParse(valueStr)?.toInt();
             if (value != null) {
-              print('Found quantity on next line: $value');
+              LogService.debug('Found quantity on next line: $value');
               return ConfidenceValue(value: value, confidence: 0.9);
             }
           }
@@ -427,7 +428,7 @@ class JobcardParserService {
             final valueStr = match.group(1)!.replaceAll(',', '');
             final value = double.tryParse(valueStr)?.toInt();
             if (value != null) {
-              print('Found daily output on next line: $value');
+              LogService.debug('Found daily output on next line: $value');
               return ConfidenceValue(value: value, confidence: 0.9);
             }
           }
@@ -445,32 +446,6 @@ class JobcardParserService {
     );
   }
 
-  ConfidenceValue<int> _extractCycleTime(List<String> lines) {
-    // Look for patterns like "85 seconds" or "Cycle Time: 85"
-    final patterns = [
-      RegExp(r'cycle\s*time\s*:?\s*([\d,]+)', caseSensitive: false),
-      RegExp(r'([\d,]+)\s*seconds?', caseSensitive: false),
-      RegExp(r'cycle\s*:?\s*([\d,]+)\s*s', caseSensitive: false),
-    ];
-
-    for (final line in lines) {
-      for (final pattern in patterns) {
-        final match = pattern.firstMatch(line);
-        if (match != null && match.group(1) != null) {
-          final valueStr =
-              match.group(1)!.replaceAll(',', '').replaceAll(' ', '');
-          final value = int.tryParse(valueStr);
-          if (value != null && value > 0 && value < 1000) {
-            print('Extracted cycle time: $value from line: $line');
-            return ConfidenceValue(value: value, confidence: 0.8);
-          }
-        }
-      }
-    }
-
-    return ConfidenceValue(value: null, confidence: 0.0);
-  }
-
   ConfidenceValue<double> _extractCycleWeight(List<String> lines) {
     // Look for patterns like "1767 gram" or "Cycle Weight: 1767"
     final patterns = [
@@ -486,7 +461,7 @@ class JobcardParserService {
           final valueStr = match.group(1)!.replaceAll(',', '');
           final value = double.tryParse(valueStr);
           if (value != null && value > 0 && value < 100000) {
-            print('Extracted cycle weight: $value from line: $line');
+            LogService.debug('Extracted cycle weight: $value from line: $line');
             return ConfidenceValue(value: value, confidence: 0.8);
           }
         }
@@ -512,7 +487,7 @@ class JobcardParserService {
           final valueStr = match.group(1)!.replaceAll(',', '');
           final value = double.tryParse(valueStr)?.toInt();
           if (value != null) {
-            print('Extracted target cycle day: $value from line: $line');
+            LogService.debug('Extracted target cycle day: $value from line: $line');
             return ConfidenceValue(value: value, confidence: 0.8);
           }
         }
@@ -538,7 +513,7 @@ class JobcardParserService {
           final valueStr = match.group(1)!.replaceAll(',', '');
           final value = double.tryParse(valueStr)?.toInt();
           if (value != null) {
-            print('Extracted target cycle night: $value from line: $line');
+            LogService.debug('Extracted target cycle night: $value from line: $line');
             return ConfidenceValue(value: value, confidence: 0.8);
           }
         }
@@ -562,7 +537,7 @@ class JobcardParserService {
           final doubleValue = double.tryParse(valueStr);
           if (doubleValue != null) {
             final value = doubleValue.toInt();
-            print('Extracted numeric value: $value from line: $line');
+            LogService.debug('Extracted numeric value: $value from line: $line');
             return ConfidenceValue(value: value, confidence: 0.75);
           }
         }
@@ -579,8 +554,7 @@ class JobcardParserService {
             final doubleValue = double.tryParse(valueStr);
             if (doubleValue != null) {
               final value = doubleValue.toInt();
-              print(
-                  'Extracted numeric value (fallback): $value from line: $line');
+              LogService.debug('Extracted numeric value (fallback): $value from line: $line');
               return ConfidenceValue(value: value, confidence: 0.6);
             }
           }
@@ -618,7 +592,7 @@ class JobcardParserService {
       if (parts.length >= 4) {
         materials.add(RawMaterialEntry(
           store: ConfidenceValue(
-            value: parts.length > 0 ? parts[0] : null,
+            value: parts.isNotEmpty ? parts[0] : null,
             confidence: 0.6,
           ),
           code: ConfidenceValue(
@@ -662,7 +636,7 @@ class JobcardParserService {
     }
 
     if (tableStartIndex == -1) {
-      print('Production table header not found');
+      LogService.debug('Production table header not found');
       return rows;
     }
 
@@ -745,12 +719,11 @@ class JobcardParserService {
           nightScrap: ConfidenceValue(value: nightScrap, confidence: 0.8),
         ));
 
-        print(
-            'Extracted production row: Day ${dayActual}/${dayScrap}, Night ${nightActual}/${nightScrap}');
+        LogService.debug('Extracted production row: Day $dayActual/$dayScrap, Night $nightActual/$nightScrap');
       }
     }
 
-    print('Extracted ${rows.length} production table rows');
+    LogService.debug('Extracted ${rows.length} production table rows');
     return rows;
   }
 

@@ -159,8 +159,9 @@ class OverrunNotificationService {
     final jobId = job['id'] as String;
     final overrunDuration = JobStatus.getOverrunDuration(job);
 
-    if (overrunDuration == null || overrunDuration < _initialThresholdMinutes)
+    if (overrunDuration == null || overrunDuration < _initialThresholdMinutes) {
       return;
+    }
 
     // Only send if we haven't notified recently
     final lastNotification = _lastNotified[jobId];

@@ -117,49 +117,6 @@ class LiveProgressService {
     }
   }
 
-  static Future<void> _handleJobCompletion(
-      String jobId, Map<String, dynamic> finishedJob) async {
-    final jobsBox = Hive.box('jobsBox');
-    final machinesBox = Hive.box('machinesBox');
-    final machineId = finishedJob['machineId'] as String?;
-
-    // Save finished job
-    await jobsBox.put(jobId, finishedJob);
-    await SyncService.pushChange('jobsBox', jobId, finishedJob);
-
-    if (machineId == null) return;
-
-    // Find next queued job for this machine
-    final nextJob = jobsBox.values.cast<Map?>().firstWhere(
-          (j) =>
-              j != null &&
-              j['machineId'] == machineId &&
-              j['status'] == 'Queued',
-          orElse: () => null,
-        );
-
-    if (nextJob != null) {
-      // Start next job
-      final nextJobId = nextJob['id'] as String;
-      final updatedNext = Map<String, dynamic>.from(nextJob);
-      updatedNext['status'] = 'Running';
-      updatedNext['startTime'] = DateTime.now().toIso8601String();
-      await jobsBox.put(nextJobId, updatedNext);
-      await SyncService.pushChange('jobsBox', nextJobId, updatedNext);
-      LogService.info('Started next job: ${updatedNext['productName']}');
-    } else {
-      // No more jobs - set machine to Idle
-      final machine = machinesBox.get(machineId) as Map?;
-      if (machine != null) {
-        final updatedMachine = Map<String, dynamic>.from(machine);
-        updatedMachine['status'] = 'Idle';
-        await machinesBox.put(machineId, updatedMachine);
-        await SyncService.pushChange('machinesBox', machineId, updatedMachine);
-        LogService.info('Machine ${machine['name']} set to Idle');
-      }
-    }
-  }
-
   /// Call this when user manually inputs shots to reset the baseline
   static Future<void> recordManualInput(String jobId, int actualShots) async {
     final jobsBox = Hive.box('jobsBox');

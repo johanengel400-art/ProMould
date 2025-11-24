@@ -93,7 +93,7 @@ class ImagePreprocessing {
       if (image == null) return imagePath;
 
       // Simple auto-crop: remove 5% from each edge
-      final cropMargin = 0.05;
+      const cropMargin = 0.05;
       final cropX = (image.width * cropMargin).toInt();
       final cropY = (image.height * cropMargin).toInt();
       final cropWidth = image.width - (cropX * 2);
