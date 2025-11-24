@@ -3,7 +3,7 @@ import 'package:hive/hive.dart';
 import 'log_service.dart';
 
 /// Firebase Authentication service for production use
-/// 
+///
 /// This service integrates Firebase Auth with the existing Hive-based
 /// user system. It creates Firebase users from Hive users and manages
 /// authentication state.
@@ -37,9 +37,10 @@ class FirebaseAuthService {
   static bool get isAuthenticated => currentUser != null;
 
   /// Sign in with email and password
-  /// 
+  ///
   /// For migration: uses username as email (username@promould.local)
-  static Future<UserCredential?> signIn(String username, String password) async {
+  static Future<UserCredential?> signIn(
+      String username, String password) async {
     try {
       final email = _usernameToEmail(username);
       LogService.debug('Attempting Firebase sign in: $email');
@@ -53,13 +54,13 @@ class FirebaseAuthService {
       return credential;
     } on FirebaseAuthException catch (e) {
       LogService.warning('Firebase sign in failed: ${e.code}');
-      
+
       // If user doesn't exist in Firebase, try to migrate from Hive
       if (e.code == 'user-not-found') {
         LogService.info('User not in Firebase, attempting migration...');
         return await _migrateAndSignIn(username, password);
       }
-      
+
       rethrow;
     } catch (e) {
       LogService.error('Unexpected error during sign in', e);
@@ -106,9 +107,7 @@ class FirebaseAuthService {
       if (usersBox.containsKey(username)) {
         hiveUser = usersBox.get(username) as Map?;
       } else {
-        hiveUser = usersBox.values
-            .cast<Map>()
-            .firstWhere(
+        hiveUser = usersBox.values.cast<Map>().firstWhere(
               (u) => u['username'] == username,
               orElse: () => {},
             );
