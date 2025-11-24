@@ -35,16 +35,26 @@ This guide walks you through migrating from the current insecure setup to a prod
 
 ---
 
-### Step 2: Add Firebase Auth Dependency (2 minutes)
+### Step 2: Enable Firebase Auth (5 minutes)
 
-The dependency is already added in `pubspec.yaml`:
+**A. Uncomment dependency in `pubspec.yaml`:**
+```yaml
+# firebase_auth: ^5.3.1  # Temporarily disabled
+```
+Change to:
 ```yaml
 firebase_auth: ^5.3.1
 ```
 
-Run:
+**B. Rename the service file:**
+```bash
+mv lib/services/firebase_auth_service.dart.disabled lib/services/firebase_auth_service.dart
+```
+
+**C. Clean and rebuild:**
 ```bash
 cd /workspaces/ProMould
+flutter clean
 flutter pub get
 ```
 
