@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
 import '../utils/jobcard_models.dart';
@@ -86,7 +87,7 @@ class ImprovedJobcardParser {
       null,
     );
 
-    final quantity = _extractNumericFieldByLabel(
+    final quantityToManufacture = _extractNumericFieldByLabel(
       textElements,
       ['quantity to manufacture', 'quantity', 'qty to manufacture'],
     );
@@ -96,7 +97,7 @@ class ImprovedJobcardParser {
       ['daily output', 'daily qty'],
     );
 
-    final cycleWeight = _extractNumericFieldByLabel(
+    final cycleWeightGrams = _extractNumericFieldByLabel(
       textElements,
       ['cycle weight', 'weight'],
     );
@@ -118,21 +119,37 @@ class ImprovedJobcardParser {
     LogService.info('  Works Order: ${worksOrderNo.value}');
     LogService.info('  Job Name: ${jobName.value}');
     LogService.info('  Color: ${color.value}');
-    LogService.info('  Quantity: ${quantity.value}');
+    LogService.info('  Quantity: ${quantityToManufacture.value}');
     LogService.info('  Production rows: ${productionRows.length}');
+
+    // Convert int to double for cycleWeightGrams
+    final cycleWeightDouble = cycleWeightGrams.value != null 
+        ? ConfidenceValue<double>(
+            value: cycleWeightGrams.value!.toDouble(),
+            confidence: cycleWeightGrams.confidence,
+          )
+        : ConfidenceValue<double>(value: null, confidence: 0.0);
 
     return JobcardData(
       worksOrderNo: worksOrderNo,
       jobName: jobName,
       color: color,
-      quantity: quantity,
+      quantityToManufacture: quantityToManufacture,
       dailyOutput: dailyOutput,
-      cycleWeight: cycleWeight,
+      cycleWeightGrams: cycleWeightDouble,
       targetCycleDay: targetCycleDay,
       targetCycleNight: targetCycleNight,
       productionRows: productionRows,
       rawMaterials: [],
+      rawOcrText: ConfidenceValue(
+        value: recognizedText.text,
+        confidence: 1.0,
+      ),
       verificationNeeded: verificationNeeded,
+      timestamp: ConfidenceValue(
+        value: DateTime.now().toIso8601String(),
+        confidence: 1.0,
+      ),
     );
   }
 
@@ -251,7 +268,7 @@ class ImprovedJobcardParser {
   }
 
   /// Extract production table using spatial alignment
-  List<ProductionRow> _extractProductionTable(
+  List<ProductionTableRow> _extractProductionTable(
     List<TextElementWithPosition> elements,
   ) {
     final rows = <ProductionRow>[];
@@ -338,7 +355,7 @@ class ImprovedJobcardParser {
 
       if (numbers.length >= 4) {
         // Assume order: dayCounterStart, dayCounterEnd, dayActual, dayScrap, nightCounterStart, nightCounterEnd, nightActual, nightScrap
-        rows.add(ProductionRow(
+        rows.add(ProductionTableRow(
           date: ConfidenceValue(value: null, confidence: 0.0),
           dayCounterStart: ConfidenceValue(
               value: numbers.length > 0 ? numbers[0] : null, confidence: 0.7),

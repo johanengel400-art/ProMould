@@ -6,7 +6,6 @@ import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart
 import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
-import '../services/jobcard_parser_service.dart';
 import '../services/improved_jobcard_parser.dart';
 import 'jobcard_review_screen.dart';
 
