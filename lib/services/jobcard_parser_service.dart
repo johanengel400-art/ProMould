@@ -23,7 +23,8 @@ class JobcardParserService {
       final recognizedText = results[0] as RecognizedText;
       final barcodes = results[1] as List<Barcode>;
 
-      LogService.debug('JobcardParser: OCR text length: ${recognizedText.text.length}');
+      LogService.debug(
+          'JobcardParser: OCR text length: ${recognizedText.text.length}');
       LogService.debug('JobcardParser: Barcodes found: ${barcodes.length}');
 
       // Return partial data even if text is minimal
@@ -56,7 +57,8 @@ class JobcardParserService {
     final verificationNeeded = <VerificationIssue>[];
 
     LogService.debug('JobcardParser: Full text (${fullText.length} chars):');
-    LogService.debug(fullText.substring(0, fullText.length > 200 ? 200 : fullText.length));
+    LogService.debug(
+        fullText.substring(0, fullText.length > 200 ? 200 : fullText.length));
     LogService.debug('JobcardParser: Lines: ${lines.length}');
 
     // Extract barcode
@@ -487,7 +489,8 @@ class JobcardParserService {
           final valueStr = match.group(1)!.replaceAll(',', '');
           final value = double.tryParse(valueStr)?.toInt();
           if (value != null) {
-            LogService.debug('Extracted target cycle day: $value from line: $line');
+            LogService.debug(
+                'Extracted target cycle day: $value from line: $line');
             return ConfidenceValue(value: value, confidence: 0.8);
           }
         }
@@ -513,7 +516,8 @@ class JobcardParserService {
           final valueStr = match.group(1)!.replaceAll(',', '');
           final value = double.tryParse(valueStr)?.toInt();
           if (value != null) {
-            LogService.debug('Extracted target cycle night: $value from line: $line');
+            LogService.debug(
+                'Extracted target cycle night: $value from line: $line');
             return ConfidenceValue(value: value, confidence: 0.8);
           }
         }
@@ -537,7 +541,8 @@ class JobcardParserService {
           final doubleValue = double.tryParse(valueStr);
           if (doubleValue != null) {
             final value = doubleValue.toInt();
-            LogService.debug('Extracted numeric value: $value from line: $line');
+            LogService.debug(
+                'Extracted numeric value: $value from line: $line');
             return ConfidenceValue(value: value, confidence: 0.75);
           }
         }
@@ -554,7 +559,8 @@ class JobcardParserService {
             final doubleValue = double.tryParse(valueStr);
             if (doubleValue != null) {
               final value = doubleValue.toInt();
-              LogService.debug('Extracted numeric value (fallback): $value from line: $line');
+              LogService.debug(
+                  'Extracted numeric value (fallback): $value from line: $line');
               return ConfidenceValue(value: value, confidence: 0.6);
             }
           }
@@ -719,7 +725,8 @@ class JobcardParserService {
           nightScrap: ConfidenceValue(value: nightScrap, confidence: 0.8),
         ));
 
-        LogService.debug('Extracted production row: Day $dayActual/$dayScrap, Night $nightActual/$nightScrap');
+        LogService.debug(
+            'Extracted production row: Day $dayActual/$dayScrap, Night $nightActual/$nightScrap');
       }
     }
 
