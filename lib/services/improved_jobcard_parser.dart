@@ -123,7 +123,7 @@ class ImprovedJobcardParser {
     LogService.info('  Production rows: ${productionRows.length}');
 
     // Convert int to double for cycleWeightGrams
-    final cycleWeightDouble = cycleWeightGrams.value != null 
+    final cycleWeightDouble = cycleWeightGrams.value != null
         ? ConfidenceValue<double>(
             value: cycleWeightGrams.value!.toDouble(),
             confidence: cycleWeightGrams.confidence,
