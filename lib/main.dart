@@ -48,15 +48,26 @@ void main() async {
   LogService.info('ProMould: Starting app...');
 
   try {
+    // Initialize Firebase first
     LogService.info('Initializing Firebase...');
-    await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform);
-    LogService.info('Firebase initialized successfully');
+    try {
+      await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform);
+      LogService.info('Firebase initialized successfully');
+    } catch (e) {
+      LogService.error('Firebase initialization failed', e);
+      // Continue without Firebase - app can work offline
+    }
 
-    // Register background message handler
-    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-    LogService.info('Background message handler registered');
+    // Register background message handler (only if Firebase initialized)
+    try {
+      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+      LogService.info('Background message handler registered');
+    } catch (e) {
+      LogService.warning('Could not register background message handler', e);
+    }
 
+    // Initialize Hive (critical - must succeed)
     LogService.info('Initializing Hive...');
     await Hive.initFlutter();
     await _openCoreBoxes();
@@ -74,27 +85,51 @@ void main() async {
       LogService.auth('Created default admin user');
     }
 
-    LogService.info('Starting sync services...');
-    await SyncService.start();
-    await BackgroundSync.initialize();
-    LogService.info('Sync services started successfully');
+    // Start sync services (non-critical)
+    try {
+      LogService.info('Starting sync services...');
+      await SyncService.start();
+      await BackgroundSync.initialize();
+      LogService.info('Sync services started successfully');
+    } catch (e) {
+      LogService.warning('Sync services failed to start - running offline', e);
+    }
 
-    LogService.info('Starting live progress service...');
-    LiveProgressService.start();
-    LogService.info('Live progress service started successfully');
+    // Start monitoring services (non-critical)
+    try {
+      LogService.info('Starting live progress service...');
+      LiveProgressService.start();
+      LogService.info('Live progress service started successfully');
+    } catch (e) {
+      LogService.warning('Live progress service failed', e);
+    }
 
-    LogService.info('Starting notification service...');
-    NotificationService.start();
-    LogService.info('Notification service started successfully');
+    try {
+      LogService.info('Starting notification service...');
+      NotificationService.start();
+      LogService.info('Notification service started successfully');
+    } catch (e) {
+      LogService.warning('Notification service failed', e);
+    }
 
-    LogService.info('Starting overrun notification service...');
-    OverrunNotificationService.start();
-    LogService.info('Overrun notification service started successfully');
+    try {
+      LogService.info('Starting overrun notification service...');
+      OverrunNotificationService.start();
+      LogService.info('Overrun notification service started successfully');
+    } catch (e) {
+      LogService.warning('Overrun notification service failed', e);
+    }
 
-    LogService.info('Initializing push notifications...');
-    await PushNotificationService.initialize();
-    LogService.info('Push notifications initialized successfully');
+    // Initialize push notifications (non-critical)
+    try {
+      LogService.info('Initializing push notifications...');
+      await PushNotificationService.initialize();
+      LogService.info('Push notifications initialized successfully');
+    } catch (e) {
+      LogService.warning('Push notifications failed to initialize', e);
+    }
 
+    // Initialize memory manager
     LogService.info('Initializing memory manager...');
     MemoryManager.initialize();
     LogService.info('Memory manager initialized successfully');
@@ -103,7 +138,8 @@ void main() async {
     runApp(const ProMouldApp());
   } catch (e, stackTrace) {
     LogService.fatal('Failed to start app', e, stackTrace);
-    rethrow;
+    // Show error screen instead of crashing
+    runApp(ErrorApp(error: e.toString()));
   }
 }
 
@@ -117,6 +153,58 @@ class ProMouldApp extends StatelessWidget {
       theme: AppTheme.dark(),
       scaffoldMessengerKey: ErrorHandler.scaffoldMessengerKey,
       home: const LoginScreen(),
+    );
+  }
+}
+
+class ErrorApp extends StatelessWidget {
+  final String error;
+  const ErrorApp({super.key, required this.error});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'ProMould - Error',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData.dark(),
+      home: Scaffold(
+        backgroundColor: Colors.red.shade900,
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 80, color: Colors.white),
+                const SizedBox(height: 24),
+                const Text(
+                  'Failed to Start App',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  error,
+                  style: const TextStyle(fontSize: 14, color: Colors.white70),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+                const Text(
+                  'Please check:\n'
+                  '• Internet connection\n'
+                  '• Firebase configuration\n'
+                  '• App permissions',
+                  style: TextStyle(fontSize: 14, color: Colors.white70),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

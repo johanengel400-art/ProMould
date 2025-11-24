@@ -1,0 +1,11 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Allow all reads and writes for now (development mode)
+    // TODO: Implement proper authentication and restrict access
+    match /{allPaths=**} {
+      allow read, write: if true;
+    }
+  }
+}
