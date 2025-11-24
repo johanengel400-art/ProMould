@@ -235,7 +235,6 @@ class ImprovedJobcardParser {
     TextElementWithPosition label,
   ) {
     const maxDistance = 200.0; // pixels
-    const preferredDirection = 'right'; // or 'below'
 
     TextElementWithPosition? bestMatch;
     double bestScore = double.infinity;
@@ -271,7 +270,7 @@ class ImprovedJobcardParser {
   List<ProductionTableRow> _extractProductionTable(
     List<TextElementWithPosition> elements,
   ) {
-    final rows = <ProductionRow>[];
+    final rows = <ProductionTableRow>[];
 
     // Find table header
     final headerKeywords = [
@@ -297,10 +296,6 @@ class ImprovedJobcardParser {
     }
 
     LogService.info('Found ${headerElements.length} table header elements');
-
-    // Find column positions from headers
-    final columnPositions =
-        headerElements.map((e) => e.boundingBox.left).toList()..sort();
 
     // Find data rows (elements below the header)
     final headerBottom = headerElements
@@ -353,7 +348,7 @@ class ImprovedJobcardParser {
         }
       }
 
-      if (numbers.length >= 4) {
+      if (numbers.isNotEmpty && numbers.length >= 4) {
         // Assume order: dayCounterStart, dayCounterEnd, dayActual, dayScrap, nightCounterStart, nightCounterEnd, nightActual, nightScrap
         rows.add(ProductionTableRow(
           date: ConfidenceValue(value: null, confidence: 0.0),

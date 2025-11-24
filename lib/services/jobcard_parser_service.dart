@@ -63,10 +63,8 @@ class JobcardParserService {
 
     // Extract barcode
     String? barcodeValue;
-    double barcodeConfidence = 0.0;
     if (barcodes.isNotEmpty) {
       barcodeValue = barcodes.first.displayValue;
-      barcodeConfidence = 1.0;
       LogService.debug('JobcardParser: Barcode found: $barcodeValue');
     }
 
