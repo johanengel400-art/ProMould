@@ -1,5 +1,11 @@
 # Firebase Access Fix Guide
 
+## 🔒 SECURITY WARNING
+**The rules in this guide are INSECURE and for development only!**  
+See `SECURITY_CRITICAL.md` for production security requirements.
+
+---
+
 ## Problem
 App not opening - likely due to Firebase security rules blocking access.
 

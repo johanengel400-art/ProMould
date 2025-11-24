@@ -1,0 +1,161 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.level == 4;
+    }
+    
+    function isManagerOrAbove() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.level >= 3;
+    }
+    
+    function isSupervisorOrAbove() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.level >= 2;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Users collection - only admins can manage
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isAdmin();
+      allow update: if isAdmin() || isOwner(userId);
+      allow delete: if isAdmin();
+    }
+    
+    // Machines - managers and above can modify
+    match /machines/{machineId} {
+      allow read: if isAuthenticated();
+      allow write: if isManagerOrAbove();
+    }
+    
+    // Jobs - supervisors and above can modify
+    match /jobs/{jobId} {
+      allow read: if isAuthenticated();
+      allow create: if isSupervisorOrAbove();
+      allow update: if isSupervisorOrAbove();
+      allow delete: if isManagerOrAbove();
+    }
+    
+    // Moulds - managers and above can modify
+    match /moulds/{mouldId} {
+      allow read: if isAuthenticated();
+      allow write: if isManagerOrAbove();
+    }
+    
+    // Issues - anyone authenticated can create, supervisors can update
+    match /issues/{issueId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isSupervisorOrAbove();
+      allow delete: if isManagerOrAbove();
+    }
+    
+    // Production inputs - anyone authenticated can create
+    match /inputs/{inputId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isSupervisorOrAbove();
+      allow delete: if isManagerOrAbove();
+    }
+    
+    // Daily production - anyone authenticated can create
+    match /dailyProduction/{entryId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isSupervisorOrAbove();
+      allow delete: if isManagerOrAbove();
+    }
+    
+    // Quality inspections - anyone authenticated can create
+    match /qualityInspections/{inspectionId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isSupervisorOrAbove();
+      allow delete: if isManagerOrAbove();
+    }
+    
+    // Quality holds - supervisors and above
+    match /qualityHolds/{holdId} {
+      allow read: if isAuthenticated();
+      allow write: if isSupervisorOrAbove();
+    }
+    
+    // Machine inspections - anyone authenticated can create
+    match /machineInspections/{inspectionId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isSupervisorOrAbove();
+      allow delete: if isManagerOrAbove();
+    }
+    
+    // Daily inspections - anyone authenticated can create
+    match /dailyInspections/{inspectionId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isSupervisorOrAbove();
+      allow delete: if isManagerOrAbove();
+    }
+    
+    // Checklists - managers can manage
+    match /checklists/{checklistId} {
+      allow read: if isAuthenticated();
+      allow write: if isManagerOrAbove();
+    }
+    
+    // Mould changes - supervisors and above
+    match /mouldChanges/{changeId} {
+      allow read: if isAuthenticated();
+      allow write: if isSupervisorOrAbove();
+    }
+    
+    // Floors - managers and above
+    match /floors/{floorId} {
+      allow read: if isAuthenticated();
+      allow write: if isManagerOrAbove();
+    }
+    
+    // Queue - supervisors and above
+    match /queue/{queueId} {
+      allow read: if isAuthenticated();
+      allow write: if isSupervisorOrAbove();
+    }
+    
+    // Downtime - anyone authenticated can report
+    match /downtime/{downtimeId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isSupervisorOrAbove();
+      allow delete: if isManagerOrAbove();
+    }
+    
+    // Finished jobs (archived) - read-only for authenticated users
+    match /finishedJobs/{year}/{month}/{day}/jobs/{jobId} {
+      allow read: if isAuthenticated();
+      allow write: if isManagerOrAbove();
+    }
+    
+    // Resolved issues (archived) - read-only for authenticated users
+    match /resolvedIssues/{year}/{month}/{day}/issues/{issueId} {
+      allow read: if isAuthenticated();
+      allow write: if isManagerOrAbove();
+    }
+    
+    // Deny all other paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

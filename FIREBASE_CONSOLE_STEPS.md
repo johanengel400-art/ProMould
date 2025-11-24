@@ -1,7 +1,13 @@
 # Firebase Console - Step-by-Step Fix
 
+## 🔒 SECURITY WARNING
+**These rules are INSECURE and for development/testing only!**  
+**DO NOT use in production!** See `SECURITY_CRITICAL.md` for details.
+
+---
+
 ## 🎯 Goal
-Fix app not opening by updating Firebase security rules to allow access.
+Fix app not opening by updating Firebase security rules to allow access (development only).
 
 ---
 

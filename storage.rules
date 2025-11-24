@@ -2,8 +2,10 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
-    // Allow all reads and writes for now (development mode)
-    // TODO: Implement proper authentication and restrict access
+    // ⚠️ DEVELOPMENT RULES - NOT FOR PRODUCTION ⚠️
+    // These rules allow unrestricted access for testing
+    // Deploy storage.rules.production for production use
+    
     match /{allPaths=**} {
       allow read, write: if true;
     }
