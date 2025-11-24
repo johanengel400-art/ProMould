@@ -43,7 +43,7 @@ class ImprovedJobcardParser {
     List<Barcode> barcodes,
   ) {
     final verificationNeeded = <VerificationIssue>[];
-    
+
     // Create a map of all text elements with their positions
     final textElements = <TextElementWithPosition>[];
     for (final block in recognizedText.blocks) {
@@ -165,14 +165,16 @@ class ImprovedJobcardParser {
       return ConfidenceValue(value: null, confidence: 0.0);
     }
 
-    LogService.debug('Found label "$matchedPattern" at position ${labelElement.boundingBox.left}, ${labelElement.boundingBox.top}');
+    LogService.debug(
+        'Found label "$matchedPattern" at position ${labelElement.boundingBox.left}, ${labelElement.boundingBox.top}');
 
     // Find value element (to the right or below the label)
     final valueElement = _findNearbyValue(elements, labelElement);
 
     if (valueElement != null) {
       final cleanValue = _cleanText(valueElement.text);
-      LogService.debug('Found value: $cleanValue (confidence: ${valueElement.confidence})');
+      LogService.debug(
+          'Found value: $cleanValue (confidence: ${valueElement.confidence})');
       return ConfidenceValue(
         value: cleanValue,
         confidence: valueElement.confidence,
@@ -192,7 +194,7 @@ class ImprovedJobcardParser {
     List<String> labelPatterns,
   ) {
     final textValue = _extractFieldByLabel(elements, labelPatterns, null);
-    
+
     if (textValue.value == null) {
       return ConfidenceValue(value: null, confidence: 0.0);
     }
@@ -255,7 +257,12 @@ class ImprovedJobcardParser {
     final rows = <ProductionRow>[];
 
     // Find table header
-    final headerKeywords = ['day-counter', 'day-actual', 'night-counter', 'night-actual'];
+    final headerKeywords = [
+      'day-counter',
+      'day-actual',
+      'night-counter',
+      'night-actual'
+    ];
     final headerElements = <TextElementWithPosition>[];
 
     for (final keyword in headerKeywords) {
@@ -275,14 +282,17 @@ class ImprovedJobcardParser {
     LogService.info('Found ${headerElements.length} table header elements');
 
     // Find column positions from headers
-    final columnPositions = headerElements.map((e) => e.boundingBox.left).toList()
-      ..sort();
+    final columnPositions =
+        headerElements.map((e) => e.boundingBox.left).toList()..sort();
 
     // Find data rows (elements below the header)
-    final headerBottom = headerElements.map((e) => e.boundingBox.bottom).reduce((a, b) => a > b ? a : b);
-    
-    final dataElements = elements.where((e) => e.boundingBox.top > headerBottom).toList();
-    
+    final headerBottom = headerElements
+        .map((e) => e.boundingBox.bottom)
+        .reduce((a, b) => a > b ? a : b);
+
+    final dataElements =
+        elements.where((e) => e.boundingBox.top > headerBottom).toList();
+
     // Group elements by row (similar Y position)
     final rowGroups = <List<TextElementWithPosition>>[];
     dataElements.sort((a, b) => a.boundingBox.top.compareTo(b.boundingBox.top));
@@ -313,7 +323,8 @@ class ImprovedJobcardParser {
       if (rowElements.length < 4) continue; // Need at least 4 values
 
       // Sort elements by X position
-      rowElements.sort((a, b) => a.boundingBox.left.compareTo(b.boundingBox.left));
+      rowElements
+          .sort((a, b) => a.boundingBox.left.compareTo(b.boundingBox.left));
 
       // Extract numbers
       final numbers = <int>[];
@@ -329,14 +340,22 @@ class ImprovedJobcardParser {
         // Assume order: dayCounterStart, dayCounterEnd, dayActual, dayScrap, nightCounterStart, nightCounterEnd, nightActual, nightScrap
         rows.add(ProductionRow(
           date: ConfidenceValue(value: null, confidence: 0.0),
-          dayCounterStart: ConfidenceValue(value: numbers.length > 0 ? numbers[0] : null, confidence: 0.7),
-          dayCounterEnd: ConfidenceValue(value: numbers.length > 1 ? numbers[1] : null, confidence: 0.7),
-          dayActual: ConfidenceValue(value: numbers.length > 2 ? numbers[2] : null, confidence: 0.7),
-          dayScrap: ConfidenceValue(value: numbers.length > 3 ? numbers[3] : null, confidence: 0.7),
-          nightCounterStart: ConfidenceValue(value: numbers.length > 4 ? numbers[4] : null, confidence: 0.7),
-          nightCounterEnd: ConfidenceValue(value: numbers.length > 5 ? numbers[5] : null, confidence: 0.7),
-          nightActual: ConfidenceValue(value: numbers.length > 6 ? numbers[6] : null, confidence: 0.7),
-          nightScrap: ConfidenceValue(value: numbers.length > 7 ? numbers[7] : null, confidence: 0.7),
+          dayCounterStart: ConfidenceValue(
+              value: numbers.length > 0 ? numbers[0] : null, confidence: 0.7),
+          dayCounterEnd: ConfidenceValue(
+              value: numbers.length > 1 ? numbers[1] : null, confidence: 0.7),
+          dayActual: ConfidenceValue(
+              value: numbers.length > 2 ? numbers[2] : null, confidence: 0.7),
+          dayScrap: ConfidenceValue(
+              value: numbers.length > 3 ? numbers[3] : null, confidence: 0.7),
+          nightCounterStart: ConfidenceValue(
+              value: numbers.length > 4 ? numbers[4] : null, confidence: 0.7),
+          nightCounterEnd: ConfidenceValue(
+              value: numbers.length > 5 ? numbers[5] : null, confidence: 0.7),
+          nightActual: ConfidenceValue(
+              value: numbers.length > 6 ? numbers[6] : null, confidence: 0.7),
+          nightScrap: ConfidenceValue(
+              value: numbers.length > 7 ? numbers[7] : null, confidence: 0.7),
         ));
       }
     }
