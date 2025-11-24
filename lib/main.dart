@@ -12,6 +12,7 @@ import 'services/overrun_notification_service.dart';
 import 'services/log_service.dart';
 import 'services/error_handler.dart';
 import 'utils/memory_manager.dart';
+import 'utils/data_initializer.dart';
 import 'screens/login_screen.dart';
 
 import 'firebase_options.dart';
@@ -73,17 +74,13 @@ void main() async {
     await _openCoreBoxes();
     LogService.info('Hive initialized successfully');
 
-    // Seed one admin if empty
+    // Ensure admin user exists
+    LogService.info('Ensuring admin user exists...');
+    await DataInitializer.ensureAdminExists();
+    
     final users = Hive.box('usersBox');
-    if (users.isEmpty) {
-      users.put('admin', {
-        'username': 'admin',
-        'password': 'admin123',
-        'level': 4,
-        'shift': 'Any'
-      });
-      LogService.auth('Created default admin user');
-    }
+    LogService.info('Users box has ${users.length} users');
+    LogService.info('User keys: ${users.keys.toList()}');
 
     // Start sync services (non-critical)
     try {

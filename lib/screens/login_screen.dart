@@ -18,6 +18,40 @@ class _LoginScreenState extends State<LoginScreen> {
   final _p = TextEditingController();
   bool _isLoading = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _checkUsers();
+  }
+
+  void _checkUsers() async {
+    try {
+      final usersBox = Hive.box('usersBox');
+      LogService.info('Login screen loaded. Users in box: ${usersBox.length}');
+      
+      if (usersBox.isEmpty) {
+        LogService.warning('No users found! Creating default admin...');
+        await usersBox.put('admin', {
+          'username': 'admin',
+          'password': 'admin123',
+          'level': 4,
+          'shift': 'Any'
+        });
+        LogService.info('Default admin created');
+      }
+      
+      // Log available users (without passwords)
+      for (var key in usersBox.keys) {
+        final user = usersBox.get(key) as Map?;
+        if (user != null) {
+          LogService.debug('Available user: ${user['username']} (Level: ${user['level']})');
+        }
+      }
+    } catch (e) {
+      LogService.error('Error checking users', e);
+    }
+  }
+
   void _login() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -30,15 +64,35 @@ class _LoginScreenState extends State<LoginScreen> {
       final u = _u.text.trim();
       final p = _p.text;
 
-      final user = usersBox.values
-          .cast<Map>()
-          .firstWhere((x) => x['username'] == u, orElse: () => {});
+      LogService.debug('Login attempt for user: $u');
+      LogService.debug('Users box has ${usersBox.length} users');
+      LogService.debug('User keys: ${usersBox.keys.toList()}');
 
-      if (user.isEmpty) {
-        throw AuthenticationException('User not found');
+      // Try to find user by key first (more efficient)
+      Map? user;
+      if (usersBox.containsKey(u)) {
+        user = usersBox.get(u) as Map?;
+        LogService.debug('Found user by key: $u');
+      } else {
+        // Fallback: search through all users
+        LogService.debug('User not found by key, searching values...');
+        try {
+          user = usersBox.values
+              .cast<Map>()
+              .firstWhere((x) => x['username'] == u, orElse: () => {});
+        } catch (e) {
+          LogService.debug('Error searching users: $e');
+          user = {};
+        }
+      }
+
+      if (user == null || user.isEmpty) {
+        LogService.warning('User not found: $u');
+        throw AuthenticationException('User not found. Try username: admin');
       }
 
       if (user['password'] != p) {
+        LogService.warning('Incorrect password for user: $u');
         throw AuthenticationException('Incorrect password');
       }
 
@@ -50,6 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
             builder: (_) => RoleRouter(level: level, username: u)));
       }
     } catch (e) {
+      LogService.error('Login failed', e);
       ErrorHandler.handle(e, context: 'Login');
     } finally {
       if (mounted) {
@@ -103,9 +158,78 @@ class _LoginScreenState extends State<LoginScreen> {
                     : const Text('Login'),
               ),
             ),
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: _showDebugInfo,
+              child: const Text('Show Debug Info', style: TextStyle(fontSize: 12)),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Default: admin / admin123',
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+            ),
           ]),
         ),
       )),
+    );
+  }
+
+  void _showDebugInfo() async {
+    final usersBox = Hive.box('usersBox');
+    final usersList = <String>[];
+    
+    for (var key in usersBox.keys) {
+      final user = usersBox.get(key) as Map?;
+      if (user != null) {
+        usersList.add('${user['username']} (Level ${user['level']})');
+      }
+    }
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Debug Info'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Total users: ${usersBox.length}'),
+            const SizedBox(height: 8),
+            const Text('Available users:', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 4),
+            if (usersList.isEmpty)
+              const Text('No users found!', style: TextStyle(color: Colors.red))
+            else
+              ...usersList.map((u) => Text('• $u')),
+            const SizedBox(height: 16),
+            if (usersList.isEmpty)
+              ElevatedButton(
+                onPressed: () async {
+                  await usersBox.put('admin', {
+                    'username': 'admin',
+                    'password': 'admin123',
+                    'level': 4,
+                    'shift': 'Any'
+                  });
+                  Navigator.pop(context);
+                  _checkUsers();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Admin user created!')),
+                  );
+                },
+                child: const Text('Create Admin User'),
+              ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
     );
   }
 }
