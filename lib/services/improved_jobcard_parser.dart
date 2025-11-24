@@ -230,40 +230,62 @@ class ImprovedJobcardParser {
   }
 
   /// Find value element near a label (to the right or below)
+  /// Collects multiple nearby elements and combines them
   TextElementWithPosition? _findNearbyValue(
     List<TextElementWithPosition> elements,
     TextElementWithPosition label,
   ) {
-    const maxDistance = 200.0; // pixels
+    const maxDistance = 300.0; // Increased from 200
+    const maxVerticalOffset = 80.0; // Increased from 50
 
-    TextElementWithPosition? bestMatch;
-    double bestScore = double.infinity;
+    // Collect all nearby elements
+    final nearbyElements = <TextElementWithPosition>[];
 
     for (final element in elements) {
       if (element == label) continue;
+      if (element.text.trim().isEmpty) continue;
 
       final dx = element.boundingBox.left - label.boundingBox.right;
       final dy = element.boundingBox.top - label.boundingBox.top;
-      final distance = (dx * dx + dy * dy);
 
-      // Prefer elements to the right or below
-      if (dx > 0 && dx < maxDistance && dy.abs() < 50) {
-        // To the right
-        if (distance < bestScore) {
-          bestScore = distance;
-          bestMatch = element;
-        }
-      } else if (dy > 0 && dy < maxDistance && dx.abs() < 50) {
-        // Below
-        if (distance < bestScore * 1.5) {
-          // Slightly prefer right over below
-          bestScore = distance;
-          bestMatch = element;
-        }
+      // Check if element is to the right (same line or close)
+      if (dx > -50 && dx < maxDistance && dy.abs() < maxVerticalOffset) {
+        nearbyElements.add(element);
+      }
+      // Or below (next line)
+      else if (dy > 0 && dy < maxDistance && dx.abs() < maxDistance) {
+        nearbyElements.add(element);
       }
     }
 
-    return bestMatch;
+    if (nearbyElements.isEmpty) {
+      return null;
+    }
+
+    // Sort by position (left to right, top to bottom)
+    nearbyElements.sort((a, b) {
+      final dyDiff = a.boundingBox.top - b.boundingBox.top;
+      if (dyDiff.abs() < 20) {
+        // Same line, sort by x
+        return a.boundingBox.left.compareTo(b.boundingBox.left);
+      }
+      return dyDiff.compareTo(0);
+    });
+
+    // Combine text from nearby elements
+    final combinedText = nearbyElements.map((e) => e.text).join(' ');
+    final avgConfidence = nearbyElements.fold<double>(
+          0.0,
+          (sum, e) => sum + e.confidence,
+        ) /
+        nearbyElements.length;
+
+    // Return combined element
+    return TextElementWithPosition(
+      text: combinedText,
+      boundingBox: nearbyElements.first.boundingBox,
+      confidence: avgConfidence,
+    );
   }
 
   /// Extract production table using spatial alignment
