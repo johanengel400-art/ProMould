@@ -387,14 +387,15 @@ class JobcardParserService {
         for (int j = i + 1; j < lines.length && j < i + 15; j++) {
           final nextLine = lines[j].trim();
           if (nextLine.isEmpty) continue;
-          
+
           final match = RegExp(r'([\d,]+\.?\d*)').firstMatch(nextLine);
           if (match != null) {
             final valueStr = match.group(1)!.replaceAll(',', '');
             final value = double.tryParse(valueStr)?.toInt();
             // Quantity typically between 500 and 50000
             if (value != null && value >= 500 && value <= 50000) {
-              LogService.debug('Found quantity: $value (line offset: ${j-i})');
+              LogService.debug(
+                  'Found quantity: $value (line offset: ${j - i})');
               return ConfidenceValue(value: value, confidence: 0.85);
             }
           }
@@ -415,14 +416,15 @@ class JobcardParserService {
         for (int j = i + 1; j < lines.length && j < i + 15; j++) {
           final nextLine = lines[j].trim();
           if (nextLine.isEmpty) continue;
-          
+
           final match = RegExp(r'([\d,]+\.?\d*)').firstMatch(nextLine);
           if (match != null) {
             final valueStr = match.group(1)!.replaceAll(',', '');
             final value = double.tryParse(valueStr)?.toInt();
             // Daily output typically between 50 and 5000
             if (value != null && value >= 50 && value <= 5000) {
-              LogService.debug('Found daily output: $value (line offset: ${j-i})');
+              LogService.debug(
+                  'Found daily output: $value (line offset: ${j - i})');
               return ConfidenceValue(value: value, confidence: 0.85);
             }
           }
@@ -462,13 +464,15 @@ class JobcardParserService {
     // Look for "Target Cycle Day:" label, then search nearby
     for (int i = 0; i < lines.length; i++) {
       final line = lines[i].trim();
-      
-      if (RegExp(r'target\s*cycle\s*day|traget\s*cycle\s*day', caseSensitive: false).hasMatch(line)) {
+
+      if (RegExp(r'target\s*cycle\s*day|traget\s*cycle\s*day',
+              caseSensitive: false)
+          .hasMatch(line)) {
         // Search next 10 lines for value (typically 200-1000)
         for (int j = i + 1; j < lines.length && j < i + 10; j++) {
           final nextLine = lines[j].trim();
           if (nextLine.isEmpty) continue;
-          
+
           final match = RegExp(r'([\d,]+\.?\d*)').firstMatch(nextLine);
           if (match != null) {
             final valueStr = match.group(1)!.replaceAll(',', '');
@@ -489,13 +493,15 @@ class JobcardParserService {
     // Look for "Target Cycle Night:" label, then search nearby
     for (int i = 0; i < lines.length; i++) {
       final line = lines[i].trim();
-      
-      if (RegExp(r'target\s*cycle\s*night|traget\s*cycle\s*night', caseSensitive: false).hasMatch(line)) {
+
+      if (RegExp(r'target\s*cycle\s*night|traget\s*cycle\s*night',
+              caseSensitive: false)
+          .hasMatch(line)) {
         // Search next 10 lines for value (typically 200-1000)
         for (int j = i + 1; j < lines.length && j < i + 10; j++) {
           final nextLine = lines[j].trim();
           if (nextLine.isEmpty) continue;
-          
+
           final match = RegExp(r'([\d,]+\.?\d*)').firstMatch(nextLine);
           if (match != null) {
             final valueStr = match.group(1)!.replaceAll(',', '');
