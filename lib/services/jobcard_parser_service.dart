@@ -377,73 +377,60 @@ class JobcardParserService {
   }
 
   ConfidenceValue<int> _extractQuantityToManufacture(List<String> lines) {
-    // Look for "Quantity to Manufacture:" label, then check next line
+    // Look for "Quantity to Manufacture:" label, then search next 15 lines
     for (int i = 0; i < lines.length; i++) {
       final line = lines[i].trim();
 
-      if (RegExp(r'quantity\s*to\s*manufacture\s*:?\s*$', caseSensitive: false)
+      if (RegExp(r'quantity\s*to\s*manufacture', caseSensitive: false)
           .hasMatch(line)) {
-        // Value is on next line
-        if (i + 1 < lines.length) {
-          final nextLine = lines[i + 1].trim();
-          // Extract number with commas and decimals (e.g., 3,000.00)
-          final match = RegExp(r'^([\d,]+\.?\d*)').firstMatch(nextLine);
+        // Search next 15 lines for quantity value (typically 1000-50000)
+        for (int j = i + 1; j < lines.length && j < i + 15; j++) {
+          final nextLine = lines[j].trim();
+          if (nextLine.isEmpty) continue;
+          
+          final match = RegExp(r'([\d,]+\.?\d*)').firstMatch(nextLine);
           if (match != null) {
             final valueStr = match.group(1)!.replaceAll(',', '');
             final value = double.tryParse(valueStr)?.toInt();
-            if (value != null) {
-              LogService.debug('Found quantity on next line: $value');
-              return ConfidenceValue(value: value, confidence: 0.9);
+            // Quantity typically between 500 and 50000
+            if (value != null && value >= 500 && value <= 50000) {
+              LogService.debug('Found quantity: $value (line offset: ${j-i})');
+              return ConfidenceValue(value: value, confidence: 0.85);
             }
           }
         }
       }
     }
 
-    // Fallback to same-line patterns
-    return _extractNumericField(
-      lines,
-      [
-        RegExp(r'quantity\s*to\s*manufacture\s*:?\s*([\d,]+\.?\d*)',
-            caseSensitive: false),
-        RegExp(r'qty\s*to\s*mfg\s*:?\s*([\d,]+\.?\d*)', caseSensitive: false),
-        RegExp(r'target\s*qty\s*:?\s*([\d,]+\.?\d*)', caseSensitive: false),
-      ],
-    );
+    return ConfidenceValue(value: null, confidence: 0.0);
   }
 
   ConfidenceValue<int> _extractDailyOutput(List<String> lines) {
-    // Look for "Daily Output (Units):" label, then check next line
+    // Look for "Daily Output (Units):" label, then search next 15 lines
     for (int i = 0; i < lines.length; i++) {
       final line = lines[i].trim();
 
-      if (RegExp(r'daily\s*output.*:?\s*$', caseSensitive: false)
-          .hasMatch(line)) {
-        // Value is on next line
-        if (i + 1 < lines.length) {
-          final nextLine = lines[i + 1].trim();
-          // Extract number with commas and decimals (e.g., 1016.00)
-          final match = RegExp(r'^([\d,]+\.?\d*)').firstMatch(nextLine);
+      if (RegExp(r'daily\s*output', caseSensitive: false).hasMatch(line)) {
+        // Search next 15 lines for daily output value (typically 100-5000)
+        for (int j = i + 1; j < lines.length && j < i + 15; j++) {
+          final nextLine = lines[j].trim();
+          if (nextLine.isEmpty) continue;
+          
+          final match = RegExp(r'([\d,]+\.?\d*)').firstMatch(nextLine);
           if (match != null) {
             final valueStr = match.group(1)!.replaceAll(',', '');
             final value = double.tryParse(valueStr)?.toInt();
-            if (value != null) {
-              LogService.debug('Found daily output on next line: $value');
-              return ConfidenceValue(value: value, confidence: 0.9);
+            // Daily output typically between 50 and 5000
+            if (value != null && value >= 50 && value <= 5000) {
+              LogService.debug('Found daily output: $value (line offset: ${j-i})');
+              return ConfidenceValue(value: value, confidence: 0.85);
             }
           }
         }
       }
     }
 
-    // Fallback to same-line patterns
-    return _extractNumericField(
-      lines,
-      [
-        RegExp(r'daily\s*output\s*:?\s*([\d,]+\.?\d*)', caseSensitive: false),
-        RegExp(r'daily\s*target\s*:?\s*([\d,]+\.?\d*)', caseSensitive: false),
-      ],
-    );
+    return ConfidenceValue(value: null, confidence: 0.0);
   }
 
   ConfidenceValue<double> _extractCycleWeight(List<String> lines) {
@@ -472,24 +459,24 @@ class JobcardParserService {
   }
 
   ConfidenceValue<int> _extractTargetCycleDay(List<String> lines) {
-    // Look for "Target Cycle Day:" pattern
-    final patterns = [
-      RegExp(r'target\s*cycle\s*day\s*:?\s*([\d,]+\.?\d*)',
-          caseSensitive: false),
-      RegExp(r'traget\s*cycle\s*day\s*:?\s*([\d,]+\.?\d*)',
-          caseSensitive: false), // Handle typo
-    ];
-
-    for (final line in lines) {
-      for (final pattern in patterns) {
-        final match = pattern.firstMatch(line);
-        if (match != null && match.group(1) != null) {
-          final valueStr = match.group(1)!.replaceAll(',', '');
-          final value = double.tryParse(valueStr)?.toInt();
-          if (value != null) {
-            LogService.debug(
-                'Extracted target cycle day: $value from line: $line');
-            return ConfidenceValue(value: value, confidence: 0.8);
+    // Look for "Target Cycle Day:" label, then search nearby
+    for (int i = 0; i < lines.length; i++) {
+      final line = lines[i].trim();
+      
+      if (RegExp(r'target\s*cycle\s*day|traget\s*cycle\s*day', caseSensitive: false).hasMatch(line)) {
+        // Search next 10 lines for value (typically 200-1000)
+        for (int j = i + 1; j < lines.length && j < i + 10; j++) {
+          final nextLine = lines[j].trim();
+          if (nextLine.isEmpty) continue;
+          
+          final match = RegExp(r'([\d,]+\.?\d*)').firstMatch(nextLine);
+          if (match != null) {
+            final valueStr = match.group(1)!.replaceAll(',', '');
+            final value = double.tryParse(valueStr)?.toInt();
+            if (value != null && value >= 100 && value <= 2000) {
+              LogService.debug('Found target cycle day: $value');
+              return ConfidenceValue(value: value, confidence: 0.8);
+            }
           }
         }
       }
@@ -499,24 +486,24 @@ class JobcardParserService {
   }
 
   ConfidenceValue<int> _extractTargetCycleNight(List<String> lines) {
-    // Look for "Target Cycle Night:" pattern
-    final patterns = [
-      RegExp(r'target\s*cycle\s*night\s*:?\s*([\d,]+\.?\d*)',
-          caseSensitive: false),
-      RegExp(r'traget\s*cycle\s*night\s*:?\s*([\d,]+\.?\d*)',
-          caseSensitive: false), // Handle typo
-    ];
-
-    for (final line in lines) {
-      for (final pattern in patterns) {
-        final match = pattern.firstMatch(line);
-        if (match != null && match.group(1) != null) {
-          final valueStr = match.group(1)!.replaceAll(',', '');
-          final value = double.tryParse(valueStr)?.toInt();
-          if (value != null) {
-            LogService.debug(
-                'Extracted target cycle night: $value from line: $line');
-            return ConfidenceValue(value: value, confidence: 0.8);
+    // Look for "Target Cycle Night:" label, then search nearby
+    for (int i = 0; i < lines.length; i++) {
+      final line = lines[i].trim();
+      
+      if (RegExp(r'target\s*cycle\s*night|traget\s*cycle\s*night', caseSensitive: false).hasMatch(line)) {
+        // Search next 10 lines for value (typically 200-1000)
+        for (int j = i + 1; j < lines.length && j < i + 10; j++) {
+          final nextLine = lines[j].trim();
+          if (nextLine.isEmpty) continue;
+          
+          final match = RegExp(r'([\d,]+\.?\d*)').firstMatch(nextLine);
+          if (match != null) {
+            final valueStr = match.group(1)!.replaceAll(',', '');
+            final value = double.tryParse(valueStr)?.toInt();
+            if (value != null && value >= 100 && value <= 2000) {
+              LogService.debug('Found target cycle night: $value');
+              return ConfidenceValue(value: value, confidence: 0.8);
+            }
           }
         }
       }
