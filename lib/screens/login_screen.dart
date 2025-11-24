@@ -28,7 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final usersBox = Hive.box('usersBox');
       LogService.info('Login screen loaded. Users in box: ${usersBox.length}');
-      
+
       if (usersBox.isEmpty) {
         LogService.warning('No users found! Creating default admin...');
         await usersBox.put('admin', {
@@ -39,12 +39,13 @@ class _LoginScreenState extends State<LoginScreen> {
         });
         LogService.info('Default admin created');
       }
-      
+
       // Log available users (without passwords)
       for (var key in usersBox.keys) {
         final user = usersBox.get(key) as Map?;
         if (user != null) {
-          LogService.debug('Available user: ${user['username']} (Level: ${user['level']})');
+          LogService.debug(
+              'Available user: ${user['username']} (Level: ${user['level']})');
         }
       }
     } catch (e) {
@@ -161,7 +162,8 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(height: 16),
             TextButton(
               onPressed: _showDebugInfo,
-              child: const Text('Show Debug Info', style: TextStyle(fontSize: 12)),
+              child:
+                  const Text('Show Debug Info', style: TextStyle(fontSize: 12)),
             ),
             const SizedBox(height: 8),
             Text(
@@ -177,7 +179,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void _showDebugInfo() async {
     final usersBox = Hive.box('usersBox');
     final usersList = <String>[];
-    
+
     for (var key in usersBox.keys) {
       final user = usersBox.get(key) as Map?;
       if (user != null) {
@@ -197,7 +199,8 @@ class _LoginScreenState extends State<LoginScreen> {
           children: [
             Text('Total users: ${usersBox.length}'),
             const SizedBox(height: 8),
-            const Text('Available users:', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text('Available users:',
+                style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
             if (usersList.isEmpty)
               const Text('No users found!', style: TextStyle(color: Colors.red))

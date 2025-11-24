@@ -77,7 +77,7 @@ void main() async {
     // Ensure admin user exists
     LogService.info('Ensuring admin user exists...');
     await DataInitializer.ensureAdminExists();
-    
+
     final users = Hive.box('usersBox');
     LogService.info('Users box has ${users.length} users');
     LogService.info('User keys: ${users.keys.toList()}');

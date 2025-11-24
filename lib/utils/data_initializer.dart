@@ -7,7 +7,7 @@ class DataInitializer {
   static Future<void> ensureAdminExists() async {
     try {
       final usersBox = Hive.box('usersBox');
-      
+
       if (usersBox.isEmpty) {
         LogService.info('No users found, creating default admin...');
         await createDefaultAdmin();
@@ -46,7 +46,7 @@ class DataInitializer {
         'shift': 'Any',
         'createdAt': DateTime.now().toIso8601String(),
       };
-      
+
       await usersBox.put('admin', adminUser);
       LogService.auth('Default admin user created successfully');
     } catch (e) {
@@ -59,7 +59,7 @@ class DataInitializer {
   static Future<void> createSampleUsers() async {
     try {
       final usersBox = Hive.box('usersBox');
-      
+
       final users = [
         {
           'username': 'admin',
@@ -103,14 +103,14 @@ class DataInitializer {
     try {
       final usersBox = Hive.box('usersBox');
       final users = <Map<String, dynamic>>[];
-      
+
       for (var key in usersBox.keys) {
         final user = usersBox.get(key) as Map?;
         if (user != null) {
           users.add(Map<String, dynamic>.from(user));
         }
       }
-      
+
       return users;
     } catch (e) {
       LogService.error('Error getting all users', e);
