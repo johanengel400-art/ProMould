@@ -56,10 +56,11 @@ class JobcardParserService {
     final lines = fullText.split('\n');
     final verificationNeeded = <VerificationIssue>[];
 
-    LogService.debug('JobcardParser: Full text (${fullText.length} chars):');
-    LogService.debug(
-        fullText.substring(0, fullText.length > 200 ? 200 : fullText.length));
-    LogService.debug('JobcardParser: Lines: ${lines.length}');
+    LogService.info('=== OCR LINES (first 50) ===');
+    for (int i = 0; i < lines.length && i < 50; i++) {
+      LogService.info('[$i] "${lines[i].trim()}"');
+    }
+    LogService.info('=== END OCR ===');
 
     // Extract barcode
     String? barcodeValue;
