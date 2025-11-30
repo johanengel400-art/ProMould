@@ -72,14 +72,14 @@ class _RoleRouterState extends State<RoleRouter> {
 
     // Get default permissions for this level
     final defaults = UserPermissions.getDefaultPermissions(widget.level);
-    
+
     // Check custom permissions, fall back to defaults if not set
     if (user['permissions'] != null) {
       final permissions = Map<String, bool>.from(user['permissions'] as Map);
       // If permission is explicitly set, use that value
       // Otherwise fall back to default for this level
-      return permissions.containsKey(permission) 
-          ? permissions[permission]! 
+      return permissions.containsKey(permission)
+          ? permissions[permission]!
           : (defaults[permission] ?? false);
     }
 
@@ -272,8 +272,8 @@ class _RoleRouterState extends State<RoleRouter> {
                     level: widget.level, username: widget.username)),
           if (isAdmin) const Divider(),
           if (isAdmin && _hasPermission(UserPermissions.userPermissions))
-            _drawerItem(Icons.admin_panel_settings_outlined,
-                'User Permissions', const UserPermissionsScreen()),
+            _drawerItem(Icons.admin_panel_settings_outlined, 'User Permissions',
+                const UserPermissionsScreen()),
           if (isAdmin && _hasPermission(UserPermissions.settings))
             _drawerItem(Icons.settings_outlined, 'Settings',
                 SettingsScreen(level: widget.level)),
