@@ -130,63 +130,48 @@ class JobcardParserService {
   }
 
   ConfidenceValue<String> _extractJobName(List<String> lines) {
-    // Job name appears after "Works Order/Batch Sheet" and before "Works Order No:"
-    // Example: "50LT Coolbox Outer- CampMastr Blue" (first line is job name)
-    for (int i = 0; i < lines.length; i++) {
-      final line = lines[i].trim();
-
-      if (RegExp(r'works?\s*order.*batch.*sheet', caseSensitive: false)
-          .hasMatch(line)) {
-        // Next non-empty line should be the job name
-        for (int j = i + 1; j < lines.length && j < i + 5; j++) {
-          final nextLine = lines[j].trim();
-          if (nextLine.isNotEmpty &&
-              !RegExp(r'works?\s*order\s*no', caseSensitive: false)
-                  .hasMatch(nextLine) &&
-              nextLine.length > 5) {
-            // Extract just the product name part (before color)
-            // Example: "50LT Coolbox Outer- CampMastr Blue" -> "50LT Coolbox Outer"
-            final parts = nextLine.split(RegExp(r'-\s*'));
-            final jobName = parts[0].trim();
-            LogService.debug('Found job name: $jobName');
-            return ConfidenceValue(value: jobName, confidence: 0.85);
+    // Look for line with dash containing product name
+    for (final line in lines) {
+      final trimmed = line.trim();
+      if (trimmed.contains('-') && trimmed.length > 20) {
+        final parts = trimmed.split('-');
+        if (parts.length >= 2) {
+          final name = parts[0].trim();
+          // Must have space or LT pattern (not a code)
+          if (name.contains(' ') || name.contains(RegExp(r'\d+LT'))) {
+            LogService.info('Job Name: $name');
+            return ConfidenceValue(value: name, confidence: 0.9);
           }
         }
       }
     }
-
-    LogService.debug('No job name found');
     return ConfidenceValue(value: null, confidence: 0.0);
   }
 
   ConfidenceValue<String> _extractColor(List<String> lines) {
-    // Color appears after job name, typically after a dash
-    // Example: "50LT Coolbox Outer- CampMastr Blue" -> "CampMastr Blue"
-    for (int i = 0; i < lines.length; i++) {
-      final line = lines[i].trim();
-
-      if (RegExp(r'works?\s*order.*batch.*sheet', caseSensitive: false)
-          .hasMatch(line)) {
-        // Next non-empty line should contain job name and color
-        for (int j = i + 1; j < lines.length && j < i + 5; j++) {
-          final nextLine = lines[j].trim();
-          if (nextLine.isNotEmpty &&
-              !RegExp(r'works?\s*order\s*no', caseSensitive: false)
-                  .hasMatch(nextLine) &&
-              nextLine.contains('-')) {
-            // Extract color part (after dash)
-            final parts = nextLine.split(RegExp(r'-\s*'));
-            if (parts.length > 1) {
-              final color = parts[1].trim();
-              LogService.debug('Found color: $color');
-              return ConfidenceValue(value: color, confidence: 0.85);
-            }
+    // Look for line with dash, extract after dash
+    for (final line in lines) {
+      final trimmed = line.trim();
+      if (trimmed.contains('-') && trimmed.length > 20) {
+        final parts = trimmed.split('-');
+        if (parts.length >= 2) {
+          final color = parts[1].trim();
+          if (color.length > 3) {
+            LogService.info('Color: $color');
+            return ConfidenceValue(value: color, confidence: 0.9);
           }
         }
       }
     }
-
-    LogService.debug('No color found');
+    
+    // Fallback: look for "BLUE CAMP MASTER" pattern
+    for (final line in lines) {
+      if (RegExp(r'BLUE|RED|GREEN|BLACK|WHITE').hasMatch(line) && line.trim().length > 5) {
+        LogService.info('Color (fallback): ${line.trim()}');
+        return ConfidenceValue(value: line.trim(), confidence: 0.8);
+      }
+    }
+    
     return ConfidenceValue(value: null, confidence: 0.0);
   }
 
