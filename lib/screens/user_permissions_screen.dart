@@ -80,7 +80,7 @@ class _UserPermissionsScreenState extends State<UserPermissionsScreen> {
     setState(() {
       _selectedUsername = username;
       final level = user['level'] as int;
-      
+
       // Load existing permissions or use defaults
       if (user['permissions'] != null) {
         _permissions = Map<String, bool>.from(user['permissions'] as Map);
@@ -187,10 +187,11 @@ class _UserPermissionsScreenState extends State<UserPermissionsScreen> {
 
     try {
       final usersBox = Hive.box('usersBox');
-      final user = Map<String, dynamic>.from(usersBox.get(_selectedUsername) as Map);
-      
+      final user =
+          Map<String, dynamic>.from(usersBox.get(_selectedUsername) as Map);
+
       user['permissions'] = _permissions;
-      
+
       await usersBox.put(_selectedUsername, user);
       await SyncService.pushChange('usersBox', _selectedUsername!, user);
 

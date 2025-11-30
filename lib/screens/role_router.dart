@@ -67,15 +67,15 @@ class _RoleRouterState extends State<RoleRouter> {
   bool _hasPermission(String permission) {
     final usersBox = Hive.box('usersBox');
     final user = usersBox.get(widget.username) as Map?;
-    
+
     if (user == null) return false;
-    
+
     // Check custom permissions
     if (user['permissions'] != null) {
       final permissions = Map<String, bool>.from(user['permissions'] as Map);
       return permissions[permission] ?? false;
     }
-    
+
     // Fall back to default permissions
     final defaults = UserPermissions.getDefaultPermissions(widget.level);
     return defaults[permission] ?? false;
@@ -139,12 +139,12 @@ class _RoleRouterState extends State<RoleRouter> {
                 'Dashboard',
                 DashboardScreenV2(
                     username: widget.username, level: widget.level)),
-          
+
           // Operator-specific items
           if (isOperator)
             _drawerItem(Icons.report_problem_outlined, 'Report Issue',
                 OperatorQCScreen(username: widget.username)),
-          
+
           // Setter/Manager items
           if (!isOperator) ...[
             if (_hasPermission(UserPermissions.mouldChangeChecklist))
@@ -163,7 +163,7 @@ class _RoleRouterState extends State<RoleRouter> {
             _drawerItem(Icons.report_problem_outlined, 'Issues',
                 IssuesScreenV2(username: widget.username, level: widget.level)),
           ],
-          
+
           // Manager items
           if (isManager) ...[
             _drawerItem(Icons.calendar_month_outlined, 'Timeline',
@@ -223,7 +223,7 @@ class _RoleRouterState extends State<RoleRouter> {
                 QualityControlScreen(
                     level: widget.level, username: widget.username)),
           ],
-          
+
           // Admin items
           if (isAdmin) ...[
             const Divider(),
@@ -231,8 +231,8 @@ class _RoleRouterState extends State<RoleRouter> {
               _drawerItem(Icons.manage_accounts_outlined, 'Users',
                   ManageUsersScreen(level: widget.level)),
             if (_hasPermission(UserPermissions.userPermissions))
-              _drawerItem(Icons.admin_panel_settings_outlined, 'User Permissions',
-                  const UserPermissionsScreen()),
+              _drawerItem(Icons.admin_panel_settings_outlined,
+                  'User Permissions', const UserPermissionsScreen()),
             if (_hasPermission(UserPermissions.settings))
               _drawerItem(Icons.settings_outlined, 'Settings',
                   SettingsScreen(level: widget.level)),
