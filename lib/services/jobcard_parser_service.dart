@@ -366,14 +366,15 @@ class JobcardParserService {
   ConfidenceValue<int> _extractQuantityToManufacture(List<String> lines) {
     // Find label, search next 25 lines (value is ~18 lines after)
     for (int i = 0; i < lines.length; i++) {
-      if (RegExp(r'quantity\s*to\s*manufacture', caseSensitive: false).hasMatch(lines[i])) {
+      if (RegExp(r'quantity\s*to\s*manufacture', caseSensitive: false)
+          .hasMatch(lines[i])) {
         for (int j = i + 1; j < lines.length && j < i + 25; j++) {
           final line = lines[j].trim();
           final match = RegExp(r'^([\d,]+)\.?\d*$').firstMatch(line);
           if (match != null) {
             final val = int.tryParse(match.group(1)!.replaceAll(',', ''));
             if (val != null && val >= 1000 && val <= 10000) {
-              LogService.info('Quantity: $val (offset: ${j-i})');
+              LogService.info('Quantity: $val (offset: ${j - i})');
               return ConfidenceValue(value: val, confidence: 0.9);
             }
           }
@@ -393,7 +394,7 @@ class JobcardParserService {
           if (match != null) {
             final val = int.tryParse(match.group(1)!.replaceAll(',', ''));
             if (val != null && val >= 500 && val <= 2000) {
-              LogService.info('Daily Output: $val (offset: ${j-i})');
+              LogService.info('Daily Output: $val (offset: ${j - i})');
               return ConfidenceValue(value: val, confidence: 0.9);
             }
           }
@@ -431,14 +432,16 @@ class JobcardParserService {
   ConfidenceValue<int> _extractTargetCycleDay(List<String> lines) {
     // Find label, search next 25 lines
     for (int i = 0; i < lines.length; i++) {
-      if (RegExp(r'target\s*cycle\s*day|traget\s*cycle\s*day', caseSensitive: false).hasMatch(lines[i])) {
+      if (RegExp(r'target\s*cycle\s*day|traget\s*cycle\s*day',
+              caseSensitive: false)
+          .hasMatch(lines[i])) {
         for (int j = i + 1; j < lines.length && j < i + 25; j++) {
           final line = lines[j].trim();
           final match = RegExp(r'^([\d,]+)\.?\d*$').firstMatch(line);
           if (match != null) {
             final val = int.tryParse(match.group(1)!.replaceAll(',', ''));
             if (val != null && val >= 200 && val <= 700) {
-              LogService.info('Target Day: $val (offset: ${j-i})');
+              LogService.info('Target Day: $val (offset: ${j - i})');
               return ConfidenceValue(value: val, confidence: 0.9);
             }
           }
@@ -451,14 +454,16 @@ class JobcardParserService {
   ConfidenceValue<int> _extractTargetCycleNight(List<String> lines) {
     // Find label, search next 25 lines
     for (int i = 0; i < lines.length; i++) {
-      if (RegExp(r'target\s*cycle\s*night|traget\s*cycle\s*night', caseSensitive: false).hasMatch(lines[i])) {
+      if (RegExp(r'target\s*cycle\s*night|traget\s*cycle\s*night',
+              caseSensitive: false)
+          .hasMatch(lines[i])) {
         for (int j = i + 1; j < lines.length && j < i + 25; j++) {
           final line = lines[j].trim();
           final match = RegExp(r'^([\d,]+)\.?\d*$').firstMatch(line);
           if (match != null) {
             final val = int.tryParse(match.group(1)!.replaceAll(',', ''));
             if (val != null && val >= 300 && val <= 800) {
-              LogService.info('Target Night: $val (offset: ${j-i})');
+              LogService.info('Target Night: $val (offset: ${j - i})');
               return ConfidenceValue(value: val, confidence: 0.9);
             }
           }
