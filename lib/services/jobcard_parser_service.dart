@@ -430,44 +430,44 @@ class JobcardParserService {
   }
 
   ConfidenceValue<int> _extractTargetCycleDay(List<String> lines) {
-    // Find label, search next 25 lines
+    // Find "Target Cycle Day" at line ~6, value at line ~22
     for (int i = 0; i < lines.length; i++) {
-      if (RegExp(r'target\s*cycle\s*day|traget\s*cycle\s*day',
-              caseSensitive: false)
-          .hasMatch(lines[i])) {
-        for (int j = i + 1; j < lines.length && j < i + 25; j++) {
+      if (RegExp(r'target\s*cycle\s*day|traget\s*cycle\s*day', caseSensitive: false).hasMatch(lines[i])) {
+        // Search 15-20 lines after label
+        for (int j = i + 15; j < lines.length && j < i + 22; j++) {
           final line = lines[j].trim();
           final match = RegExp(r'^([\d,]+)\.?\d*$').firstMatch(line);
           if (match != null) {
             final val = int.tryParse(match.group(1)!.replaceAll(',', ''));
             if (val != null && val >= 200 && val <= 700) {
-              LogService.info('Target Day: $val (offset: ${j - i})');
+              LogService.info('Target Day: $val (line $j)');
               return ConfidenceValue(value: val, confidence: 0.9);
             }
           }
         }
+        break;
       }
     }
     return ConfidenceValue(value: null, confidence: 0.0);
   }
 
   ConfidenceValue<int> _extractTargetCycleNight(List<String> lines) {
-    // Find label, search next 25 lines
+    // Find "Target Cycle Night" at line ~7, value at line ~23
     for (int i = 0; i < lines.length; i++) {
-      if (RegExp(r'target\s*cycle\s*night|traget\s*cycle\s*night',
-              caseSensitive: false)
-          .hasMatch(lines[i])) {
-        for (int j = i + 1; j < lines.length && j < i + 25; j++) {
+      if (RegExp(r'target\s*cycle\s*night|traget\s*cycle\s*night', caseSensitive: false).hasMatch(lines[i])) {
+        // Search 15-20 lines after label
+        for (int j = i + 15; j < lines.length && j < i + 22; j++) {
           final line = lines[j].trim();
           final match = RegExp(r'^([\d,]+)\.?\d*$').firstMatch(line);
           if (match != null) {
             final val = int.tryParse(match.group(1)!.replaceAll(',', ''));
             if (val != null && val >= 300 && val <= 800) {
-              LogService.info('Target Night: $val (offset: ${j - i})');
+              LogService.info('Target Night: $val (line $j)');
               return ConfidenceValue(value: val, confidence: 0.9);
             }
           }
         }
+        break;
       }
     }
     return ConfidenceValue(value: null, confidence: 0.0);
