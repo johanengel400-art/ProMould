@@ -22,6 +22,9 @@ class UserPermissions {
   static const String scrapAnalysis = 'scrap_analysis';
   static const String checklistManager = 'checklist_manager';
   static const String manageUsers = 'manage_users';
+  static const String userManagement = 'user_management';
+  static const String userPermissions = 'user_permissions';
+  static const String reports = 'reports';
   static const String settings = 'settings';
 
   // Default permissions by level
@@ -37,6 +40,9 @@ class UserPermissions {
           mouldChangeChecklist: true,
           settings: false,
           manageUsers: false,
+          userManagement: false,
+          userPermissions: false,
+          reports: false,
           machines: false,
           jobs: false,
           moulds: false,
@@ -65,6 +71,9 @@ class UserPermissions {
           qualityControl: true,
           settings: false,
           manageUsers: false,
+          userManagement: false,
+          userPermissions: false,
+          reports: false,
           machines: false,
           jobs: false,
           moulds: false,
@@ -100,6 +109,9 @@ class UserPermissions {
           scrapAnalysis: true,
           checklistManager: true,
           manageUsers: false,
+          userManagement: false,
+          userPermissions: false,
+          reports: true,
           settings: false,
         };
       case 4: // Admin
@@ -125,6 +137,9 @@ class UserPermissions {
           scrapAnalysis: true,
           checklistManager: true,
           manageUsers: true,
+          userManagement: true,
+          userPermissions: true,
+          reports: true,
           settings: true,
         };
       default:
@@ -177,6 +192,12 @@ class UserPermissions {
         return 'Checklist Manager';
       case manageUsers:
         return 'Manage Users';
+      case userManagement:
+        return 'User Management';
+      case userPermissions:
+        return 'User Permissions';
+      case reports:
+        return 'Reports';
       case settings:
         return 'Settings';
       default:
@@ -208,6 +229,9 @@ class UserPermissions {
       scrapAnalysis,
       checklistManager,
       manageUsers,
+      userManagement,
+      userPermissions,
+      reports,
       settings,
     ];
   }
