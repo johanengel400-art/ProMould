@@ -19,6 +19,8 @@ import 'downtime_screen.dart';
 import 'oee_screen.dart';
 import 'settings_screen.dart';
 import 'mould_change_scheduler_screen.dart';
+import 'mould_change_checklist_screen.dart';
+import 'mould_change_history_screen.dart';
 import 'job_queue_manager_screen.dart';
 import 'my_tasks_screen.dart';
 import 'quality_control_screen.dart';
@@ -129,6 +131,10 @@ class _RoleRouterState extends State<RoleRouter> {
                     username: widget.username, level: widget.level)),
             _drawerItem(Icons.swap_horiz, 'Mould Changes',
                 MouldChangeSchedulerScreen(level: widget.level)),
+            _drawerItem(Icons.checklist, 'Mould Change Checklist',
+                MouldChangeChecklistScreen(level: widget.level)),
+            _drawerItem(Icons.history, 'Mould Change History',
+                const MouldChangeHistoryScreen()),
             _drawerItem(
                 Icons.fact_check,
                 'Machine Inspections',
