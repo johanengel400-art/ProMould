@@ -432,7 +432,9 @@ class JobcardParserService {
   ConfidenceValue<int> _extractTargetCycleDay(List<String> lines) {
     // Find "Target Cycle Day" at line ~6, value at line ~22
     for (int i = 0; i < lines.length; i++) {
-      if (RegExp(r'target\s*cycle\s*day|traget\s*cycle\s*day', caseSensitive: false).hasMatch(lines[i])) {
+      if (RegExp(r'target\s*cycle\s*day|traget\s*cycle\s*day',
+              caseSensitive: false)
+          .hasMatch(lines[i])) {
         // Search 15-20 lines after label
         for (int j = i + 15; j < lines.length && j < i + 22; j++) {
           final line = lines[j].trim();
@@ -454,7 +456,9 @@ class JobcardParserService {
   ConfidenceValue<int> _extractTargetCycleNight(List<String> lines) {
     // Find "Target Cycle Night" at line ~7, value at line ~23
     for (int i = 0; i < lines.length; i++) {
-      if (RegExp(r'target\s*cycle\s*night|traget\s*cycle\s*night', caseSensitive: false).hasMatch(lines[i])) {
+      if (RegExp(r'target\s*cycle\s*night|traget\s*cycle\s*night',
+              caseSensitive: false)
+          .hasMatch(lines[i])) {
         // Search 15-20 lines after label
         for (int j = i + 15; j < lines.length && j < i + 22; j++) {
           final line = lines[j].trim();
