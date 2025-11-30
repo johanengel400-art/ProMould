@@ -17,33 +17,58 @@ class _UserPermissionsScreenState extends State<UserPermissionsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
+    
     return Scaffold(
       backgroundColor: const Color(0xFF0A0E1A),
       appBar: AppBar(
         title: const Text('User Permissions'),
         backgroundColor: const Color(0xFF0F1419),
       ),
-      body: Row(
-        children: [
-          // User list
-          SizedBox(
-            width: 250,
-            child: _buildUserList(),
-          ),
-          const VerticalDivider(width: 1),
-          // Permissions editor
-          Expanded(
-            child: _selectedUsername == null
-                ? const Center(
-                    child: Text(
-                      'Select a user to edit permissions',
-                      style: TextStyle(color: Colors.white70),
-                    ),
-                  )
-                : _buildPermissionsEditor(),
-          ),
-        ],
-      ),
+      body: isPortrait
+          ? Column(
+              children: [
+                // User list (top half in portrait)
+                Expanded(
+                  flex: 1,
+                  child: _buildUserList(),
+                ),
+                const Divider(height: 1),
+                // Permissions editor (bottom half in portrait)
+                Expanded(
+                  flex: 2,
+                  child: _selectedUsername == null
+                      ? const Center(
+                          child: Text(
+                            'Select a user to edit permissions',
+                            style: TextStyle(color: Colors.white70),
+                          ),
+                        )
+                      : _buildPermissionsEditor(),
+                ),
+              ],
+            )
+          : Row(
+              children: [
+                // User list (left side in landscape)
+                SizedBox(
+                  width: 250,
+                  child: _buildUserList(),
+                ),
+                const VerticalDivider(width: 1),
+                // Permissions editor (right side in landscape)
+                Expanded(
+                  child: _selectedUsername == null
+                      ? const Center(
+                          child: Text(
+                            'Select a user to edit permissions',
+                            style: TextStyle(color: Colors.white70),
+                          ),
+                        )
+                      : _buildPermissionsEditor(),
+                ),
+              ],
+            ),
     );
   }
 
