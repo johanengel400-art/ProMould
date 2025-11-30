@@ -34,6 +34,11 @@ class _DailyProductionSheetScreenState
         title: const Text('Daily Production Sheet'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.qr_code_scanner),
+            tooltip: 'Scan Jobcard',
+            onPressed: _scanJobcard,
+          ),
+          IconButton(
             icon: const Icon(Icons.picture_as_pdf),
             tooltip: 'Export to PDF',
             onPressed: _isExporting ? null : _exportToPDF,
@@ -281,6 +286,31 @@ class _DailyProductionSheetScreenState
       setState(() {
         selectedDate = picked;
       });
+    }
+  }
+
+  Future<void> _scanJobcard() async {
+    try {
+      // Import the jobcard capture screen
+      final result = await Navigator.pushNamed(context, '/jobcard-capture');
+      
+      if (result != null && result is Map) {
+        // Jobcard was scanned successfully
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Jobcard scanned successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        setState(() {}); // Refresh the list
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error scanning jobcard: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 

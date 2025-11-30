@@ -44,6 +44,20 @@ class _MouldChangeSchedulerScreenState
           );
         }
 
+        if (snapshot.hasError) {
+          return Scaffold(
+            body: Center(
+              child: Text('Error: ${snapshot.error}'),
+            ),
+          );
+        }
+
+        if (!Hive.isBoxOpen('mouldChangesBox')) {
+          return const Scaffold(
+            body: Center(child: Text('Box not initialized')),
+          );
+        }
+
         final mouldChangesBox = Hive.box('mouldChangesBox');
         var changes = mouldChangesBox.values.cast<Map>().toList();
 

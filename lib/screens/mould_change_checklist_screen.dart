@@ -33,6 +33,10 @@ class _MouldChangeChecklistScreenState
   final Map<String, String> _removalComments = {};
   final Map<String, bool> _installationChecks = {};
   final Map<String, String> _installationComments = {};
+  final Map<String, bool> _testingChecks = {};
+  final Map<String, String> _testingComments = {};
+  final Map<String, bool> _signoffChecks = {};
+  final Map<String, String> _signoffComments = {};
 
   final List<Map<String, String>> _removalItems = [
     {
@@ -88,6 +92,32 @@ class _MouldChangeChecklistScreenState
     {'id': 'install_10', 'text': 'Installation documented in system'},
   ];
 
+  final List<Map<String, String>> _testingItems = [
+    {'id': 'test_1', 'text': 'Machine dry-cycled successfully (no mould damage)'},
+    {'id': 'test_2', 'text': 'Mould temperature controllers set to specification'},
+    {'id': 'test_3', 'text': 'Cooling water flow rates verified'},
+    {'id': 'test_4', 'text': 'Injection pressure and speed parameters set'},
+    {'id': 'test_5', 'text': 'Cycle time tested and optimized'},
+    {'id': 'test_6', 'text': 'Part ejection tested (no sticking or damage)'},
+    {'id': 'test_7', 'text': 'First article inspection passed (dimensions OK)'},
+    {'id': 'test_8', 'text': 'Color and finish verified against standard'},
+    {'id': 'test_9', 'text': 'No flash, short shots, or defects observed'},
+    {'id': 'test_10', 'text': 'Production parameters recorded in system'},
+  ];
+
+  final List<Map<String, String>> _signoffItems = [
+    {'id': 'signoff_1', 'text': 'All checklist items completed and verified'},
+    {'id': 'signoff_2', 'text': 'Mould change time recorded (start to finish)'},
+    {'id': 'signoff_3', 'text': 'Any issues or observations documented'},
+    {'id': 'signoff_4', 'text': 'Spare parts used recorded in inventory'},
+    {'id': 'signoff_5', 'text': 'Machine ready for production handover'},
+    {'id': 'signoff_6', 'text': 'Setter signature and date confirmed'},
+    {'id': 'signoff_7', 'text': 'Supervisor notified of completion'},
+    {'id': 'signoff_8', 'text': 'Production team briefed on new mould/job'},
+    {'id': 'signoff_9', 'text': 'All tools and equipment returned to storage'},
+    {'id': 'signoff_10', 'text': 'Work area cleaned and organized'},
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -99,6 +129,14 @@ class _MouldChangeChecklistScreenState
     for (var item in _installationItems) {
       _installationChecks[item['id']!] = false;
       _installationComments[item['id']!] = '';
+    }
+    for (var item in _testingItems) {
+      _testingChecks[item['id']!] = false;
+      _testingComments[item['id']!] = '';
+    }
+    for (var item in _signoffItems) {
+      _signoffChecks[item['id']!] = false;
+      _signoffComments[item['id']!] = '';
     }
   }
 
@@ -130,6 +168,10 @@ class _MouldChangeChecklistScreenState
         'removalComments': _removalComments,
         'installationChecks': _installationChecks,
         'installationComments': _installationComments,
+        'testingChecks': _testingChecks,
+        'testingComments': _testingComments,
+        'signoffChecks': _signoffChecks,
+        'signoffComments': _signoffComments,
         'completedAt': DateTime.now().toIso8601String(),
         'completedBy': _setterNameCtrl.text.trim(),
       };
@@ -195,6 +237,20 @@ class _MouldChangeChecklistScreenState
               _installationItems,
               _installationChecks,
               _installationComments,
+            ),
+            const SizedBox(height: 24),
+            _buildSection(
+              'Section 3: Post-Installation Testing',
+              _testingItems,
+              _testingChecks,
+              _testingComments,
+            ),
+            const SizedBox(height: 24),
+            _buildSection(
+              'Section 4: Final Sign-off & Documentation',
+              _signoffItems,
+              _signoffChecks,
+              _signoffComments,
             ),
             const SizedBox(height: 24),
             _buildSaveButton(),

@@ -430,19 +430,20 @@ class JobcardParserService {
   }
 
   ConfidenceValue<int> _extractTargetCycleDay(List<String> lines) {
-    // Find "Target Cycle Day" at line ~6, value at line ~22
+    // Find "Target Cycle Day" label, value appears 18-21 lines after
     for (int i = 0; i < lines.length; i++) {
       if (RegExp(r'target\s*cycle\s*day|traget\s*cycle\s*day',
               caseSensitive: false)
           .hasMatch(lines[i])) {
-        // Search 15-20 lines after label
-        for (int j = i + 15; j < lines.length && j < i + 22; j++) {
+        LogService.debug('Found Target Cycle Day label at line $i');
+        // Search 18-21 lines after label (Day value range)
+        for (int j = i + 18; j < lines.length && j < i + 22; j++) {
           final line = lines[j].trim();
           final match = RegExp(r'^([\d,]+)\.?\d*$').firstMatch(line);
           if (match != null) {
             final val = int.tryParse(match.group(1)!.replaceAll(',', ''));
             if (val != null && val >= 200 && val <= 700) {
-              LogService.info('Target Day: $val (line $j)');
+              LogService.info('Target Cycle Day: $val (line $j, offset ${j-i})');
               return ConfidenceValue(value: val, confidence: 0.9);
             }
           }
@@ -454,19 +455,35 @@ class JobcardParserService {
   }
 
   ConfidenceValue<int> _extractTargetCycleNight(List<String> lines) {
-    // Find "Target Cycle Night" at line ~7, value at line ~23
+    // Find "Target Cycle Night" label, value appears 18-21 lines after
+    // Night value is ALWAYS higher than Day
+    int? dayValue;
+    
+    // First get the day value for validation
+    final dayResult = _extractTargetCycleDay(lines);
+    if (dayResult.value != null) {
+      dayValue = dayResult.value;
+    }
+    
     for (int i = 0; i < lines.length; i++) {
       if (RegExp(r'target\s*cycle\s*night|traget\s*cycle\s*night',
               caseSensitive: false)
           .hasMatch(lines[i])) {
-        // Search 15-20 lines after label
-        for (int j = i + 15; j < lines.length && j < i + 22; j++) {
+        LogService.debug('Found Target Cycle Night label at line $i');
+        // Search 18-21 lines after label (Night value range)
+        for (int j = i + 18; j < lines.length && j < i + 22; j++) {
           final line = lines[j].trim();
           final match = RegExp(r'^([\d,]+)\.?\d*$').firstMatch(line);
           if (match != null) {
             final val = int.tryParse(match.group(1)!.replaceAll(',', ''));
-            if (val != null && val >= 300 && val <= 800) {
-              LogService.info('Target Night: $val (line $j)');
+            // Night must be >= 300, <= 900, and HIGHER than day if day exists
+            if (val != null && val >= 300 && val <= 900) {
+              // If we have a day value, night must be higher
+              if (dayValue != null && val <= dayValue) {
+                LogService.debug('Skipping night value $val (not higher than day $dayValue)');
+                continue;
+              }
+              LogService.info('Target Cycle Night: $val (line $j, offset ${j-i})');
               return ConfidenceValue(value: val, confidence: 0.9);
             }
           }
