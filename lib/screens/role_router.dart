@@ -195,6 +195,12 @@ class _RoleRouterState extends State<RoleRouter> {
             _drawerItem(Icons.swap_horiz, 'Mould Changes',
                 MouldChangeSchedulerScreen(level: widget.level)),
           if (isManager)
+            _drawerItem(Icons.checklist, 'Mould Change Checklist',
+                MouldChangeChecklistScreen(level: widget.level)),
+          if (isManager)
+            _drawerItem(Icons.history, 'Mould Change History',
+                const MouldChangeHistoryScreen()),
+          if (isManager)
             _drawerItem(Icons.apartment_outlined, 'Floors',
                 ManageFloorsScreen(level: widget.level)),
           if (isAdmin)
