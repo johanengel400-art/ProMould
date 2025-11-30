@@ -43,7 +43,10 @@ class _MouldChangeChecklistScreenState
       'id': 'removal_2',
       'text': 'Mould surface and cavities cleaned (internally and externally)'
     },
-    {'id': 'removal_3', 'text': 'All plastic residue, runners, and parts removed'},
+    {
+      'id': 'removal_3',
+      'text': 'All plastic residue, runners, and parts removed'
+    },
     {'id': 'removal_4', 'text': 'Water channels blown out with compressed air'},
     {
       'id': 'removal_5',
@@ -51,7 +54,8 @@ class _MouldChangeChecklistScreenState
     },
     {
       'id': 'removal_6',
-      'text': 'Wear pads, guide pillars, and moving components cleaned and greased'
+      'text':
+          'Wear pads, guide pillars, and moving components cleaned and greased'
     },
     {'id': 'removal_7', 'text': 'Mould condition checked for visible damage'},
     {
@@ -67,7 +71,10 @@ class _MouldChangeChecklistScreenState
       'id': 'install_1',
       'text': 'Correct mould verified against production job card'
     },
-    {'id': 'install_2', 'text': 'Mould cleaned and inspected prior to installation'},
+    {
+      'id': 'install_2',
+      'text': 'Mould cleaned and inspected prior to installation'
+    },
     {
       'id': 'install_3',
       'text': 'Mould properly aligned and seated on machine platens'
@@ -247,7 +254,8 @@ class _MouldChangeChecklistScreenState
             ),
             const SizedBox(height: 12),
             ListTile(
-              title: const Text('Date', style: TextStyle(color: Colors.white70)),
+              title:
+                  const Text('Date', style: TextStyle(color: Colors.white70)),
               subtitle: Text(
                 DateFormat('yyyy-MM-dd').format(_selectedDate),
                 style: const TextStyle(color: Colors.white),
@@ -266,7 +274,8 @@ class _MouldChangeChecklistScreenState
               },
             ),
             ListTile(
-              title: const Text('Start Time', style: TextStyle(color: Colors.white70)),
+              title: const Text('Start Time',
+                  style: TextStyle(color: Colors.white70)),
               subtitle: Text(
                 _startTime.format(context),
                 style: const TextStyle(color: Colors.white),

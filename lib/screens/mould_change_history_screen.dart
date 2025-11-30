@@ -45,10 +45,12 @@ class MouldChangeHistoryScreen extends StatelessWidget {
   Widget _buildChangeCard(BuildContext context, Map change) {
     final date = DateTime.parse(change['date'] as String);
     final completedAt = DateTime.parse(change['completedAt'] as String);
-    
-    final removalChecks = Map<String, bool>.from(change['removalChecks'] as Map);
-    final installChecks = Map<String, bool>.from(change['installationChecks'] as Map);
-    
+
+    final removalChecks =
+        Map<String, bool>.from(change['removalChecks'] as Map);
+    final installChecks =
+        Map<String, bool>.from(change['installationChecks'] as Map);
+
     final removalComplete = removalChecks.values.where((v) => v).length;
     final installComplete = installChecks.values.where((v) => v).length;
     final totalRemoval = removalChecks.length;
@@ -82,7 +84,8 @@ class MouldChangeHistoryScreen extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 8),
-              if (change['mouldRemoved'] != null && (change['mouldRemoved'] as String).isNotEmpty)
+              if (change['mouldRemoved'] != null &&
+                  (change['mouldRemoved'] as String).isNotEmpty)
                 Text(
                   'Removed: ${change['mouldRemoved']}',
                   style: const TextStyle(color: Colors.red),
@@ -111,12 +114,14 @@ class MouldChangeHistoryScreen extends StatelessWidget {
                         LinearProgressIndicator(
                           value: removalComplete / totalRemoval,
                           backgroundColor: Colors.white24,
-                          valueColor: const AlwaysStoppedAnimation(Colors.orange),
+                          valueColor:
+                              const AlwaysStoppedAnimation(Colors.orange),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           '$removalComplete/$totalRemoval',
-                          style: const TextStyle(color: Colors.white70, fontSize: 12),
+                          style: const TextStyle(
+                              color: Colors.white70, fontSize: 12),
                         ),
                       ],
                     ),
@@ -134,12 +139,14 @@ class MouldChangeHistoryScreen extends StatelessWidget {
                         LinearProgressIndicator(
                           value: installComplete / totalInstall,
                           backgroundColor: Colors.white24,
-                          valueColor: const AlwaysStoppedAnimation(Colors.green),
+                          valueColor:
+                              const AlwaysStoppedAnimation(Colors.green),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           '$installComplete/$totalInstall',
-                          style: const TextStyle(color: Colors.white70, fontSize: 12),
+                          style: const TextStyle(
+                              color: Colors.white70, fontSize: 12),
                         ),
                       ],
                     ),
