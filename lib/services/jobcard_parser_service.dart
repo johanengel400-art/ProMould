@@ -163,15 +163,16 @@ class JobcardParserService {
         }
       }
     }
-    
+
     // Fallback: look for "BLUE CAMP MASTER" pattern
     for (final line in lines) {
-      if (RegExp(r'BLUE|RED|GREEN|BLACK|WHITE').hasMatch(line) && line.trim().length > 5) {
+      if (RegExp(r'BLUE|RED|GREEN|BLACK|WHITE').hasMatch(line) &&
+          line.trim().length > 5) {
         LogService.info('Color (fallback): ${line.trim()}');
         return ConfidenceValue(value: line.trim(), confidence: 0.8);
       }
     }
-    
+
     return ConfidenceValue(value: null, confidence: 0.0);
   }
 
