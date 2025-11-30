@@ -364,61 +364,42 @@ class JobcardParserService {
   }
 
   ConfidenceValue<int> _extractQuantityToManufacture(List<String> lines) {
-    // Look for "Quantity to Manufacture:" label, then search next 15 lines
+    // Find label, search next 25 lines (value is ~18 lines after)
     for (int i = 0; i < lines.length; i++) {
-      final line = lines[i].trim();
-
-      if (RegExp(r'quantity\s*to\s*manufacture', caseSensitive: false)
-          .hasMatch(line)) {
-        // Search next 15 lines for quantity value (typically 1000-50000)
-        for (int j = i + 1; j < lines.length && j < i + 15; j++) {
-          final nextLine = lines[j].trim();
-          if (nextLine.isEmpty) continue;
-
-          final match = RegExp(r'([\d,]+\.?\d*)').firstMatch(nextLine);
+      if (RegExp(r'quantity\s*to\s*manufacture', caseSensitive: false).hasMatch(lines[i])) {
+        for (int j = i + 1; j < lines.length && j < i + 25; j++) {
+          final line = lines[j].trim();
+          final match = RegExp(r'^([\d,]+)\.?\d*$').firstMatch(line);
           if (match != null) {
-            final valueStr = match.group(1)!.replaceAll(',', '');
-            final value = double.tryParse(valueStr)?.toInt();
-            // Quantity typically between 500 and 50000
-            if (value != null && value >= 500 && value <= 50000) {
-              LogService.debug(
-                  'Found quantity: $value (line offset: ${j - i})');
-              return ConfidenceValue(value: value, confidence: 0.85);
+            final val = int.tryParse(match.group(1)!.replaceAll(',', ''));
+            if (val != null && val >= 1000 && val <= 10000) {
+              LogService.info('Quantity: $val (offset: ${j-i})');
+              return ConfidenceValue(value: val, confidence: 0.9);
             }
           }
         }
       }
     }
-
     return ConfidenceValue(value: null, confidence: 0.0);
   }
 
   ConfidenceValue<int> _extractDailyOutput(List<String> lines) {
-    // Look for "Daily Output (Units):" label, then search next 15 lines
+    // Find label, search next 25 lines
     for (int i = 0; i < lines.length; i++) {
-      final line = lines[i].trim();
-
-      if (RegExp(r'daily\s*output', caseSensitive: false).hasMatch(line)) {
-        // Search next 15 lines for daily output value (typically 100-5000)
-        for (int j = i + 1; j < lines.length && j < i + 15; j++) {
-          final nextLine = lines[j].trim();
-          if (nextLine.isEmpty) continue;
-
-          final match = RegExp(r'([\d,]+\.?\d*)').firstMatch(nextLine);
+      if (RegExp(r'daily\s*output', caseSensitive: false).hasMatch(lines[i])) {
+        for (int j = i + 1; j < lines.length && j < i + 25; j++) {
+          final line = lines[j].trim();
+          final match = RegExp(r'^([\d,]+)\.?\d*$').firstMatch(line);
           if (match != null) {
-            final valueStr = match.group(1)!.replaceAll(',', '');
-            final value = double.tryParse(valueStr)?.toInt();
-            // Daily output typically between 50 and 5000
-            if (value != null && value >= 50 && value <= 5000) {
-              LogService.debug(
-                  'Found daily output: $value (line offset: ${j - i})');
-              return ConfidenceValue(value: value, confidence: 0.85);
+            final val = int.tryParse(match.group(1)!.replaceAll(',', ''));
+            if (val != null && val >= 500 && val <= 2000) {
+              LogService.info('Daily Output: $val (offset: ${j-i})');
+              return ConfidenceValue(value: val, confidence: 0.9);
             }
           }
         }
       }
     }
-
     return ConfidenceValue(value: null, confidence: 0.0);
   }
 
@@ -448,60 +429,42 @@ class JobcardParserService {
   }
 
   ConfidenceValue<int> _extractTargetCycleDay(List<String> lines) {
-    // Look for "Target Cycle Day:" label, then search nearby
+    // Find label, search next 25 lines
     for (int i = 0; i < lines.length; i++) {
-      final line = lines[i].trim();
-
-      if (RegExp(r'target\s*cycle\s*day|traget\s*cycle\s*day',
-              caseSensitive: false)
-          .hasMatch(line)) {
-        // Search next 10 lines for value (typically 200-1000)
-        for (int j = i + 1; j < lines.length && j < i + 10; j++) {
-          final nextLine = lines[j].trim();
-          if (nextLine.isEmpty) continue;
-
-          final match = RegExp(r'([\d,]+\.?\d*)').firstMatch(nextLine);
+      if (RegExp(r'target\s*cycle\s*day|traget\s*cycle\s*day', caseSensitive: false).hasMatch(lines[i])) {
+        for (int j = i + 1; j < lines.length && j < i + 25; j++) {
+          final line = lines[j].trim();
+          final match = RegExp(r'^([\d,]+)\.?\d*$').firstMatch(line);
           if (match != null) {
-            final valueStr = match.group(1)!.replaceAll(',', '');
-            final value = double.tryParse(valueStr)?.toInt();
-            if (value != null && value >= 100 && value <= 2000) {
-              LogService.debug('Found target cycle day: $value');
-              return ConfidenceValue(value: value, confidence: 0.8);
+            final val = int.tryParse(match.group(1)!.replaceAll(',', ''));
+            if (val != null && val >= 200 && val <= 700) {
+              LogService.info('Target Day: $val (offset: ${j-i})');
+              return ConfidenceValue(value: val, confidence: 0.9);
             }
           }
         }
       }
     }
-
     return ConfidenceValue(value: null, confidence: 0.0);
   }
 
   ConfidenceValue<int> _extractTargetCycleNight(List<String> lines) {
-    // Look for "Target Cycle Night:" label, then search nearby
+    // Find label, search next 25 lines
     for (int i = 0; i < lines.length; i++) {
-      final line = lines[i].trim();
-
-      if (RegExp(r'target\s*cycle\s*night|traget\s*cycle\s*night',
-              caseSensitive: false)
-          .hasMatch(line)) {
-        // Search next 10 lines for value (typically 200-1000)
-        for (int j = i + 1; j < lines.length && j < i + 10; j++) {
-          final nextLine = lines[j].trim();
-          if (nextLine.isEmpty) continue;
-
-          final match = RegExp(r'([\d,]+\.?\d*)').firstMatch(nextLine);
+      if (RegExp(r'target\s*cycle\s*night|traget\s*cycle\s*night', caseSensitive: false).hasMatch(lines[i])) {
+        for (int j = i + 1; j < lines.length && j < i + 25; j++) {
+          final line = lines[j].trim();
+          final match = RegExp(r'^([\d,]+)\.?\d*$').firstMatch(line);
           if (match != null) {
-            final valueStr = match.group(1)!.replaceAll(',', '');
-            final value = double.tryParse(valueStr)?.toInt();
-            if (value != null && value >= 100 && value <= 2000) {
-              LogService.debug('Found target cycle night: $value');
-              return ConfidenceValue(value: value, confidence: 0.8);
+            final val = int.tryParse(match.group(1)!.replaceAll(',', ''));
+            if (val != null && val >= 300 && val <= 800) {
+              LogService.info('Target Night: $val (offset: ${j-i})');
+              return ConfidenceValue(value: val, confidence: 0.9);
             }
           }
         }
       }
     }
-
     return ConfidenceValue(value: null, confidence: 0.0);
   }
 
