@@ -109,14 +109,16 @@ class _UserPermissionsScreenState extends State<UserPermissionsScreen> {
 
       // Start with defaults for this level
       _permissions = UserPermissions.getDefaultPermissions(level);
-      
+
       // Merge in any custom permissions (overriding defaults)
       if (user['permissions'] != null) {
-        final customPermissions = Map<String, bool>.from(user['permissions'] as Map);
+        final customPermissions =
+            Map<String, bool>.from(user['permissions'] as Map);
         _permissions.addAll(customPermissions);
       }
-      
-      LogService.debug('Loaded permissions for $username (level $level): $_permissions');
+
+      LogService.debug(
+          'Loaded permissions for $username (level $level): $_permissions');
     });
   }
 
@@ -226,7 +228,8 @@ class _UserPermissionsScreenState extends State<UserPermissionsScreen> {
       await usersBox.put(_selectedUsername, user);
       await SyncService.pushChange('usersBox', _selectedUsername!, user);
 
-      LogService.info('Updated permissions for $_selectedUsername: $_permissions');
+      LogService.info(
+          'Updated permissions for $_selectedUsername: $_permissions');
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

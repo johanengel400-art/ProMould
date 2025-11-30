@@ -443,7 +443,8 @@ class JobcardParserService {
           if (match != null) {
             final val = int.tryParse(match.group(1)!.replaceAll(',', ''));
             if (val != null && val >= 200 && val <= 700) {
-              LogService.info('Target Cycle Day: $val (line $j, offset ${j-i})');
+              LogService.info(
+                  'Target Cycle Day: $val (line $j, offset ${j - i})');
               return ConfidenceValue(value: val, confidence: 0.9);
             }
           }
@@ -458,13 +459,13 @@ class JobcardParserService {
     // Find "Target Cycle Night" label, value appears 18-21 lines after
     // Night value is ALWAYS higher than Day
     int? dayValue;
-    
+
     // First get the day value for validation
     final dayResult = _extractTargetCycleDay(lines);
     if (dayResult.value != null) {
       dayValue = dayResult.value;
     }
-    
+
     for (int i = 0; i < lines.length; i++) {
       if (RegExp(r'target\s*cycle\s*night|traget\s*cycle\s*night',
               caseSensitive: false)
@@ -480,10 +481,12 @@ class JobcardParserService {
             if (val != null && val >= 300 && val <= 900) {
               // If we have a day value, night must be higher
               if (dayValue != null && val <= dayValue) {
-                LogService.debug('Skipping night value $val (not higher than day $dayValue)');
+                LogService.debug(
+                    'Skipping night value $val (not higher than day $dayValue)');
                 continue;
               }
-              LogService.info('Target Cycle Night: $val (line $j, offset ${j-i})');
+              LogService.info(
+                  'Target Cycle Night: $val (line $j, offset ${j - i})');
               return ConfidenceValue(value: val, confidence: 0.9);
             }
           }

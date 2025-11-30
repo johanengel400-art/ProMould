@@ -293,7 +293,7 @@ class _DailyProductionSheetScreenState
     try {
       // Import the jobcard capture screen
       final result = await Navigator.pushNamed(context, '/jobcard-capture');
-      
+
       if (result != null && result is Map) {
         // Jobcard was scanned successfully
         ScaffoldMessenger.of(context).showSnackBar(

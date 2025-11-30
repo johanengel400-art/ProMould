@@ -93,8 +93,14 @@ class _MouldChangeChecklistScreenState
   ];
 
   final List<Map<String, String>> _testingItems = [
-    {'id': 'test_1', 'text': 'Machine dry-cycled successfully (no mould damage)'},
-    {'id': 'test_2', 'text': 'Mould temperature controllers set to specification'},
+    {
+      'id': 'test_1',
+      'text': 'Machine dry-cycled successfully (no mould damage)'
+    },
+    {
+      'id': 'test_2',
+      'text': 'Mould temperature controllers set to specification'
+    },
     {'id': 'test_3', 'text': 'Cooling water flow rates verified'},
     {'id': 'test_4', 'text': 'Injection pressure and speed parameters set'},
     {'id': 'test_5', 'text': 'Cycle time tested and optimized'},
