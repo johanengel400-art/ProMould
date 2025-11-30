@@ -2,6 +2,7 @@
 // v7.2 – Material 3 Navigation Drawer (replaces bottom nav)
 
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 
 // import all screens
 import 'login_screen.dart';
@@ -21,7 +22,9 @@ import 'settings_screen.dart';
 import 'mould_change_scheduler_screen.dart';
 import 'mould_change_checklist_screen.dart';
 import 'mould_change_history_screen.dart';
+import 'user_permissions_screen.dart';
 import 'job_queue_manager_screen.dart';
+import '../utils/user_permissions.dart';
 import 'my_tasks_screen.dart';
 import 'quality_control_screen.dart';
 import 'production_timeline_screen.dart';
@@ -59,6 +62,23 @@ class _RoleRouterState extends State<RoleRouter> {
       _title = title;
     });
     Navigator.pop(context);
+  }
+
+  bool _hasPermission(String permission) {
+    final usersBox = Hive.box('usersBox');
+    final user = usersBox.get(widget.username) as Map?;
+    
+    if (user == null) return false;
+    
+    // Check custom permissions
+    if (user['permissions'] != null) {
+      final permissions = Map<String, bool>.from(user['permissions'] as Map);
+      return permissions[permission] ?? false;
+    }
+    
+    // Fall back to default permissions
+    final defaults = UserPermissions.getDefaultPermissions(widget.level);
+    return defaults[permission] ?? false;
   }
 
   @override
@@ -112,29 +132,27 @@ class _RoleRouterState extends State<RoleRouter> {
               ],
             ),
           ),
-          // Operator Menu (Level 1) - Only Dashboard and QC
-          if (isOperator) ...[
+          // Dashboard
+          if (_hasPermission(UserPermissions.dashboard))
             _drawerItem(
                 Icons.dashboard_outlined,
                 'Dashboard',
                 DashboardScreenV2(
                     username: widget.username, level: widget.level)),
+          
+          // Operator-specific items
+          if (isOperator)
             _drawerItem(Icons.report_problem_outlined, 'Report Issue',
                 OperatorQCScreen(username: widget.username)),
-          ],
-          // Setter Menu (Level 2) - Limited access
-          if (isSetter) ...[
-            _drawerItem(
-                Icons.dashboard_outlined,
-                'Dashboard',
-                DashboardScreenV2(
-                    username: widget.username, level: widget.level)),
-            _drawerItem(Icons.swap_horiz, 'Mould Changes',
-                MouldChangeSchedulerScreen(level: widget.level)),
-            _drawerItem(Icons.checklist, 'Mould Change Checklist',
-                MouldChangeChecklistScreen(level: widget.level)),
-            _drawerItem(Icons.history, 'Mould Change History',
-                const MouldChangeHistoryScreen()),
+          
+          // Setter/Manager items
+          if (!isOperator) ...[
+            if (_hasPermission(UserPermissions.mouldChangeChecklist))
+              _drawerItem(Icons.checklist, 'Mould Change Checklist',
+                  MouldChangeChecklistScreen(level: widget.level)),
+            if (_hasPermission(UserPermissions.mouldChangeHistory))
+              _drawerItem(Icons.history, 'Mould Change History',
+                  const MouldChangeHistoryScreen()),
             _drawerItem(
                 Icons.fact_check,
                 'Machine Inspections',
@@ -145,13 +163,9 @@ class _RoleRouterState extends State<RoleRouter> {
             _drawerItem(Icons.report_problem_outlined, 'Issues',
                 IssuesScreenV2(username: widget.username, level: widget.level)),
           ],
-          // Manager Menu (Level 3+)
+          
+          // Manager items
           if (isManager) ...[
-            _drawerItem(
-                Icons.dashboard_outlined,
-                'Dashboard',
-                DashboardScreenV2(
-                    username: widget.username, level: widget.level)),
             _drawerItem(Icons.calendar_month_outlined, 'Timeline',
                 TimelineScreenV2(level: widget.level)),
             _drawerItem(
@@ -164,13 +178,7 @@ class _RoleRouterState extends State<RoleRouter> {
                 'Daily Production Sheet',
                 DailyProductionSheetScreen(
                     username: widget.username, level: widget.level)),
-            _drawerItem(Icons.report_problem_outlined, 'Issues',
-                IssuesScreenV2(username: widget.username, level: widget.level)),
-            _drawerItem(Icons.task_alt, 'My Tasks',
-                MyTasksScreen(username: widget.username, level: widget.level)),
-          ],
-          if (isManager) const Divider(),
-          if (isManager)
+            const Divider(),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Text('MANAGEMENT',
@@ -179,70 +187,56 @@ class _RoleRouterState extends State<RoleRouter> {
                       fontWeight: FontWeight.bold,
                       color: Colors.white54)),
             ),
-          if (isManager)
-            _drawerItem(Icons.precision_manufacturing_outlined, 'Machines',
-                ManageMachinesScreen(level: widget.level)),
-          if (isManager)
-            _drawerItem(Icons.fact_check_outlined, 'Jobs',
-                ManageJobsScreen(level: widget.level)),
-          if (isManager)
-            _drawerItem(Icons.reorder, 'Job Queue',
-                JobQueueManagerScreen(level: widget.level)),
-          if (isManager)
+            if (_hasPermission(UserPermissions.machines))
+              _drawerItem(Icons.precision_manufacturing_outlined, 'Machines',
+                  ManageMachinesScreen(level: widget.level)),
+            if (_hasPermission(UserPermissions.jobs))
+              _drawerItem(Icons.fact_check_outlined, 'Jobs',
+                  ManageJobsScreen(level: widget.level)),
+            if (_hasPermission(UserPermissions.jobs))
+              _drawerItem(Icons.reorder, 'Job Queue',
+                  JobQueueManagerScreen(level: widget.level)),
             _drawerItem(Icons.apps_outage_outlined, 'Moulds',
                 ManageMouldsScreen(level: widget.level)),
-          if (isManager)
             _drawerItem(Icons.swap_horiz, 'Mould Changes',
                 MouldChangeSchedulerScreen(level: widget.level)),
-          if (isManager)
-            _drawerItem(Icons.checklist, 'Mould Change Checklist',
-                MouldChangeChecklistScreen(level: widget.level)),
-          if (isManager)
-            _drawerItem(Icons.history, 'Mould Change History',
-                const MouldChangeHistoryScreen()),
-          if (isManager)
             _drawerItem(Icons.apartment_outlined, 'Floors',
                 ManageFloorsScreen(level: widget.level)),
-          if (isAdmin)
-            _drawerItem(Icons.manage_accounts_outlined, 'Users',
-                ManageUsersScreen(level: widget.level)),
-          if (isManager)
             _drawerItem(Icons.schedule_outlined, 'Production Timeline',
                 const ProductionTimelineScreen()),
-          if (isManager)
             _drawerItem(Icons.timeline_outlined, 'Planning',
                 PlanningScreen(level: widget.level)),
-          if (isManager)
             _drawerItem(Icons.timer_outlined, 'Downtime',
                 DowntimeScreen(level: widget.level)),
-          if (isManager)
-            _drawerItem(
-                Icons.fact_check,
-                'Machine Inspections',
-                MachineInspectionChecklistScreen(
-                    level: widget.level, username: widget.username)),
-          if (isManager)
             _drawerItem(Icons.assessment, 'Inspection Tracking',
                 const DailyInspectionTrackingScreen()),
-          if (isManager)
             _drawerItem(Icons.archive_outlined, 'Finished Jobs',
                 const FinishedJobsScreen()),
-          if (isManager)
             _drawerItem(Icons.analytics_outlined, 'Job Analytics',
                 const JobAnalyticsScreen()),
-          if (isManager)
-            _drawerItem(Icons.insights_outlined, 'Reports / OEE',
-                OEEScreen(level: widget.level)),
-          if (isManager)
+            if (_hasPermission(UserPermissions.reports))
+              _drawerItem(Icons.insights_outlined, 'Reports / OEE',
+                  OEEScreen(level: widget.level)),
             _drawerItem(
                 Icons.verified_outlined,
                 'Quality Control',
                 QualityControlScreen(
                     level: widget.level, username: widget.username)),
-          if (isAdmin) const Divider(),
-          if (isAdmin)
-            _drawerItem(Icons.settings_outlined, 'Settings',
-                SettingsScreen(level: widget.level)),
+          ],
+          
+          // Admin items
+          if (isAdmin) ...[
+            const Divider(),
+            if (_hasPermission(UserPermissions.userManagement))
+              _drawerItem(Icons.manage_accounts_outlined, 'Users',
+                  ManageUsersScreen(level: widget.level)),
+            if (_hasPermission(UserPermissions.userPermissions))
+              _drawerItem(Icons.admin_panel_settings_outlined, 'User Permissions',
+                  const UserPermissionsScreen()),
+            if (_hasPermission(UserPermissions.settings))
+              _drawerItem(Icons.settings_outlined, 'Settings',
+                  SettingsScreen(level: widget.level)),
+          ],
           const Divider(),
           ListTile(
             leading: const Icon(Icons.exit_to_app_outlined,
