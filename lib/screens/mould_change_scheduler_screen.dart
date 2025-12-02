@@ -170,19 +170,28 @@ class _MouldChangeSchedulerScreenState
   }
 
   Widget _buildChangeCard(Map change) {
-    final status = change['status'] as String? ?? 'Scheduled';
-    final statusColor = _getStatusColor(status);
-    final machinesBox = Hive.box('machinesBox');
-    final mouldsBox = Hive.box('mouldsBox');
-    final usersBox = Hive.box('usersBox');
+    try {
+      final status = change['status'] as String? ?? 'Scheduled';
+      final statusColor = _getStatusColor(status);
+      
+      // Safely open boxes
+      final machinesBox = Hive.isBoxOpen('machinesBox') 
+          ? Hive.box('machinesBox') 
+          : null;
+      final mouldsBox = Hive.isBoxOpen('mouldsBox') 
+          ? Hive.box('mouldsBox') 
+          : null;
+      final usersBox = Hive.isBoxOpen('usersBox') 
+          ? Hive.box('usersBox') 
+          : null;
 
-    final machine = machinesBox.get(change['machineId']) as Map?;
-    final fromMould = mouldsBox.get(change['fromMouldId']) as Map?;
-    final toMould = mouldsBox.get(change['toMouldId']) as Map?;
-    final setter = usersBox.values.cast<Map>().firstWhere(
-          (u) => u['username'] == change['assignedTo'],
-          orElse: () => {'username': 'Unassigned'},
-        );
+      final machine = machinesBox?.get(change['machineId']) as Map?;
+      final fromMould = mouldsBox?.get(change['fromMouldId']) as Map?;
+      final toMould = mouldsBox?.get(change['toMouldId']) as Map?;
+      final setter = usersBox?.values.cast<Map>().firstWhere(
+            (u) => u['username'] == change['assignedTo'],
+            orElse: () => {'username': 'Unassigned'},
+          ) ?? {'username': 'Unassigned'};
 
     final scheduledDate =
         DateTime.tryParse(change['scheduledDate'] ?? '') ?? DateTime.now();
@@ -448,6 +457,16 @@ class _MouldChangeSchedulerScreenState
         ],
       ),
     );
+    } catch (e) {
+      // Return error card if something goes wrong
+      return Card(
+        color: Colors.red.withOpacity(0.2),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text('Error displaying change: $e', style: const TextStyle(color: Colors.red)),
+        ),
+      );
+    }
   }
 
   Widget _buildInfoRow(IconData icon, String label, String value) {

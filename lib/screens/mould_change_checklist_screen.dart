@@ -195,7 +195,7 @@ class _MouldChangeChecklistScreenState
             backgroundColor: Colors.green,
           ),
         );
-        Navigator.pop(context);
+        Navigator.pop(context, true); // Return true to indicate success
       }
     } catch (e) {
       LogService.error('Failed to save mould change checklist', e);

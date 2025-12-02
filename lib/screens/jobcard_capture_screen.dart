@@ -196,9 +196,27 @@ class _JobcardCaptureScreenState extends State<JobcardCaptureScreen> {
       }
 
       // Parse jobcard
-      final jobcardData = await _parserService.parseJobcard(processedPath);
-      print(
-          'OCR completed. Result: ${jobcardData != null ? "Success" : "Failed"}');
+      JobcardData? jobcardData;
+      try {
+        jobcardData = await _parserService.parseJobcard(processedPath);
+        print(
+            'OCR completed. Result: ${jobcardData != null ? "Success" : "Failed"}');
+      } catch (e) {
+        print('Parse error: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error parsing jobcard: $e'),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 5),
+            ),
+          );
+        }
+        setState(() {
+          _isProcessing = false;
+        });
+        return;
+      }
 
       if (jobcardData == null) {
         print('No data extracted from image');
