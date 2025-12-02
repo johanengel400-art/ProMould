@@ -7,6 +7,7 @@ import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import '../services/jobcard_parser_service.dart';
+import '../utils/jobcard_models.dart';
 import 'jobcard_review_screen.dart';
 
 class JobcardCaptureScreen extends StatefulWidget {
