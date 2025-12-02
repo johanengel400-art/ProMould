@@ -73,7 +73,7 @@ class PhotoService {
       return url;
     } catch (e, stackTrace) {
       LogService.error('Mould photo upload error', e);
-      LogService.error('Stack trace', stackTrace);
+      LogService.error('Stack trace: $stackTrace', null);
       return null;
     }
   }
