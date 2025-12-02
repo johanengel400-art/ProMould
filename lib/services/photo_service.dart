@@ -47,28 +47,28 @@ class PhotoService {
       LogService.debug('Opening image picker for mould $mouldId');
       final picked = await _picker.pickImage(
           source: ImageSource.gallery, imageQuality: 70);
-      
+
       if (picked == null) {
         LogService.debug('Image picker cancelled by user');
         return null;
       }
-      
+
       LogService.debug('Image picked: ${picked.path}');
       final file = File(picked.path);
-      
+
       if (!await file.exists()) {
         LogService.error('Picked file does not exist', picked.path);
         return null;
       }
-      
+
       final name =
           'moulds/$mouldId/photo_${DateTime.now().millisecondsSinceEpoch}${p.extension(file.path)}';
       LogService.debug('Uploading to Firebase Storage: $name');
-      
+
       final ref = _storage.ref().child(name);
       final uploadTask = await ref.putFile(file);
       final url = await uploadTask.ref.getDownloadURL();
-      
+
       LogService.info('Mould photo uploaded successfully: $url');
       return url;
     } catch (e, stackTrace) {

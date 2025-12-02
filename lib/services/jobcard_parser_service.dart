@@ -435,7 +435,8 @@ class JobcardParserService {
       if (RegExp(r'target\s*cycle\s*day|traget\s*cycle\s*day',
               caseSensitive: false)
           .hasMatch(lines[i])) {
-        LogService.info('Found Target Cycle Day label at line $i: "${lines[i]}"');
+        LogService.info(
+            'Found Target Cycle Day label at line $i: "${lines[i]}"');
         // Search wider range: 10-25 lines after label
         for (int j = i + 10; j < lines.length && j < i + 26; j++) {
           final line = lines[j].trim();
@@ -472,7 +473,8 @@ class JobcardParserService {
       if (RegExp(r'target\s*cycle\s*night|traget\s*cycle\s*night',
               caseSensitive: false)
           .hasMatch(lines[i])) {
-        LogService.info('Found Target Cycle Night label at line $i: "${lines[i]}"');
+        LogService.info(
+            'Found Target Cycle Night label at line $i: "${lines[i]}"');
         // Search wider range: 10-25 lines after label
         for (int j = i + 10; j < lines.length && j < i + 26; j++) {
           final line = lines[j].trim();

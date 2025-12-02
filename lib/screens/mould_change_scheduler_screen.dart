@@ -173,297 +173,297 @@ class _MouldChangeSchedulerScreenState
     try {
       final status = change['status'] as String? ?? 'Scheduled';
       final statusColor = _getStatusColor(status);
-      
+
       // Safely open boxes
-      final machinesBox = Hive.isBoxOpen('machinesBox') 
-          ? Hive.box('machinesBox') 
-          : null;
-      final mouldsBox = Hive.isBoxOpen('mouldsBox') 
-          ? Hive.box('mouldsBox') 
-          : null;
-      final usersBox = Hive.isBoxOpen('usersBox') 
-          ? Hive.box('usersBox') 
-          : null;
+      final machinesBox =
+          Hive.isBoxOpen('machinesBox') ? Hive.box('machinesBox') : null;
+      final mouldsBox =
+          Hive.isBoxOpen('mouldsBox') ? Hive.box('mouldsBox') : null;
+      final usersBox = Hive.isBoxOpen('usersBox') ? Hive.box('usersBox') : null;
 
       final machine = machinesBox?.get(change['machineId']) as Map?;
       final fromMould = mouldsBox?.get(change['fromMouldId']) as Map?;
       final toMould = mouldsBox?.get(change['toMouldId']) as Map?;
       final setter = usersBox?.values.cast<Map>().firstWhere(
-            (u) => u['username'] == change['assignedTo'],
-            orElse: () => {'username': 'Unassigned'},
-          ) ?? {'username': 'Unassigned'};
+                (u) => u['username'] == change['assignedTo'],
+                orElse: () => {'username': 'Unassigned'},
+              ) ??
+          {'username': 'Unassigned'};
 
-    final scheduledDate =
-        DateTime.tryParse(change['scheduledDate'] ?? '') ?? DateTime.now();
-    final isOverdue =
-        status == 'Scheduled' && scheduledDate.isBefore(DateTime.now());
+      final scheduledDate =
+          DateTime.tryParse(change['scheduledDate'] ?? '') ?? DateTime.now();
+      final isOverdue =
+          status == 'Scheduled' && scheduledDate.isBefore(DateTime.now());
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            statusColor.withOpacity(0.1),
-            const Color(0xFF1A1F2E),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+      return Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              statusColor.withOpacity(0.1),
+              const Color(0xFF1A1F2E),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isOverdue
+                ? const Color(0xFFFF6B6B)
+                : statusColor.withOpacity(0.3),
+            width: 2,
+          ),
         ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isOverdue
-              ? const Color(0xFFFF6B6B)
-              : statusColor.withOpacity(0.3),
-          width: 2,
-        ),
-      ),
-      child: Column(
-        children: [
-          // Header
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.15),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(14),
-                topRight: Radius.circular(14),
-              ),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(Icons.swap_horiz, color: statusColor, size: 24),
+        child: Column(
+          children: [
+            // Header
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: statusColor.withOpacity(0.15),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(14),
+                  topRight: Radius.circular(14),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        machine?['name'] ?? 'Unknown Machine',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: statusColor.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(4),
-                              border: Border.all(
-                                  color: statusColor.withOpacity(0.5)),
-                            ),
-                            child: Text(
-                              status,
-                              style: TextStyle(
-                                color: statusColor,
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: statusColor.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(Icons.swap_horiz, color: statusColor, size: 24),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          machine?['name'] ?? 'Unknown Machine',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
                           ),
-                          if (isOverdue) ...[
-                            const SizedBox(width: 8),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
                             Container(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFFF6B6B).withOpacity(0.2),
+                                color: statusColor.withOpacity(0.2),
                                 borderRadius: BorderRadius.circular(4),
-                                border:
-                                    Border.all(color: const Color(0xFFFF6B6B)),
+                                border: Border.all(
+                                    color: statusColor.withOpacity(0.5)),
                               ),
-                              child: const Text(
-                                'OVERDUE',
+                              child: Text(
+                                status,
                                 style: TextStyle(
-                                  color: Color(0xFFFF6B6B),
+                                  color: statusColor,
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
+                            if (isOverdue) ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color:
+                                      const Color(0xFFFF6B6B).withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(
+                                      color: const Color(0xFFFF6B6B)),
+                                ),
+                                child: const Text(
+                                  'OVERDUE',
+                                  style: TextStyle(
+                                    color: Color(0xFFFF6B6B),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ],
-                        ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Details
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  // Mould Change
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'FROM',
+                              style: TextStyle(
+                                  color: Colors.white54, fontSize: 11),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              fromMould?['number'] ?? 'N/A',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                            Text(
+                              fromMould?['name'] ?? '',
+                              style: const TextStyle(
+                                  color: Colors.white60, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.arrow_forward, color: Color(0xFF4CC9F0)),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'TO',
+                              style: TextStyle(
+                                  color: Colors.white54, fontSize: 11),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              toMould?['number'] ?? 'N/A',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: Color(0xFF00D26A),
+                              ),
+                            ),
+                            Text(
+                              toMould?['name'] ?? '',
+                              style: const TextStyle(
+                                  color: Colors.white60, fontSize: 12),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
-                ),
-              ],
-            ),
-          ),
 
-          // Details
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                // Mould Change
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'FROM',
-                            style:
-                                TextStyle(color: Colors.white54, fontSize: 11),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            fromMould?['number'] ?? 'N/A',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                          Text(
-                            fromMould?['name'] ?? '',
-                            style: const TextStyle(
-                                color: Colors.white60, fontSize: 12),
-                          ),
-                        ],
-                      ),
+                  const SizedBox(height: 16),
+
+                  // Info Grid
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    const Icon(Icons.arrow_forward, color: Color(0xFF4CC9F0)),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'TO',
-                            style:
-                                TextStyle(color: Colors.white54, fontSize: 11),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            toMould?['number'] ?? 'N/A',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                              color: Color(0xFF00D26A),
-                            ),
-                          ),
-                          Text(
-                            toMould?['name'] ?? '',
-                            style: const TextStyle(
-                                color: Colors.white60, fontSize: 12),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 16),
-
-                // Info Grid
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Column(
-                    children: [
-                      _buildInfoRow(Icons.person_outline, 'Assigned To',
-                          setter['username'] as String),
-                      const Divider(height: 16, color: Colors.white12),
-                      _buildInfoRow(
-                          Icons.calendar_today,
-                          'Scheduled',
-                          DateFormat('MMM d, yyyy HH:mm')
-                              .format(scheduledDate)),
-                      if (change['estimatedDuration'] != null) ...[
-                        const Divider(height: 16, color: Colors.white12),
-                        _buildInfoRow(Icons.timer_outlined, 'Est. Duration',
-                            '${change['estimatedDuration']} min'),
-                      ],
-                      if (change['notes'] != null &&
-                          (change['notes'] as String).isNotEmpty) ...[
+                    child: Column(
+                      children: [
+                        _buildInfoRow(Icons.person_outline, 'Assigned To',
+                            setter['username'] as String),
                         const Divider(height: 16, color: Colors.white12),
                         _buildInfoRow(
-                            Icons.notes, 'Notes', change['notes'] as String),
+                            Icons.calendar_today,
+                            'Scheduled',
+                            DateFormat('MMM d, yyyy HH:mm')
+                                .format(scheduledDate)),
+                        if (change['estimatedDuration'] != null) ...[
+                          const Divider(height: 16, color: Colors.white12),
+                          _buildInfoRow(Icons.timer_outlined, 'Est. Duration',
+                              '${change['estimatedDuration']} min'),
+                        ],
+                        if (change['notes'] != null &&
+                            (change['notes'] as String).isNotEmpty) ...[
+                          const Divider(height: 16, color: Colors.white12),
+                          _buildInfoRow(
+                              Icons.notes, 'Notes', change['notes'] as String),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
-                ),
 
-                const SizedBox(height: 12),
+                  const SizedBox(height: 12),
 
-                // Actions
-                Row(
-                  children: [
-                    if (status == 'Scheduled') ...[
+                  // Actions
+                  Row(
+                    children: [
+                      if (status == 'Scheduled') ...[
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () =>
+                                _updateStatus(change, 'In Progress'),
+                            icon: const Icon(Icons.play_arrow, size: 18),
+                            label: const Text('Start'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFF00D26A),
+                              side: const BorderSide(color: Color(0xFF00D26A)),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                      if (status == 'In Progress') ...[
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () => _updateStatus(change, 'Completed'),
+                            icon: const Icon(Icons.check, size: 18),
+                            label: const Text('Complete'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF00D26A),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: () => _updateStatus(change, 'In Progress'),
-                          icon: const Icon(Icons.play_arrow, size: 18),
-                          label: const Text('Start'),
+                          onPressed: () => _editMouldChange(change),
+                          icon: const Icon(Icons.edit, size: 18),
+                          label: const Text('Edit'),
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: const Color(0xFF00D26A),
-                            side: const BorderSide(color: Color(0xFF00D26A)),
+                            foregroundColor: const Color(0xFF4CC9F0),
+                            side: const BorderSide(color: Color(0xFF4CC9F0)),
                           ),
                         ),
                       ),
                       const SizedBox(width: 8),
-                    ],
-                    if (status == 'In Progress') ...[
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => _updateStatus(change, 'Completed'),
-                          icon: const Icon(Icons.check, size: 18),
-                          label: const Text('Complete'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF00D26A),
-                          ),
-                        ),
+                      IconButton(
+                        onPressed: () => _deleteMouldChange(change),
+                        icon: const Icon(Icons.delete_outline),
+                        color: const Color(0xFFFF6B6B),
                       ),
-                      const SizedBox(width: 8),
                     ],
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => _editMouldChange(change),
-                        icon: const Icon(Icons.edit, size: 18),
-                        label: const Text('Edit'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF4CC9F0),
-                          side: const BorderSide(color: Color(0xFF4CC9F0)),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    IconButton(
-                      onPressed: () => _deleteMouldChange(change),
-                      icon: const Icon(Icons.delete_outline),
-                      color: const Color(0xFFFF6B6B),
-                    ),
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
-    );
+          ],
+        ),
+      );
     } catch (e) {
       // Return error card if something goes wrong
       return Card(
         color: Colors.red.withOpacity(0.2),
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Text('Error displaying change: $e', style: const TextStyle(color: Colors.red)),
+          child: Text('Error displaying change: $e',
+              style: const TextStyle(color: Colors.red)),
         ),
       );
     }
