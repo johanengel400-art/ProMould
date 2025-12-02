@@ -220,11 +220,11 @@ class _UserPermissionsScreenState extends State<UserPermissionsScreen> {
     try {
       final usersBox = Hive.box('usersBox');
       final userData = usersBox.get(_selectedUsername);
-      
+
       if (userData == null) {
         throw Exception('User not found: $_selectedUsername');
       }
-      
+
       final user = Map<String, dynamic>.from(userData as Map);
 
       // Save the complete permission set

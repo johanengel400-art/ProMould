@@ -93,7 +93,8 @@ class _ManageMouldsScreenState extends State<ManageMouldsScreen> {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('Photo upload cancelled or failed'),
+                                content:
+                                    Text('Photo upload cancelled or failed'),
                                 backgroundColor: Colors.orange,
                               ),
                             );

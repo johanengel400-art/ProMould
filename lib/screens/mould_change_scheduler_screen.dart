@@ -63,9 +63,12 @@ class _MouldChangeSchedulerScreenState
 
         // Calculate counts for filter chips (from ALL changes)
         final allCount = allChanges.length;
-        final scheduledCount = allChanges.where((c) => c['status'] == 'Scheduled').length;
-        final inProgressCount = allChanges.where((c) => c['status'] == 'In Progress').length;
-        final completedCount = allChanges.where((c) => c['status'] == 'Completed').length;
+        final scheduledCount =
+            allChanges.where((c) => c['status'] == 'Scheduled').length;
+        final inProgressCount =
+            allChanges.where((c) => c['status'] == 'In Progress').length;
+        final completedCount =
+            allChanges.where((c) => c['status'] == 'Completed').length;
 
         // Filter for display
         var changes = selectedFilter == 'All'

@@ -59,14 +59,16 @@ class MouldChangeHistoryScreen extends StatelessWidget {
     final installComplete = installChecks.values.where((v) => v).length;
     final testingComplete = testingChecks.values.where((v) => v).length;
     final signoffComplete = signoffChecks.values.where((v) => v).length;
-    
+
     final totalRemoval = removalChecks.length;
     final totalInstall = installChecks.length;
     final totalTesting = testingChecks.length;
     final totalSignoff = signoffChecks.length;
-    
-    final totalComplete = removalComplete + installComplete + testingComplete + signoffComplete;
-    final totalItems = totalRemoval + totalInstall + totalTesting + totalSignoff;
+
+    final totalComplete =
+        removalComplete + installComplete + testingComplete + signoffComplete;
+    final totalItems =
+        totalRemoval + totalInstall + totalTesting + totalSignoff;
 
     return Card(
       color: const Color(0xFF1A1F2E),
@@ -131,25 +133,29 @@ class MouldChangeHistoryScreen extends StatelessWidget {
                     Chip(
                       label: Text('Removal: $removalComplete/$totalRemoval'),
                       backgroundColor: Colors.orange.withOpacity(0.2),
-                      labelStyle: const TextStyle(color: Colors.orange, fontSize: 11),
+                      labelStyle:
+                          const TextStyle(color: Colors.orange, fontSize: 11),
                     ),
                   if (totalInstall > 0)
                     Chip(
                       label: Text('Install: $installComplete/$totalInstall'),
                       backgroundColor: Colors.green.withOpacity(0.2),
-                      labelStyle: const TextStyle(color: Colors.green, fontSize: 11),
+                      labelStyle:
+                          const TextStyle(color: Colors.green, fontSize: 11),
                     ),
                   if (totalTesting > 0)
                     Chip(
                       label: Text('Testing: $testingComplete/$totalTesting'),
                       backgroundColor: Colors.blue.withOpacity(0.2),
-                      labelStyle: const TextStyle(color: Colors.blue, fontSize: 11),
+                      labelStyle:
+                          const TextStyle(color: Colors.blue, fontSize: 11),
                     ),
                   if (totalSignoff > 0)
                     Chip(
                       label: Text('Sign-off: $signoffComplete/$totalSignoff'),
                       backgroundColor: Colors.purple.withOpacity(0.2),
-                      labelStyle: const TextStyle(color: Colors.purple, fontSize: 11),
+                      labelStyle:
+                          const TextStyle(color: Colors.purple, fontSize: 11),
                     ),
                 ],
               ),
