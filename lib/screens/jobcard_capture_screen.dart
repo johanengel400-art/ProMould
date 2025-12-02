@@ -283,12 +283,12 @@ class _JobcardCaptureScreenState extends State<JobcardCaptureScreen> {
       print('Overall confidence: ${jobcardData.overallConfidence}');
 
       // Navigate to review screen
-      if (mounted) {
+      if (mounted && jobcardData != null) {
         final result = await Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => JobcardReviewScreen(
-              jobcardData: jobcardData,
+              jobcardData: jobcardData!,
               imagePath: imagePath,
               level: widget.level,
             ),
