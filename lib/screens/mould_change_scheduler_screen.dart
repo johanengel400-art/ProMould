@@ -59,13 +59,18 @@ class _MouldChangeSchedulerScreenState
         }
 
         final mouldChangesBox = Hive.box('mouldChangesBox');
-        var changes = mouldChangesBox.values.cast<Map>().toList();
+        final allChanges = mouldChangesBox.values.cast<Map>().toList();
 
-        // Filter
-        if (selectedFilter != 'All') {
-          changes =
-              changes.where((c) => c['status'] == selectedFilter).toList();
-        }
+        // Calculate counts for filter chips (from ALL changes)
+        final allCount = allChanges.length;
+        final scheduledCount = allChanges.where((c) => c['status'] == 'Scheduled').length;
+        final inProgressCount = allChanges.where((c) => c['status'] == 'In Progress').length;
+        final completedCount = allChanges.where((c) => c['status'] == 'Completed').length;
+
+        // Filter for display
+        var changes = selectedFilter == 'All'
+            ? allChanges
+            : allChanges.where((c) => c['status'] == selectedFilter).toList();
 
         // Sort by scheduled date
         changes.sort((a, b) {
@@ -98,25 +103,13 @@ class _MouldChangeSchedulerScreenState
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      _buildFilterChip('All', changes.length),
+                      _buildFilterChip('All', allCount),
                       const SizedBox(width: 8),
-                      _buildFilterChip(
-                          'Scheduled',
-                          changes
-                              .where((c) => c['status'] == 'Scheduled')
-                              .length),
+                      _buildFilterChip('Scheduled', scheduledCount),
                       const SizedBox(width: 8),
-                      _buildFilterChip(
-                          'In Progress',
-                          changes
-                              .where((c) => c['status'] == 'In Progress')
-                              .length),
+                      _buildFilterChip('In Progress', inProgressCount),
                       const SizedBox(width: 8),
-                      _buildFilterChip(
-                          'Completed',
-                          changes
-                              .where((c) => c['status'] == 'Completed')
-                              .length),
+                      _buildFilterChip('Completed', completedCount),
                     ],
                   ),
                 ),

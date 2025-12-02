@@ -76,10 +76,38 @@ class _ManageMouldsScreenState extends State<ManageMouldsScreen> {
                           )
                         : null,
                     onTap: () async {
-                      final tempId = item?['id'] ?? uuid.v4();
-                      final url = await PhotoService.uploadMouldPhoto(tempId);
-                      if (url != null) {
-                        setDialogState(() => photoUrl = url);
+                      try {
+                        final tempId = item?['id'] ?? uuid.v4();
+                        final url = await PhotoService.uploadMouldPhoto(tempId);
+                        if (url != null) {
+                          setDialogState(() => photoUrl = url);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Photo uploaded successfully'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          }
+                        } else {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Photo upload cancelled or failed'),
+                                backgroundColor: Colors.orange,
+                              ),
+                            );
+                          }
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Error uploading photo: $e'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
                       }
                     },
                   ),

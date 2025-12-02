@@ -47,14 +47,26 @@ class MouldChangeHistoryScreen extends StatelessWidget {
     final completedAt = DateTime.parse(change['completedAt'] as String);
 
     final removalChecks =
-        Map<String, bool>.from(change['removalChecks'] as Map);
+        Map<String, bool>.from(change['removalChecks'] as Map? ?? {});
     final installChecks =
-        Map<String, bool>.from(change['installationChecks'] as Map);
+        Map<String, bool>.from(change['installationChecks'] as Map? ?? {});
+    final testingChecks =
+        Map<String, bool>.from(change['testingChecks'] as Map? ?? {});
+    final signoffChecks =
+        Map<String, bool>.from(change['signoffChecks'] as Map? ?? {});
 
     final removalComplete = removalChecks.values.where((v) => v).length;
     final installComplete = installChecks.values.where((v) => v).length;
+    final testingComplete = testingChecks.values.where((v) => v).length;
+    final signoffComplete = signoffChecks.values.where((v) => v).length;
+    
     final totalRemoval = removalChecks.length;
     final totalInstall = installChecks.length;
+    final totalTesting = testingChecks.length;
+    final totalSignoff = signoffChecks.length;
+    
+    final totalComplete = removalComplete + installComplete + testingComplete + signoffComplete;
+    final totalItems = totalRemoval + totalInstall + totalTesting + totalSignoff;
 
     return Card(
       color: const Color(0xFF1A1F2E),
@@ -100,57 +112,45 @@ class MouldChangeHistoryScreen extends StatelessWidget {
                 style: const TextStyle(color: Colors.white70),
               ),
               const SizedBox(height: 12),
-              Row(
+              LinearProgressIndicator(
+                value: totalItems > 0 ? totalComplete / totalItems : 0,
+                backgroundColor: Colors.white24,
+                valueColor: const AlwaysStoppedAnimation(Colors.blue),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Overall: $totalComplete/$totalItems items completed',
+                style: const TextStyle(color: Colors.white70, fontSize: 12),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Removal',
-                          style: TextStyle(color: Colors.white70, fontSize: 12),
-                        ),
-                        const SizedBox(height: 4),
-                        LinearProgressIndicator(
-                          value: removalComplete / totalRemoval,
-                          backgroundColor: Colors.white24,
-                          valueColor:
-                              const AlwaysStoppedAnimation(Colors.orange),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '$removalComplete/$totalRemoval',
-                          style: const TextStyle(
-                              color: Colors.white70, fontSize: 12),
-                        ),
-                      ],
+                  if (totalRemoval > 0)
+                    Chip(
+                      label: Text('Removal: $removalComplete/$totalRemoval'),
+                      backgroundColor: Colors.orange.withOpacity(0.2),
+                      labelStyle: const TextStyle(color: Colors.orange, fontSize: 11),
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Installation',
-                          style: TextStyle(color: Colors.white70, fontSize: 12),
-                        ),
-                        const SizedBox(height: 4),
-                        LinearProgressIndicator(
-                          value: installComplete / totalInstall,
-                          backgroundColor: Colors.white24,
-                          valueColor:
-                              const AlwaysStoppedAnimation(Colors.green),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '$installComplete/$totalInstall',
-                          style: const TextStyle(
-                              color: Colors.white70, fontSize: 12),
-                        ),
-                      ],
+                  if (totalInstall > 0)
+                    Chip(
+                      label: Text('Install: $installComplete/$totalInstall'),
+                      backgroundColor: Colors.green.withOpacity(0.2),
+                      labelStyle: const TextStyle(color: Colors.green, fontSize: 11),
                     ),
-                  ),
+                  if (totalTesting > 0)
+                    Chip(
+                      label: Text('Testing: $testingComplete/$totalTesting'),
+                      backgroundColor: Colors.blue.withOpacity(0.2),
+                      labelStyle: const TextStyle(color: Colors.blue, fontSize: 11),
+                    ),
+                  if (totalSignoff > 0)
+                    Chip(
+                      label: Text('Sign-off: $signoffComplete/$totalSignoff'),
+                      backgroundColor: Colors.purple.withOpacity(0.2),
+                      labelStyle: const TextStyle(color: Colors.purple, fontSize: 11),
+                    ),
                 ],
               ),
             ],
