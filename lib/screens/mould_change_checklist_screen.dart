@@ -201,12 +201,8 @@ class _MouldChangeChecklistScreenState
           ),
         );
 
-        // Small delay to ensure snackbar shows
-        await Future.delayed(const Duration(milliseconds: 500));
-
-        if (mounted) {
-          Navigator.pop(context, true); // Return true to indicate success
-        }
+        // Pop back to the drawer/home screen
+        Navigator.of(context).popUntil((route) => route.isFirst);
       }
     } catch (e) {
       LogService.error('Failed to save mould change checklist', e);

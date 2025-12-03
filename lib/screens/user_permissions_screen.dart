@@ -142,21 +142,40 @@ class _UserPermissionsScreenState extends State<UserPermissionsScreen> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Row(
-                children: [
-                  TextButton(
-                    onPressed: _resetToDefaults,
-                    child: const Text('Reset to Defaults'),
+              SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: OutlinedButton(
+                            onPressed: _resetToDefaults,
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.orange,
+                              side: const BorderSide(color: Colors.orange),
+                            ),
+                            child: const Text('Reset to Defaults'),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: ElevatedButton(
+                            onPressed: _savePermissions,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                            ),
+                            child: const Text('Save Permissions'),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: _savePermissions,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                    ),
-                    child: const Text('Save'),
-                  ),
-                ],
+                ),
               ),
             ],
           ),
@@ -199,19 +218,64 @@ class _UserPermissionsScreenState extends State<UserPermissionsScreen> {
     );
   }
 
-  void _resetToDefaults() {
-    final usersBox = Hive.box('usersBox');
-    final user = usersBox.get(_selectedUsername) as Map?;
-    if (user == null) return;
+  Future<void> _resetToDefaults() async {
+    if (_selectedUsername == null) return;
 
-    final level = user['level'] as int;
-    setState(() {
-      _permissions = UserPermissions.getDefaultPermissions(level);
-    });
+    try {
+      final usersBox = Hive.box('usersBox');
+      
+      // Get user
+      var userData = usersBox.get(_selectedUsername);
+      if (userData == null) {
+        final allUsers = usersBox.values.cast<Map>().toList();
+        for (var u in allUsers) {
+          if (u['username'] == _selectedUsername) {
+            userData = u;
+            break;
+          }
+        }
+      }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Reset to default permissions')),
-    );
+      if (userData == null) {
+        throw Exception('User not found: $_selectedUsername');
+      }
+
+      final user = Map<String, dynamic>.from(userData as Map);
+      final level = user['level'] as int;
+      
+      // Reset to defaults
+      final defaults = UserPermissions.getDefaultPermissions(level);
+      setState(() {
+        _permissions = Map<String, bool>.from(defaults);
+      });
+
+      // Save the reset permissions
+      user['permissions'] = Map<String, bool>.from(_permissions);
+      await usersBox.put(_selectedUsername, user);
+      await SyncService.pushChange('usersBox', _selectedUsername!, user);
+
+      LogService.info('Reset permissions to defaults for $_selectedUsername');
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Reset to default permissions and saved'),
+            backgroundColor: Colors.orange,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      LogService.error('Failed to reset permissions', e);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error resetting permissions: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _savePermissions() async {
@@ -257,13 +321,19 @@ class _UserPermissionsScreenState extends State<UserPermissionsScreen> {
       // Save the complete permission set
       user['permissions'] = Map<String, bool>.from(_permissions);
 
-      LogService.debug(
-          'Saving user with permissions to key: $_selectedUsername');
+      LogService.debug('Saving user with permissions to key: $_selectedUsername');
+      LogService.debug('User data before save: ${user.toString()}');
+      LogService.debug('Permissions being saved: $_permissions');
+      
       await usersBox.put(_selectedUsername, user);
+      
+      // Verify the save
+      final savedUser = usersBox.get(_selectedUsername);
+      LogService.debug('User data after save: ${savedUser.toString()}');
+      
       await SyncService.pushChange('usersBox', _selectedUsername!, user);
 
-      LogService.info(
-          'Successfully updated permissions for $_selectedUsername');
+      LogService.info('Successfully updated permissions for $_selectedUsername');
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

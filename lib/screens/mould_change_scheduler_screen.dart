@@ -410,10 +410,10 @@ class _MouldChangeSchedulerScreenState
                               '${change['estimatedDuration']} min'),
                         ],
                         if (change['notes'] != null &&
-                            (change['notes'] as String).isNotEmpty) ...[
+                            change['notes'].toString().isNotEmpty) ...[
                           const Divider(height: 16, color: Colors.white12),
                           _buildInfoRow(
-                              Icons.notes, 'Notes', change['notes'] as String),
+                              Icons.notes, 'Notes', change['notes'].toString()),
                         ],
                       ],
                     ),
