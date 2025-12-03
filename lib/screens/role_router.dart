@@ -66,9 +66,25 @@ class _RoleRouterState extends State<RoleRouter> {
 
   bool _hasPermission(String permission) {
     final usersBox = Hive.box('usersBox');
-    final user = usersBox.get(widget.username) as Map?;
+    
+    // Try direct get first
+    var user = usersBox.get(widget.username) as Map?;
+    
+    // If not found, search by username field
+    if (user == null) {
+      final allUsers = usersBox.values.cast<Map>().toList();
+      for (var u in allUsers) {
+        if (u['username'] == widget.username) {
+          user = u;
+          break;
+        }
+      }
+    }
 
-    if (user == null) return false;
+    if (user == null) {
+      LogService.debug('Permission check: User ${widget.username} not found in box');
+      return false;
+    }
 
     // Get default permissions for this level
     final defaults = UserPermissions.getDefaultPermissions(widget.level);
@@ -76,15 +92,26 @@ class _RoleRouterState extends State<RoleRouter> {
     // Check custom permissions, fall back to defaults if not set
     if (user['permissions'] != null) {
       final permissions = Map<String, bool>.from(user['permissions'] as Map);
-      // If permission is explicitly set, use that value
-      // Otherwise fall back to default for this level
-      return permissions.containsKey(permission)
+      final hasPermission = permissions.containsKey(permission)
           ? permissions[permission]!
           : (defaults[permission] ?? false);
+      
+      LogService.debug(
+        'Permission check: ${widget.username} - $permission = $hasPermission '
+        '(in map: ${permissions.containsKey(permission)}, '
+        'value: ${permissions[permission]}, '
+        'default: ${defaults[permission]})'
+      );
+      
+      return hasPermission;
     }
 
     // No custom permissions, use defaults
-    return defaults[permission] ?? false;
+    final hasPermission = defaults[permission] ?? false;
+    LogService.debug(
+      'Permission check: ${widget.username} - $permission = $hasPermission (using defaults, no custom permissions)'
+    );
+    return hasPermission;
   }
 
   @override

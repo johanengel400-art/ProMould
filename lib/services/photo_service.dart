@@ -42,6 +42,42 @@ class PhotoService {
     }
   }
 
+  static Future<String?> captureMouldPhoto(String mouldId) async {
+    try {
+      LogService.debug('Opening camera for mould $mouldId');
+      final picked = await _picker.pickImage(
+          source: ImageSource.camera, imageQuality: 70);
+
+      if (picked == null) {
+        LogService.debug('Camera cancelled by user');
+        return null;
+      }
+
+      LogService.debug('Photo captured: ${picked.path}');
+      final file = File(picked.path);
+
+      if (!await file.exists()) {
+        LogService.error('Captured file does not exist', picked.path);
+        return null;
+      }
+
+      final name =
+          'moulds/$mouldId/photo_${DateTime.now().millisecondsSinceEpoch}${p.extension(file.path)}';
+      LogService.debug('Uploading to Firebase Storage: $name');
+
+      final ref = _storage.ref().child(name);
+      final uploadTask = await ref.putFile(file);
+      final url = await uploadTask.ref.getDownloadURL();
+
+      LogService.info('Mould photo uploaded successfully: $url');
+      return url;
+    } catch (e, stackTrace) {
+      LogService.error('Mould photo capture error', e);
+      LogService.error('Stack trace: $stackTrace', null);
+      return null;
+    }
+  }
+
   static Future<String?> uploadMouldPhoto(String mouldId) async {
     try {
       LogService.debug('Opening image picker for mould $mouldId');

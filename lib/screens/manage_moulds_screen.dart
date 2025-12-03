@@ -76,9 +76,37 @@ class _ManageMouldsScreenState extends State<ManageMouldsScreen> {
                           )
                         : null,
                     onTap: () async {
+                      // Show dialog to choose camera or gallery
+                      final source = await showDialog<String>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('Add Photo'),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              ListTile(
+                                leading: const Icon(Icons.camera_alt),
+                                title: const Text('Take Photo'),
+                                onTap: () => Navigator.pop(ctx, 'camera'),
+                              ),
+                              ListTile(
+                                leading: const Icon(Icons.photo_library),
+                                title: const Text('Choose from Gallery'),
+                                onTap: () => Navigator.pop(ctx, 'gallery'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+
+                      if (source == null) return;
+
                       try {
                         final tempId = item?['id'] ?? uuid.v4();
-                        final url = await PhotoService.uploadMouldPhoto(tempId);
+                        final url = source == 'camera'
+                            ? await PhotoService.captureMouldPhoto(tempId)
+                            : await PhotoService.uploadMouldPhoto(tempId);
+                        
                         if (url != null) {
                           setDialogState(() => photoUrl = url);
                           if (context.mounted) {
@@ -86,16 +114,6 @@ class _ManageMouldsScreenState extends State<ManageMouldsScreen> {
                               const SnackBar(
                                 content: Text('Photo uploaded successfully'),
                                 backgroundColor: Colors.green,
-                              ),
-                            );
-                          }
-                        } else {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content:
-                                    Text('Photo upload cancelled or failed'),
-                                backgroundColor: Colors.orange,
                               ),
                             );
                           }

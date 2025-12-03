@@ -291,26 +291,35 @@ class _DailyProductionSheetScreenState
 
   Future<void> _scanJobcard() async {
     try {
-      // Import the jobcard capture screen
-      final result = await Navigator.pushNamed(context, '/jobcard-capture');
-
-      if (result != null && result is Map) {
-        // Jobcard was scanned successfully
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Jobcard scanned successfully'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        setState(() {}); // Refresh the list
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error scanning jobcard: $e'),
-          backgroundColor: Colors.red,
+      // Navigate to jobcard capture screen
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => JobcardCaptureScreen(level: widget.level),
         ),
       );
+
+      if (result != null && result is bool && result == true) {
+        // Jobcard was scanned and job created successfully
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Jobcard scanned successfully'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          setState(() {}); // Refresh the list
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error scanning jobcard: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
