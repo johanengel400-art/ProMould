@@ -106,7 +106,7 @@ class _ManageMouldsScreenState extends State<ManageMouldsScreen> {
                         final url = source == 'camera'
                             ? await PhotoService.captureMouldPhoto(tempId)
                             : await PhotoService.uploadMouldPhoto(tempId);
-                        
+
                         if (url != null) {
                           setDialogState(() => photoUrl = url);
                           if (context.mounted) {

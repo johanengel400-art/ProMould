@@ -45,8 +45,8 @@ class PhotoService {
   static Future<String?> captureMouldPhoto(String mouldId) async {
     try {
       LogService.debug('Opening camera for mould $mouldId');
-      final picked = await _picker.pickImage(
-          source: ImageSource.camera, imageQuality: 70);
+      final picked =
+          await _picker.pickImage(source: ImageSource.camera, imageQuality: 70);
 
       if (picked == null) {
         LogService.debug('Camera cancelled by user');

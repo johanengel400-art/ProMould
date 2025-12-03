@@ -66,10 +66,10 @@ class _RoleRouterState extends State<RoleRouter> {
 
   bool _hasPermission(String permission) {
     final usersBox = Hive.box('usersBox');
-    
+
     // Try direct get first
     var user = usersBox.get(widget.username) as Map?;
-    
+
     // If not found, search by username field
     if (user == null) {
       final allUsers = usersBox.values.cast<Map>().toList();
@@ -82,7 +82,8 @@ class _RoleRouterState extends State<RoleRouter> {
     }
 
     if (user == null) {
-      LogService.debug('Permission check: User ${widget.username} not found in box');
+      LogService.debug(
+          'Permission check: User ${widget.username} not found in box');
       return false;
     }
 
@@ -95,22 +96,20 @@ class _RoleRouterState extends State<RoleRouter> {
       final hasPermission = permissions.containsKey(permission)
           ? permissions[permission]!
           : (defaults[permission] ?? false);
-      
+
       LogService.debug(
-        'Permission check: ${widget.username} - $permission = $hasPermission '
-        '(in map: ${permissions.containsKey(permission)}, '
-        'value: ${permissions[permission]}, '
-        'default: ${defaults[permission]})'
-      );
-      
+          'Permission check: ${widget.username} - $permission = $hasPermission '
+          '(in map: ${permissions.containsKey(permission)}, '
+          'value: ${permissions[permission]}, '
+          'default: ${defaults[permission]})');
+
       return hasPermission;
     }
 
     // No custom permissions, use defaults
     final hasPermission = defaults[permission] ?? false;
     LogService.debug(
-      'Permission check: ${widget.username} - $permission = $hasPermission (using defaults, no custom permissions)'
-    );
+        'Permission check: ${widget.username} - $permission = $hasPermission (using defaults, no custom permissions)');
     return hasPermission;
   }
 
