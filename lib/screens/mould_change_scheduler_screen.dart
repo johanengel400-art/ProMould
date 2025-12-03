@@ -6,6 +6,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
 import '../services/sync_service.dart';
+import '../services/log_service.dart';
 
 class MouldChangeSchedulerScreen extends StatefulWidget {
   final int level;
@@ -28,8 +29,18 @@ class _MouldChangeSchedulerScreenState
   }
 
   Future<void> _initializeBox() async {
+    // Open all required boxes
     if (!Hive.isBoxOpen('mouldChangesBox')) {
       await Hive.openBox('mouldChangesBox');
+    }
+    if (!Hive.isBoxOpen('machinesBox')) {
+      await Hive.openBox('machinesBox');
+    }
+    if (!Hive.isBoxOpen('mouldsBox')) {
+      await Hive.openBox('mouldsBox');
+    }
+    if (!Hive.isBoxOpen('usersBox')) {
+      await Hive.openBox('usersBox');
     }
   }
 
@@ -61,6 +72,12 @@ class _MouldChangeSchedulerScreenState
         final mouldChangesBox = Hive.box('mouldChangesBox');
         final allChanges = mouldChangesBox.values.cast<Map>().toList();
 
+        // Debug logging
+        LogService.debug('Total changes in box: ${allChanges.length}');
+        for (var change in allChanges) {
+          LogService.debug('Change: ${change['id']} - Status: ${change['status']}');
+        }
+
         // Calculate counts for filter chips (from ALL changes)
         final allCount = allChanges.length;
         final scheduledCount =
@@ -69,6 +86,8 @@ class _MouldChangeSchedulerScreenState
             allChanges.where((c) => c['status'] == 'In Progress').length;
         final completedCount =
             allChanges.where((c) => c['status'] == 'Completed').length;
+        
+        LogService.debug('Counts - All: $allCount, Scheduled: $scheduledCount, InProgress: $inProgressCount, Completed: $completedCount');
 
         // Filter for display
         var changes = selectedFilter == 'All'

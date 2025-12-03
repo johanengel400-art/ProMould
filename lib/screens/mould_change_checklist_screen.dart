@@ -182,7 +182,11 @@ class _MouldChangeChecklistScreenState
         'completedBy': _setterNameCtrl.text.trim(),
       };
 
-      final box = await Hive.openBox('mouldChangesBox');
+      // Use existing box or open if needed
+      final box = Hive.isBoxOpen('mouldChangesBox')
+          ? Hive.box('mouldChangesBox')
+          : await Hive.openBox('mouldChangesBox');
+      
       await box.put(id, data);
       await SyncService.pushChange('mouldChangesBox', id, data);
 
@@ -193,9 +197,16 @@ class _MouldChangeChecklistScreenState
           const SnackBar(
             content: Text('Mould change checklist saved successfully'),
             backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
           ),
         );
-        Navigator.pop(context, true); // Return true to indicate success
+        
+        // Small delay to ensure snackbar shows
+        await Future.delayed(const Duration(milliseconds: 500));
+        
+        if (mounted) {
+          Navigator.pop(context, true); // Return true to indicate success
+        }
       }
     } catch (e) {
       LogService.error('Failed to save mould change checklist', e);

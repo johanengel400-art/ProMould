@@ -215,13 +215,38 @@ class _UserPermissionsScreenState extends State<UserPermissionsScreen> {
   }
 
   Future<void> _savePermissions() async {
-    if (_selectedUsername == null) return;
+    if (_selectedUsername == null) {
+      LogService.warning('No user selected for permissions save');
+      return;
+    }
 
     try {
       final usersBox = Hive.box('usersBox');
-      final userData = usersBox.get(_selectedUsername);
+      
+      LogService.debug('Attempting to save permissions for: $_selectedUsername');
+      LogService.debug('Permissions to save: $_permissions');
+      
+      // Try direct get first
+      var userData = usersBox.get(_selectedUsername);
+      
+      // If not found by key, search through all users
+      if (userData == null) {
+        LogService.debug('User not found by key, searching all users...');
+        final allUsers = usersBox.values.cast<Map>().toList();
+        LogService.debug('Total users in box: ${allUsers.length}');
+        
+        for (var user in allUsers) {
+          LogService.debug('Checking user: ${user['username']}');
+          if (user['username'] == _selectedUsername) {
+            userData = user;
+            LogService.debug('Found user by username match');
+            break;
+          }
+        }
+      }
 
       if (userData == null) {
+        LogService.error('User not found after search: $_selectedUsername', null);
         throw Exception('User not found: $_selectedUsername');
       }
 
@@ -230,27 +255,30 @@ class _UserPermissionsScreenState extends State<UserPermissionsScreen> {
       // Save the complete permission set
       user['permissions'] = Map<String, bool>.from(_permissions);
 
+      LogService.debug('Saving user with permissions to key: $_selectedUsername');
       await usersBox.put(_selectedUsername, user);
       await SyncService.pushChange('usersBox', _selectedUsername!, user);
 
-      LogService.info(
-          'Updated permissions for $_selectedUsername: $_permissions');
+      LogService.info('Successfully updated permissions for $_selectedUsername');
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Permissions saved successfully'),
             backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
           ),
         );
       }
-    } catch (e) {
-      LogService.error('Failed to save permissions', e);
+    } catch (e, stackTrace) {
+      LogService.error('Failed to save permissions: $e', null);
+      LogService.debug('Stack trace: $stackTrace');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: Text('Error saving permissions: $e'),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
           ),
         );
       }
