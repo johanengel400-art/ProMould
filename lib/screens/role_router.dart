@@ -3,6 +3,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import '../services/log_service.dart';
 
 // import all screens
 import 'login_screen.dart';
