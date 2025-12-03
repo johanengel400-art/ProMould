@@ -178,7 +178,8 @@ class MouldChangeHistoryScreen extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete Mould Change'),
-        content: const Text('Are you sure you want to delete this mould change record?'),
+        content: const Text(
+            'Are you sure you want to delete this mould change record?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -198,7 +199,7 @@ class MouldChangeHistoryScreen extends StatelessWidget {
         final box = Hive.box('mouldChangesBox');
         final id = change['id'];
         await box.delete(id);
-        
+
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(

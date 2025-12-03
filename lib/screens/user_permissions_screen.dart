@@ -223,7 +223,7 @@ class _UserPermissionsScreenState extends State<UserPermissionsScreen> {
 
     try {
       final usersBox = Hive.box('usersBox');
-      
+
       // Get user
       var userData = usersBox.get(_selectedUsername);
       if (userData == null) {
@@ -242,7 +242,7 @@ class _UserPermissionsScreenState extends State<UserPermissionsScreen> {
 
       final user = Map<String, dynamic>.from(userData as Map);
       final level = user['level'] as int;
-      
+
       // Reset to defaults
       final defaults = UserPermissions.getDefaultPermissions(level);
       setState(() {
@@ -321,19 +321,21 @@ class _UserPermissionsScreenState extends State<UserPermissionsScreen> {
       // Save the complete permission set
       user['permissions'] = Map<String, bool>.from(_permissions);
 
-      LogService.debug('Saving user with permissions to key: $_selectedUsername');
+      LogService.debug(
+          'Saving user with permissions to key: $_selectedUsername');
       LogService.debug('User data before save: ${user.toString()}');
       LogService.debug('Permissions being saved: $_permissions');
-      
+
       await usersBox.put(_selectedUsername, user);
-      
+
       // Verify the save
       final savedUser = usersBox.get(_selectedUsername);
       LogService.debug('User data after save: ${savedUser.toString()}');
-      
+
       await SyncService.pushChange('usersBox', _selectedUsername!, user);
 
-      LogService.info('Successfully updated permissions for $_selectedUsername');
+      LogService.info(
+          'Successfully updated permissions for $_selectedUsername');
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
