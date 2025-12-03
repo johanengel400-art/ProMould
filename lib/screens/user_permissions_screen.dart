@@ -222,19 +222,20 @@ class _UserPermissionsScreenState extends State<UserPermissionsScreen> {
 
     try {
       final usersBox = Hive.box('usersBox');
-      
-      LogService.debug('Attempting to save permissions for: $_selectedUsername');
+
+      LogService.debug(
+          'Attempting to save permissions for: $_selectedUsername');
       LogService.debug('Permissions to save: $_permissions');
-      
+
       // Try direct get first
       var userData = usersBox.get(_selectedUsername);
-      
+
       // If not found by key, search through all users
       if (userData == null) {
         LogService.debug('User not found by key, searching all users...');
         final allUsers = usersBox.values.cast<Map>().toList();
         LogService.debug('Total users in box: ${allUsers.length}');
-        
+
         for (var user in allUsers) {
           LogService.debug('Checking user: ${user['username']}');
           if (user['username'] == _selectedUsername) {
@@ -246,7 +247,8 @@ class _UserPermissionsScreenState extends State<UserPermissionsScreen> {
       }
 
       if (userData == null) {
-        LogService.error('User not found after search: $_selectedUsername', null);
+        LogService.error(
+            'User not found after search: $_selectedUsername', null);
         throw Exception('User not found: $_selectedUsername');
       }
 
@@ -255,11 +257,13 @@ class _UserPermissionsScreenState extends State<UserPermissionsScreen> {
       // Save the complete permission set
       user['permissions'] = Map<String, bool>.from(_permissions);
 
-      LogService.debug('Saving user with permissions to key: $_selectedUsername');
+      LogService.debug(
+          'Saving user with permissions to key: $_selectedUsername');
       await usersBox.put(_selectedUsername, user);
       await SyncService.pushChange('usersBox', _selectedUsername!, user);
 
-      LogService.info('Successfully updated permissions for $_selectedUsername');
+      LogService.info(
+          'Successfully updated permissions for $_selectedUsername');
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

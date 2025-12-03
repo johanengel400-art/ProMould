@@ -75,7 +75,8 @@ class _MouldChangeSchedulerScreenState
         // Debug logging
         LogService.debug('Total changes in box: ${allChanges.length}');
         for (var change in allChanges) {
-          LogService.debug('Change: ${change['id']} - Status: ${change['status']}');
+          LogService.debug(
+              'Change: ${change['id']} - Status: ${change['status']}');
         }
 
         // Calculate counts for filter chips (from ALL changes)
@@ -86,8 +87,9 @@ class _MouldChangeSchedulerScreenState
             allChanges.where((c) => c['status'] == 'In Progress').length;
         final completedCount =
             allChanges.where((c) => c['status'] == 'Completed').length;
-        
-        LogService.debug('Counts - All: $allCount, Scheduled: $scheduledCount, InProgress: $inProgressCount, Completed: $completedCount');
+
+        LogService.debug(
+            'Counts - All: $allCount, Scheduled: $scheduledCount, InProgress: $inProgressCount, Completed: $completedCount');
 
         // Filter for display
         var changes = selectedFilter == 'All'

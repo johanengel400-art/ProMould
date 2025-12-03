@@ -186,7 +186,7 @@ class _MouldChangeChecklistScreenState
       final box = Hive.isBoxOpen('mouldChangesBox')
           ? Hive.box('mouldChangesBox')
           : await Hive.openBox('mouldChangesBox');
-      
+
       await box.put(id, data);
       await SyncService.pushChange('mouldChangesBox', id, data);
 
@@ -200,10 +200,10 @@ class _MouldChangeChecklistScreenState
             duration: Duration(seconds: 2),
           ),
         );
-        
+
         // Small delay to ensure snackbar shows
         await Future.delayed(const Duration(milliseconds: 500));
-        
+
         if (mounted) {
           Navigator.pop(context, true); // Return true to indicate success
         }
