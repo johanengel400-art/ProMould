@@ -6,8 +6,8 @@ on:
       - main
       - dev
 
-  permissions:
-  contents: write    
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -30,11 +30,7 @@ jobs:
           VERSION_NAME="1.0.${{ github.run_number }}"
           VERSION_CODE=${{ github.run_number }}
           echo "Setting version to $VERSION_NAME+$VERSION_CODE"
-
-          # Update the version line safely
           sed -i -E "s/^version:.*/version: $VERSION_NAME+$VERSION_CODE/" pubspec.yaml
-
-          # Show result (won't fail build if not found)
           grep -m1 '^version:' pubspec.yaml || echo "No version line found"
 
       - name: Build APK
