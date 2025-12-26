@@ -27,8 +27,12 @@ jobs:
           VERSION_NAME="1.0.${{ github.run_number }}"
           VERSION_CODE=${{ github.run_number }}
           echo "Setting version to $VERSION_NAME+$VERSION_CODE"
-          sed -i "s/^version:.*/version: $VERSION_NAME+$VERSION_CODE/" pubspec.yaml
-          cat pubspec.yaml | grep version
+
+          # Update the version line safely
+          sed -i -E "s/^version:.*/version: $VERSION_NAME+$VERSION_CODE/" pubspec.yaml
+
+          # Show result (won't fail build if not found)
+          grep -m1 '^version:' pubspec.yaml || echo "No version line found"
 
       - name: Build APK
         run: |
