@@ -34,7 +34,7 @@ class AppTheme {
             borderSide: const BorderSide(color: primary, width: 2)),
         labelStyle: const TextStyle(color: text),
       ),
-      cardTheme: const CardTheme(
+      cardTheme: const CardThemeData(
         color: surface,
         elevation: 2,
         shape: RoundedRectangleBorder(
