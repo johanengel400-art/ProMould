@@ -2,98 +2,31 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
-  workflow_dispatch:
-
-concurrency:
-  group: build-${{ github.ref }}
-  cancel-in-progress: true
-
-permissions:
-  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Java
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'zulu'
-        java-version: '17'
-        
-    - name: Setup Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: '3.24.5'
-        channel: 'stable'
-        
-    - name: Get dependencies
-      run: flutter pub get
-      
-    - name: Run build_runner
-      run: flutter pub run build_runner build --delete-conflicting-outputs
-      
-    - name: Format code
-      run: |
-        echo "Formatting code..."
-        dart format lib/ test/
-        echo "✅ Code formatted"
-    
-    - name: Check for formatting changes
-      run: |
-        if [[ -n $(git status --porcelain) ]]; then
-          echo "⚠️  Code was auto-formatted. Committing changes..."
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git add -A
-          git commit -m "style: auto-format code [skip ci]"
-          git push
-          echo "✅ Formatted code committed"
-        else
-          echo "✅ Code already properly formatted"
-        fi
-      
-    - name: Analyze code
-      run: |
-        echo "Running code analysis..."
-        flutter analyze --no-fatal-infos --no-fatal-warnings 2>&1 | tee analyze_output.txt
-        if grep -q "error •" analyze_output.txt; then
-          echo "❌ Critical errors found in code"
-          grep "error •" analyze_output.txt
-          exit 1
-        else
-          echo "✅ No critical errors found (warnings/infos are OK)"
-        fi
-      
-    - name: Build APK
-      run: flutter build apk --release --verbose
-      
-    - name: Rename APK
-      run: |
-        cd build/app/outputs/flutter-apk
-        mv app-release.apk ProMould-v7.2.apk
-      
-    - name: Upload APK artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: ProMould-v7.2-APK
-        path: build/app/outputs/flutter-apk/ProMould-v7.2.apk
-        
-    - name: Create Release
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: v7.2-${{ github.run_number }}
-        name: ProMould v7.2 Build ${{ github.run_number }}
-        files: build/app/outputs/flutter-apk/ProMould-v7.2.apk
-        draft: false
-        prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ProMould-APK
+          path: build/app/outputs/flutter-apk/app-release.apk
