@@ -5,6 +5,10 @@ on:
     branches:
       - main
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -14,20 +18,49 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
       - name: Install Flutter
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.24.0'
           channel: stable
+          cache: true
 
       - name: Get dependencies
         run: flutter pub get
 
       - name: Build APK
-        run: flutter build apk --release
+        run: flutter build apk --release --no-tree-shake-icons
 
-            - name: Upload to GitHub Release
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: promould-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Create Release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: ncipollo/release-action@v1
         with:
           artifacts: build/app/outputs/flutter-apk/app-release.apk
-          tag: v${{ github.run_number }}
+          tag: v9.0.${{ github.run_number }}
+          name: ProMould v9.0.${{ github.run_number }}
+          body: |
+            ProMould v9 - Factory Operating System
+            
+            Build: ${{ github.run_number }}
+            Commit: ${{ github.sha }}
+            
+            Changes in this build:
+            - Core architecture with RBAC
+            - Audit logging system
+            - Task escalation engine
+            - Shift handover with snapshots
+            - Counter reconciliation
           token: ${{ secrets.GITHUB_TOKEN }}
+          allowUpdates: true
