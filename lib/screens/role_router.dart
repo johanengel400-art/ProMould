@@ -1,9 +1,10 @@
 // lib/screens/role_router.dart
-// v7.2 – Material 3 Navigation Drawer (replaces bottom nav)
+// v9.0 – Factory Operating System with RBAC
 
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import '../services/log_service.dart';
+import '../core/constants.dart';
 
 // import all screens
 import 'login_screen.dart';
@@ -65,6 +66,21 @@ class _RoleRouterState extends State<RoleRouter> {
     Navigator.pop(context);
   }
 
+  String _getRoleDisplayName() {
+    switch (widget.level) {
+      case 1:
+        return UserRole.operator.displayName;
+      case 2:
+        return UserRole.materialHandler.displayName;
+      case 3:
+        return UserRole.setter.displayName;
+      case 4:
+        return UserRole.productionManager.displayName;
+      default:
+        return 'User';
+    }
+  }
+
   bool _hasPermission(String permission) {
     final usersBox = Hive.box('usersBox');
 
@@ -117,7 +133,7 @@ class _RoleRouterState extends State<RoleRouter> {
   @override
   Widget build(BuildContext context) {
     final bool isOperator = widget.level == 1;
-    // final bool isMaterial = widget.level == 2; // Reserved for future use
+    final bool isMaterialHandler = widget.level == 2;
     final bool isSetter = widget.level == 3;
     final bool isManager = widget.level >= 4;
     final bool isAdmin = widget.level >= 4;
@@ -138,8 +154,8 @@ class _RoleRouterState extends State<RoleRouter> {
       drawer: NavigationDrawer(
         onDestinationSelected: (int index) {},
         children: [
-          const DrawerHeader(
-            decoration: BoxDecoration(
+          DrawerHeader(
+            decoration: const BoxDecoration(
               gradient: LinearGradient(
                 colors: [Color(0xFF4CC9F0), Color(0xFF80ED99)],
                 begin: Alignment.topLeft,
@@ -148,24 +164,46 @@ class _RoleRouterState extends State<RoleRouter> {
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.factory, size: 48, color: Colors.white),
-                SizedBox(height: 8),
-                Text(
-                  'ProMould v7.2',
-                  style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white),
+                const Row(
+                  children: [
+                    Icon(Icons.factory, size: 48, color: Colors.white),
+                    SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'ProMould v9',
+                          style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white),
+                        ),
+                        Text(
+                          'Factory Operating System',
+                          style: TextStyle(fontSize: 12, color: Colors.white70),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                Text(
-                  'Smart Factory',
-                  style: TextStyle(fontSize: 14, color: Colors.white70),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    _getRoleDisplayName(),
+                    style: const TextStyle(fontSize: 11, color: Colors.white),
+                  ),
                 ),
               ],
             ),
           ),
-          // Operator Menu (Level 1) - Only Dashboard and QC
+          // Operator Menu (Level 1) - Dashboard, Report Issue, My Tasks
           if (isOperator) ...[
             if (_hasPermission(UserPermissions.dashboard))
               _drawerItem(
@@ -175,8 +213,25 @@ class _RoleRouterState extends State<RoleRouter> {
                       username: widget.username, level: widget.level)),
             _drawerItem(Icons.report_problem_outlined, 'Report Issue',
                 OperatorQCScreen(username: widget.username)),
+            _drawerItem(Icons.task_alt, 'My Tasks',
+                MyTasksScreen(username: widget.username, level: widget.level)),
           ],
-          // Setter Menu (Level 3) - Limited access
+          // Material Handler Menu (Level 2) - Stock, Materials, Issues
+          if (isMaterialHandler) ...[
+            if (_hasPermission(UserPermissions.dashboard))
+              _drawerItem(
+                  Icons.dashboard_outlined,
+                  'Dashboard',
+                  DashboardScreenV2(
+                      username: widget.username, level: widget.level)),
+            _drawerItem(Icons.inventory_2_outlined, 'Stock Management',
+                ManageMouldsScreen(level: widget.level)),
+            _drawerItem(Icons.report_problem_outlined, 'Issues',
+                IssuesScreenV2(username: widget.username, level: widget.level)),
+            _drawerItem(Icons.task_alt, 'My Tasks',
+                MyTasksScreen(username: widget.username, level: widget.level)),
+          ],
+          // Setter Menu (Level 3) - Mould changes, Inspections, Issues
           if (isSetter) ...[
             if (_hasPermission(UserPermissions.dashboard))
               _drawerItem(

@@ -1,5 +1,5 @@
 // lib/screens/dashboard_screen_v2.dart
-// Professional revamped dashboard with all enhancements
+// ProMould v9 Dashboard - Factory Operating System
 
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -130,7 +130,7 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'ProMould Dashboard',
+                    'ProMould v9',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   Text(
