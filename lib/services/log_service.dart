@@ -102,4 +102,13 @@ class LogService {
     _activeLogger
         .i('[Performance] $operation took ${duration.inMilliseconds}ms');
   }
+
+  /// Log audit events
+  static void audit(String message, {dynamic error}) {
+    if (error != null) {
+      _activeLogger.w('[Audit] $message', error: error);
+    } else {
+      _activeLogger.i('[Audit] $message');
+    }
+  }
 }
