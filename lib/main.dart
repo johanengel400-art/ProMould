@@ -11,6 +11,15 @@ import 'services/push_notification_service.dart';
 import 'services/overrun_notification_service.dart';
 import 'services/log_service.dart';
 import 'services/error_handler.dart';
+// ProMould v9 Core Services
+import 'services/audit_service.dart';
+import 'services/rbac_service.dart';
+import 'services/shift_service.dart';
+import 'services/alert_service.dart';
+import 'services/task_service.dart';
+import 'services/handover_service.dart';
+import 'services/reconciliation_service.dart';
+import 'core/constants.dart';
 import 'utils/memory_manager.dart';
 import 'utils/data_initializer.dart';
 import 'screens/login_screen.dart';
@@ -25,22 +34,47 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 Future<void> _openCoreBoxes() async {
-  await Hive.openBox('usersBox');
-  await Hive.openBox('floorsBox');
-  await Hive.openBox('machinesBox');
-  await Hive.openBox('jobsBox');
-  await Hive.openBox('mouldsBox');
-  await Hive.openBox('issuesBox');
-  await Hive.openBox('inputsBox');
-  await Hive.openBox('queueBox');
-  await Hive.openBox('downtimeBox');
-  await Hive.openBox('checklistsBox');
-  await Hive.openBox('mouldChangesBox');
-  await Hive.openBox('qualityInspectionsBox');
-  await Hive.openBox('qualityHoldsBox');
-  await Hive.openBox('machineInspectionsBox');
-  await Hive.openBox('dailyInspectionsBox');
-  await Hive.openBox('dailyProductionBox');
+  // Core entity boxes
+  await Hive.openBox(HiveBoxes.users);
+  await Hive.openBox(HiveBoxes.floors);
+  await Hive.openBox(HiveBoxes.machines);
+  await Hive.openBox(HiveBoxes.jobs);
+  await Hive.openBox(HiveBoxes.moulds);
+  await Hive.openBox(HiveBoxes.materials);
+  await Hive.openBox(HiveBoxes.tools);
+  
+  // Operational boxes
+  await Hive.openBox(HiveBoxes.issues);
+  await Hive.openBox(HiveBoxes.inputs);
+  await Hive.openBox(HiveBoxes.queue);
+  await Hive.openBox(HiveBoxes.downtime);
+  await Hive.openBox(HiveBoxes.scrap);
+  await Hive.openBox(HiveBoxes.checklists);
+  await Hive.openBox(HiveBoxes.mouldChanges);
+  
+  // Quality boxes
+  await Hive.openBox(HiveBoxes.qualityInspections);
+  await Hive.openBox(HiveBoxes.qualityHolds);
+  await Hive.openBox(HiveBoxes.machineInspections);
+  await Hive.openBox(HiveBoxes.dailyInspections);
+  await Hive.openBox(HiveBoxes.dailyProduction);
+  
+  // ProMould v9 boxes
+  await Hive.openBox(HiveBoxes.tasks);
+  await Hive.openBox(HiveBoxes.alerts);
+  await Hive.openBox(HiveBoxes.shifts);
+  await Hive.openBox(HiveBoxes.handovers);
+  await Hive.openBox(HiveBoxes.auditLogs);
+  await Hive.openBox(HiveBoxes.productionLogs);
+  await Hive.openBox(HiveBoxes.reconciliations);
+  await Hive.openBox(HiveBoxes.stockMovements);
+  await Hive.openBox(HiveBoxes.assignments);
+  await Hive.openBox(HiveBoxes.compatibility);
+  await Hive.openBox(HiveBoxes.reasonCodes);
+  await Hive.openBox(HiveBoxes.customers);
+  await Hive.openBox(HiveBoxes.suppliers);
+  await Hive.openBox(HiveBoxes.notifications);
+  await Hive.openBox(HiveBoxes.settings);
 }
 
 void main() async {
@@ -74,11 +108,26 @@ void main() async {
     await _openCoreBoxes();
     LogService.info('Hive initialized successfully');
 
+    // Initialize ProMould v9 core services
+    LogService.info('Initializing ProMould v9 core services...');
+    try {
+      await AuditService.initialize();
+      await RBACService.initialize();
+      await ShiftService.initialize();
+      await AlertService.initialize();
+      await TaskService.initialize();
+      await HandoverService.initialize();
+      await ReconciliationService.initialize();
+      LogService.info('ProMould v9 core services initialized');
+    } catch (e) {
+      LogService.warning('Some v9 services failed to initialize', e);
+    }
+
     // Ensure admin user exists
     LogService.info('Ensuring admin user exists...');
     await DataInitializer.ensureAdminExists();
 
-    final users = Hive.box('usersBox');
+    final users = Hive.box(HiveBoxes.users);
     LogService.info('Users box has ${users.length} users');
     LogService.info('User keys: ${users.keys.toList()}');
 
@@ -115,6 +164,23 @@ void main() async {
       LogService.info('Overrun notification service started successfully');
     } catch (e) {
       LogService.warning('Overrun notification service failed', e);
+    }
+
+    // Start ProMould v9 background services
+    try {
+      LogService.info('Starting alert service periodic check...');
+      AlertService.startPeriodicCheck();
+      LogService.info('Alert service started');
+    } catch (e) {
+      LogService.warning('Alert service failed to start', e);
+    }
+
+    try {
+      LogService.info('Starting task escalation engine...');
+      TaskService.startEscalationEngine();
+      LogService.info('Task escalation engine started');
+    } catch (e) {
+      LogService.warning('Task escalation engine failed to start', e);
     }
 
     // Initialize push notifications (non-critical)
